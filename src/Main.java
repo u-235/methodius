@@ -1,5 +1,4 @@
 
-
 import java.awt.EventQueue;
 
 import logic.Application;
@@ -13,11 +12,11 @@ public class Main
         Runtime r;
         long us;
         t = new MainForm();
-        
-        for(String s : args) {
+
+        for (String s : args) {
             System.out.println(s);
         }
-        
+
         Application.run();
 
         // EventQueue.invokeLater(java.lang.Thread.currentThread());
@@ -28,7 +27,7 @@ public class Main
                 t.frame.setVisible(true);
             }
         });
-        t.frame.setVisible(true); 
+        t.frame.setVisible(true);
         r = Runtime.getRuntime();
 
         while (true) {
