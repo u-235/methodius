@@ -1,10 +1,11 @@
 package microfont.events;
 
-import microfont.PixselMapX;
+import microfont.PixselMap;
 
 /**
  * Исключение при попытке получения (или изменения) следующего пикселя через
- * {@linkplain PixselMapX.PixselIterator итератор}, который уже достиг конца итераций.
+ * {@linkplain PixselMap.PixselIterator итератор}, который уже достиг конца
+ * итераций.
  * 
  */
 public class BadIterationException extends RuntimeException

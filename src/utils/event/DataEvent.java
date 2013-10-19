@@ -27,7 +27,7 @@ import java.util.EventObject;
  *         super(source, reason, oldValue, newValue);
  *     }
  * }
- * </pre> 
+ * </pre>
  * 
  * @author Николай Егоров
  * 
@@ -35,9 +35,9 @@ import java.util.EventObject;
 public class DataEvent extends EventObject
 {
     private static final long serialVersionUID = -4684310850435480580L;
-    private int    reason;
-    private Object oldValue;
-    private Object newValue;
+    private int               reason;
+    private Object            oldValue;
+    private Object            newValue;
 
     public DataEvent(Object source, int reason, Object oldValue, Object newValue) {
         super(source);

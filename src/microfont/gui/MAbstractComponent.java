@@ -31,18 +31,16 @@ import microfont.events.MSymbolListener;
  * <p>
  * <b>Символ по умолчанию.</b><br>
  * Многие методы используют {@linkplain #symbol символ по умолчанию}. При
- * изменении этого символа вызывается метод
- * {@link #mSymbolEvent(MSymbolEvent)}, что позволяет оперативно обновлять
- * отображение символа.
+ * изменении этого символа вызывается метод {@link #mSymbolEvent(MSymbolEvent)},
+ * что позволяет оперативно обновлять отображение символа.
  * <p>
  * <b>Отрисовка символа.</b><br>
  * <img src="../doc-files/source-elements.png"><br>
  * Метод
  * {@link #drawSymbol(Graphics, MSymbol, boolean, int, int, int, int, Color, Color)}
  * является базовым, другие методы отрисовки символа вызывают его, подставляя
- * переменные класса. При этом могут использоваться переменные
- * {@link #symbol} , {@link #ink}, {@link #paper},
- * {@link #pixselSize}.
+ * переменные класса. При этом могут использоваться переменные {@link #symbol} ,
+ * {@link #ink}, {@link #paper}, {@link #pixselSize}.
  * <p>
  * <b>Отрисовка сетки.</b><br>
  * <p>
@@ -67,7 +65,7 @@ public class MAbstractComponent extends ScrollableWindow implements
     /** Имя шрифта. */
     protected String          charset          = "cp1251";
     /** Ширина пикселя символа при отображении на экране. */
-    protected int             pixselSize      = 2;
+    protected int             pixselSize       = 2;
     /** Ширина левого поля. */
     protected int             marginLeft;
     /** Ширина правого поля. */
@@ -113,15 +111,14 @@ public class MAbstractComponent extends ScrollableWindow implements
     public MAbstractComponent(MSymbol symbol) {
         this.setSymbol(symbol);
 
-
         this.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
                 if (isFocusable()) requestFocus();
             }
         });
-        
-        this.addKeyListener(new KeyAdapter() {          
+
+        this.addKeyListener(new KeyAdapter() {
             @Override
             public void keyTyped(KeyEvent e) {
                 System.out.println("typed");
@@ -149,9 +146,8 @@ public class MAbstractComponent extends ScrollableWindow implements
     /**
      * Метод устанавливает {@linkplain #symbol символ} по умолчанию. Если символ
      * принадлежит {@linkplain MFont шрифту}, то обновляются переменные
-     * {@link #marginLeft}, {@link #marginRight},
-     * {@link #marginTop}, {@link #marginBottom} и
-     * {@link #charset}. Вызывается метод
+     * {@link #marginLeft}, {@link #marginRight}, {@link #marginTop},
+     * {@link #marginBottom} и {@link #charset}. Вызывается метод
      * {@link ScrollableWindow#revalidate() revalidate()}.
      * 
      * @param s Новый символ.
@@ -801,11 +797,10 @@ public class MAbstractComponent extends ScrollableWindow implements
                                             || isAbove(pixselSize - dX,
                                                             pixselSize,
                                                             pixselSize,
-                                                            pixselSize - dY,
-                                                            x, y) || isAbove(0,
-                                                                            pixselSize - dY, dX,
-                                                                            pixselSize, x, y)))
-                ret.flags |= ret.VALID_COLUMN;// DEAD_ZONE;
+                                                            pixselSize - dY, x,
+                                                            y) || isAbove(0,
+                                            pixselSize - dY, dX, pixselSize, x,
+                                            y))) ret.flags |= ret.VALID_COLUMN;// DEAD_ZONE;
         }
 
         if ((ret.flags & ret.VALID_COLUMN) == 0
@@ -828,9 +823,8 @@ public class MAbstractComponent extends ScrollableWindow implements
     @Override
     public void mSymbolEvent(MSymbolEvent change) {
         if (change.reason == MSymbolEvent.SIZE) revalidate();
-        else repaint(change.x * pixselSize, change.y * pixselSize,
-                        change.width * pixselSize, change.height
-                                        * pixselSize);
+        else repaint(change.x * pixselSize, change.y * pixselSize, change.width
+                        * pixselSize, change.height * pixselSize);
     }
 
     @Override
@@ -853,30 +847,30 @@ public class MAbstractComponent extends ScrollableWindow implements
         case MFontEvent.FONT_CHARSET:
         }
     }
-    
-    void ScallePlus(){
-            int w;
-            w=getPixselSize();
-            w+=(w+2)/3;
-            try {
-                setPixselSize(w);
-            }
-            catch (RenderError e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-            }
+
+    void ScallePlus() {
+        int w;
+        w = getPixselSize();
+        w += (w + 2) / 3;
+        try {
+            setPixselSize(w);
+        }
+        catch (RenderError e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
     }
-    
-    void ScalleMinus(){
-            int w;
-            w=getPixselSize();
-            w-=(w+1)/3;
-            try {
-                setPixselSize(w);
-            }
-            catch (RenderError e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-            }        
+
+    void ScalleMinus() {
+        int w;
+        w = getPixselSize();
+        w -= (w + 1) / 3;
+        try {
+            setPixselSize(w);
+        }
+        catch (RenderError e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
     }
 }

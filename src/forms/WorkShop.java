@@ -64,8 +64,8 @@ public class WorkShop extends JFrame
 
         this.setJMenuBar(doMenuBar());
         this.add(doToolBar(), BorderLayout.NORTH);
-        
-        split=new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true);
+
+        split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true);
         this.add(split);
 
         this.add(doStatusBar(), BorderLayout.SOUTH);
@@ -215,11 +215,11 @@ public class WorkShop extends JFrame
 
         return statusBar;
     }
-    
+
     public void setLeft(Component comp) {
         split.setLeftComponent(comp);
     }
-    
+
     public void setRight(Component comp) {
         split.setRightComponent(comp);
     }

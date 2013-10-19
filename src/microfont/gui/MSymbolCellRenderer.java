@@ -21,8 +21,9 @@ public class MSymbolCellRenderer extends MSymbolView implements
      */
 
     @Override
-    public Component getListCellRendererComponent(JList <? extends MSymbol> list, MSymbol value,
-                    int index, boolean isSelected, boolean cellHasFocus) {
+    public Component getListCellRendererComponent(
+                    JList<? extends MSymbol> list, MSymbol value, int index,
+                    boolean isSelected, boolean cellHasFocus) {
         super.setSymbol(value);
         if (isSelected) {
             setBackground(list.getSelectionBackground());

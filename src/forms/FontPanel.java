@@ -23,7 +23,7 @@ public class FontPanel extends JPanel
     MSymbol                     symbol;
     protected int               listIndex;
     private MSymbolView         view;
-    private JList<MSymbol>               list;
+    private JList<MSymbol>      list;
     private MListModel          listModel;
     private MSymbolCellRenderer listRender;
 

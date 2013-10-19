@@ -44,7 +44,6 @@ import utils.resource.Resource;
 
 import logic.Application;
 import microfont.MFont;
-import microfont.MFontLoadSave;
 import microfont.MSymbol;
 import microfont.events.MFontEvent;
 import microfont.events.MFontListener;
@@ -52,6 +51,7 @@ import microfont.gui.MListModel;
 import microfont.gui.MSymbolCellRenderer;
 import microfont.gui.MSymbolEditor;
 import microfont.gui.MSymbolView;
+import microfont.ls.MFontLoadSave;
 
 public class MainForm
 {
@@ -108,7 +108,7 @@ public class MainForm
     private class OnFontChange implements MFontListener
     {
         @Override
-        public void mFontEvent(MFontEvent change){            
+        public void mFontEvent(MFontEvent change) {
             System.out.println(change.toString() + " "
                             + change.getReasonString() + " index="
                             + change.getIndex());

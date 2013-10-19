@@ -141,11 +141,11 @@ public class MSymbolView extends MAbstractComponent
         return rv;
     }
 
- //   @Override
-//    public Dimension calculateMaxSize(Dimension rv) {
-//        rv.setSize(prefSize);
-//        return rv;
-//    }
+    // @Override
+    // public Dimension calculateMaxSize(Dimension rv) {
+    // rv.setSize(prefSize);
+    // return rv;
+    // }
 
     @Override
     public void doLayout() {
@@ -198,9 +198,9 @@ public class MSymbolView extends MAbstractComponent
     public void mSymbolEvent(MSymbolEvent change) {
         if (change.reason == MSymbolEvent.SIZE) revalidate();
         else {
-            repaint(symbolPos.x + change.x * pixselSize, symbolPos.y
-                            + change.y * pixselSize, change.width
-                            * pixselSize, change.height * pixselSize);
+            repaint(symbolPos.x + change.x * pixselSize, symbolPos.y + change.y
+                            * pixselSize, change.width * pixselSize,
+                            change.height * pixselSize);
         }
     }
 }

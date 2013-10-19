@@ -27,7 +27,7 @@ public class EditPanel extends JPanel
         tools = new JToolBar(JToolBar.VERTICAL);
         tools.setFloatable(false);
 
-        edit = new MSymbolEditor(new MSymbol(24, 12, new byte [400]));
+        edit = new MSymbolEditor(new MSymbol(24, 12, new byte[400]));
 
         btnPointer = new IToggleButton(Application.actModePointer);
         btnXPensil = new IToggleButton(Application.actModeXPensil);
@@ -44,7 +44,7 @@ public class EditPanel extends JPanel
         this.add(tools, BorderLayout.WEST);
         this.add(new JScrollPane(edit), BorderLayout.CENTER);
     }
-    
+
     public void setMSymbol(MSymbol symbol) {
         edit.setSymbol(symbol);
     }

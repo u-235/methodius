@@ -2,7 +2,6 @@ package microfont.events;
 
 import utils.event.DataEventListener;
 
-
 /**
  * Интерфейс получателя события при изменении символа.
  */

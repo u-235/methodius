@@ -1,6 +1,5 @@
 package utils.resource;
 
-
 import utils.event.DataEventListener;
 
 public interface ResourceListener extends DataEventListener

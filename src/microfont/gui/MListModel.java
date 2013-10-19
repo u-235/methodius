@@ -11,7 +11,8 @@ import microfont.events.MFontListener;
  * Класс для представления {@linkplain MFont шрифта} в JList.
  * 
  */
-public class MListModel extends AbstractListModel<MSymbol> implements MFontListener
+public class MListModel extends AbstractListModel<MSymbol> implements
+                MFontListener
 {
     private static final long serialVersionUID = 1L;
     /** */

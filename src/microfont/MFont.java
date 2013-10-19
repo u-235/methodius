@@ -10,7 +10,7 @@ import microfont.events.MSymbolListener;
 /**
  * 
  * @author Николай
- *
+ * 
  */
 public class MFont extends Object implements MSymbolListener
 {
@@ -42,8 +42,7 @@ public class MFont extends Object implements MSymbolListener
     private class Chain extends ListenerChain<MFontEvent>
     {
         @Override
-        protected void listenerCall(DataEventListener listener,
-                        MFontEvent event) {
+        protected void listenerCall(DataEventListener listener, MFontEvent event) {
             ((MFontListener) listener).mFontEvent(event);
         }
 

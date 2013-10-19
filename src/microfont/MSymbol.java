@@ -7,8 +7,7 @@ import microfont.events.MSymbolEvent;
 import microfont.events.MSymbolListener;
 
 /**
- * Класс MSymbol для хранения и изменения символа {@link MFont
- * шрифта}.<br>
+ * Класс MSymbol для хранения и изменения символа {@link MFont шрифта}.<br>
  * Символ имеет ширину и высоту в пикселях, а так же индекс (номер) символа в
  * шрифте. Ключевое свойство символа - массив пикселей.<br>
  * Важно знать, что хотя символ и является разделяемым ресурсом, но один и тот
@@ -58,7 +57,7 @@ public class MSymbol extends Object
     /** Индекс символа в шрифте. */
     protected int                      index;
     /** Массив пикселей */
-    protected PixselMapX                pixsels;
+    protected PixselMap               pixsels;
     /** Список получателей события после изменения символа. */
     private ArrayList<MSymbolListener> listListener = new ArrayList<MSymbolListener>();
 
@@ -77,7 +76,7 @@ public class MSymbol extends Object
         if (i < 0) throw (new IllegalArgumentException("Invalid index"));
         index = i;
 
-        pixsels = new PixselMapX(w, h, a);
+        pixsels = new PixselMap(w, h, a);
     }
 
     /**
@@ -109,7 +108,7 @@ public class MSymbol extends Object
         if (i < 0) throw (new IllegalArgumentException("Invalid index"));
         index = i;
 
-        pixsels = new PixselMapX(w, h, a);
+        pixsels = new PixselMap(w, h, a);
     }
 
     /**
@@ -380,7 +379,7 @@ public class MSymbol extends Object
      * Генерируется сообщение {@link MSymbolEvent#SHIFT SHIFT}.
      */
     public void shiftRight() {
-        PixselMapX.copyFrame(pixsels, -1, 0, pixsels, 0, 0, pixsels.width,
+        PixselMap.copyFrame(pixsels, -1, 0, pixsels, 0, 0, pixsels.width,
                         pixsels.height);
 
         this.fireEvent(MSymbolEvent.SHIFT, 0, 0, pixsels.width, pixsels.height);
@@ -391,7 +390,7 @@ public class MSymbol extends Object
      * Генерируется сообщение {@link MSymbolEvent#SHIFT SHIFT}.
      */
     public void shiftLeft() {
-        PixselMapX.copyFrame(this.pixsels, 1, 0, this.pixsels, 0, 0,
+        PixselMap.copyFrame(this.pixsels, 1, 0, this.pixsels, 0, 0,
                         pixsels.width, pixsels.height);
 
         this.fireEvent(MSymbolEvent.SHIFT, 0, 0, pixsels.width, pixsels.height);
@@ -402,7 +401,7 @@ public class MSymbol extends Object
      * Генерируется сообщение {@link MSymbolEvent#SHIFT SHIFT}.
      */
     public void shiftUp() {
-        PixselMapX.copyFrame(pixsels, 0, 1, pixsels, 0, 0, pixsels.width,
+        PixselMap.copyFrame(pixsels, 0, 1, pixsels, 0, 0, pixsels.width,
                         pixsels.height);
 
         this.fireEvent(MSymbolEvent.SHIFT, 0, 0, pixsels.width, pixsels.height);
@@ -413,7 +412,7 @@ public class MSymbol extends Object
      * Генерируется сообщение {@link MSymbolEvent#SHIFT SHIFT}.
      */
     public void shiftDown() {
-        PixselMapX.copyFrame(pixsels, 0, -1, pixsels, 0, 0, pixsels.width,
+        PixselMap.copyFrame(pixsels, 0, -1, pixsels, 0, 0, pixsels.width,
                         pixsels.height);
 
         this.fireEvent(MSymbolEvent.SHIFT, 0, 0, pixsels.width, pixsels.height);
@@ -426,7 +425,7 @@ public class MSymbol extends Object
      * @throws IllegalArgumentException
      */
     public void removeColumn(int pos) throws IllegalArgumentException {
-        PixselMapX newarr;
+        PixselMap newarr;
 
         if (pixsels.width == 0 || pixsels.height == 0) return;
 
@@ -437,12 +436,10 @@ public class MSymbol extends Object
             newarr = null;
         }
         else {
-            newarr = new PixselMapX(pixsels.width - 1, pixsels.height);
-            PixselMapX.copyFrame(pixsels, 0, 0, newarr,
-                            0, 0, pos - 1,
+            newarr = new PixselMap(pixsels.width - 1, pixsels.height);
+            PixselMap.copyFrame(pixsels, 0, 0, newarr, 0, 0, pos - 1,
                             pixsels.height);
-            PixselMapX.copyFrame(pixsels, pos + 1, 0,
-                            newarr,  pos, 0,
+            PixselMap.copyFrame(pixsels, pos + 1, 0, newarr, pos, 0,
                             pixsels.width - pos, pixsels.height);
         }
 
@@ -457,7 +454,7 @@ public class MSymbol extends Object
      * @throws IllegalArgumentException
      */
     public void removeRow(int pos) throws IllegalArgumentException {
-        PixselMapX newarr;
+        PixselMap newarr;
 
         if (pixsels.width == 0 || pixsels.height == 0) return;
 
@@ -468,12 +465,10 @@ public class MSymbol extends Object
             newarr = null;
         }
         else {
-            newarr = new PixselMapX(pixsels.width,pixsels.height - 1);
-            PixselMapX.copyFrame(pixsels, 0, 0, newarr,
-                             0, 0, pixsels.width,
+            newarr = new PixselMap(pixsels.width, pixsels.height - 1);
+            PixselMap.copyFrame(pixsels, 0, 0, newarr, 0, 0, pixsels.width,
                             pos - 1);
-            PixselMapX.copyFrame(pixsels, 0, pos + 1,
-                            newarr,  0, pos,
+            PixselMap.copyFrame(pixsels, 0, pos + 1, newarr, 0, pos,
                             pixsels.width, pixsels.height - pos);
         }
 
@@ -507,7 +502,8 @@ public class MSymbol extends Object
             changed = true;
         }
 
-        if (changed) fireEvent(MSymbolEvent.INDEX, 0, 0, pixsels.width, pixsels.height);
+        if (changed)
+            fireEvent(MSymbolEvent.INDEX, 0, 0, pixsels.width, pixsels.height);
     }
 
     /**

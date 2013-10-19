@@ -12,10 +12,10 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import utils.resource.Resource;
 
 import microfont.MFont;
-import microfont.MFontLoadSave;
 import microfont.MSymbol;
 import microfont.events.MFontEvent;
 import microfont.events.MFontListener;
+import microfont.ls.MFontLoadSave;
 import forms.EditPanel;
 import forms.FontPanel;
 import forms.FontProperties;
@@ -38,7 +38,7 @@ public class Application
     static EditPanel             editPanel;
     static JFileChooser          chooserSave;
     static JFileChooser          chooserOpen;
-    static FontProperties fpf;
+    static FontProperties        fpf;
 
     private static MFont         font;
     private static MSymbol       symbol;
@@ -88,8 +88,8 @@ public class Application
         actModePointer = new OnModePointer();
 
         work = new WorkShop();
-        editPanel=new EditPanel();
-        fontPanel=new FontPanel();
+        editPanel = new EditPanel();
+        fontPanel = new FontPanel();
         work.setLeft(fontPanel);
         work.setRight(editPanel);
 
@@ -102,12 +102,14 @@ public class Application
             public void run() {
                 Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
                 work.setVisible(true);
-                System.out.println("gui thread pririy is " + Thread.currentThread().getPriority());
+                System.out.println("gui thread pririy is "
+                                + Thread.currentThread().getPriority());
             }
         });
 
         Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-        System.out.println("back thread pririy is " + Thread.currentThread().getPriority());
+        System.out.println("back thread pririy is "
+                        + Thread.currentThread().getPriority());
         System.out.println("do open dialog");
         doChooserOpen();
         System.out.println("do save dialog");
