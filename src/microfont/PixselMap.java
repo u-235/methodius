@@ -2,36 +2,42 @@ package microfont;
 
 import java.awt.Dimension;
 
-import microfont.events.BadIterationException;
-import static microfont.PixselMapX.PixselIterator.*;
+import static microfont.PixselMap.PixselIterator.*;
 
 /**
  * Класс для представления карты пикселей.
  */
 public class PixselMap extends Object
 {
-    /** Ширина карты в пикселях. */
-    protected int     width;
-    /** Высота карты в пикселях. */
-    protected int     height;
-    /**  */
-    private int       diffX      = 0;
-    /**  */
-    private int       diffY      = 0;
-    /** Флаг, показывающий, что карта является слепком изменений. */
-    private boolean   diff       = false;
-
     static final int  ITEM_SIZE  = 8;
     static final int  ITEM_SHIFT = 3;
     static final byte ITEM_MASK  = 0x07;
+
     /** Массив пикселей */
-    protected byte    pixsels[];
+    private byte      pixsels[];
+    /** Ширина карты в пикселях. */
+    private int       width;
+    /** Высота карты в пикселях. */
+    private int       height;
 
     /**
-     * Итератор для последовательного доступа к пикселям {@linkplain PixselMap
-     * карты}. Вы можете выбрать прямоугольную область карты произвольного
-     * размера. Так же возможен выбор направления сканирования пикселей.
-     * 
+     * Итератор для последовательного доступа к пикселям прямоугольной области
+     * {@linkplain PixselMap карты} произвольного размера. Так же возможен выбор
+     * направления сканирования пикселей.
+     * <p>
+     * Размеры, задаваемые при создании, могут быть скорректированы, если
+     * область сканирования выходит за границы карты. Например, если
+     * <code>x</code> равен -3 и <code>w</code> равен 7, то <code>x</code> будет
+     * 0 и <code>w</code> станет 4. Если же ширина карты меньше <code>x+w</code>
+     * , то <code>w</code> будет соответственно уменьшен. Так же корректируются
+     * вертикальные размеры. Получить действительные размеры можно при помощи
+     * {@link #getX()}, {@link #getY()}, {@link #getWidth()} и
+     * {@link #getHeight()}.
+     * <p>
+     * Ширина и высота области сканирования не может быть отрицательным числом,
+     * однако это может произойти в результате коррекции или ошибки при задании
+     * параметров конструктора. В таком случае {@link #hasNext()} вернёт
+     * <code>false</code> сразу после создания итератора.
      */
     public class PixselIterator
     {
@@ -52,18 +58,30 @@ public class PixselMap extends Object
         /** Направление снизу вверх, справа налево. */
         public final static int DIR_BOTTOM_RIGHT = 7;
 
-        private PixselMap      map;
+        private PixselMap       map;
         private int             dir;
         private int             startX, startY, w, h;
         private int             posX, posY;
 
         /**
+         * Создаёт итератор с заданными размерами и направлением сканирования.
+         * При создании размеры могут быть скорректированы, если область
+         * сканирования выходит за границы карты.
+         * <p>
+         * {@linkplain PixselIterator Подробнее о ограничениях}
          * 
-         * @param src
-         * @param diffX
-         * @param diffY
-         * @param w
-         * @param h
+         * @param src Карта, для которой будет создан итератор.
+         * @param x Позиция области по горизонтали.
+         * @param y Позиция области по вертикали.
+         * @param w Ширина области.
+         * @param h Высота области.
+         * @param dir Направление сканирования. Может быть одним из
+         *            <ul>
+         *            <li>{@link #DIR_LEFT_TOP} <li>{@link #DIR_RIGHT_TOP} <li>
+         *            {@link #DIR_LEFT_BOTTOM} <li>{@link #DIR_RIGHT_BOTTOM} 
+         *            <li>{@link #DIR_TOP_LEFT} <li>{@link #DIR_TOP_RIGHT} <li>
+         *            {@link #DIR_BOTTOM_LEFT} <li>{@link #DIR_BOTTOM_RIGHT}
+         *            </ul>
          */
         protected PixselIterator(PixselMap src, int x, int y, int w, int h,
                         int dir) {
@@ -91,15 +109,56 @@ public class PixselMap extends Object
 
         }
 
+        /**
+         * Возвращает горизонтальную позицию области сканирования.
+         */
+        public int getX() {
+            return startX;
+        }
+
+        /**
+         * Возвращает вертикальную позицию области сканирования.
+         */
+        public int getY() {
+            return startY;
+        }
+
+        /**
+         * Возвращает ширину области сканирования.
+         */
+        public int getWidth() {
+            return w;
+        }
+
+        /**
+         * Возвращает высоту области сканирования.
+         */
+        public int getHeight() {
+            return h;
+        }
+
+        /**
+         * Возвращает <code>false</code> если отсканирована вся область. В этом
+         * случае вызов метода {@link #getNext()} или
+         * {@link #changeNext(boolean)} вызовет исключение
+         * {@link BadIterationException}
+         * <p>
+         * Если сканирование ещё не завершено, то метод возвращает
+         * <code>true</code>.
+         */
         public boolean hasNext() {
             if (posY <= h && posX < w) return true;
             return false;
         }
 
         /**
+         * Возвращает состояние пикселя. Внутренний указатель сканирования
+         * изменяется в соответствии с направлением, заданным при создании
+         * итератора.
          * 
-         * @return
-         * @throws BadIterationException
+         * @throws BadIterationException при попытке получения состояния после
+         *             завершения сканирования.
+         * @see #hasNext()
          */
         public boolean getNext() {
             boolean ret = false;
@@ -110,6 +169,15 @@ public class PixselMap extends Object
             return ret;
         }
 
+        /**
+         * Изменяет пиксель. Внутренний указатель сканирования изменяется в
+         * соответствии с направлением, заданным при создании итератора.
+         * 
+         * @param set Новое состояние пикселя.
+         * @throws BadIterationException при попытке изменения состояния после
+         *             завершения сканирования.
+         * @see #hasNext()
+         */
         public void changeNext(boolean set) {
             if (!hasNext()) throw new BadIterationException();
             // TODO Auto-generated method stub
@@ -135,8 +203,8 @@ public class PixselMap extends Object
      * 
      * @param width Ширина карты.
      * @param height Высота карты.
-     * @param map Копируемый массив.
-     * @see #fromArray(boolean[], int[])
+     * @param src Копируемый массив.
+     * @see #fromArray(boolean[], byte[])
      */
     public PixselMap(int width, int height, boolean[] src) {
         init(width, height);
@@ -149,8 +217,8 @@ public class PixselMap extends Object
      * 
      * @param width Ширина карты.
      * @param height Высота карты.
-     * @param map Копируемый массив.
-     * @see #fromArray(byte[], int[])
+     * @param src Копируемый массив.
+     * @see #fromArray(byte[], byte[])
      */
     public PixselMap(int width, int height, byte[] src) {
         init(width, height);
@@ -160,7 +228,7 @@ public class PixselMap extends Object
     /**
      * Конструктор для получения копии карты.
      * 
-     * @param map Копируемая карта.
+     * @param src Копируемая карта.
      * @see #clone()
      * @see #copy(PixselMap)
      */
@@ -220,7 +288,7 @@ public class PixselMap extends Object
      * Копирование из карты <code>map</code>. Кроме массива пикселей изменяются
      * переменные {@link #width}, {@link #height}.
      * 
-     * @param map Источник копирования.
+     * @param src Источник копирования.
      * @see #clone()
      */
     public void copy(PixselMap src) {
@@ -296,8 +364,8 @@ public class PixselMap extends Object
      * <p>
      * Доступ к пикселям осуществляется слева направо, сверху вниз.
      * 
-     * @param diffX
-     * @param diffY
+     * @param x
+     * @param y
      * @param w
      * @param h
      * @return
@@ -308,8 +376,8 @@ public class PixselMap extends Object
 
     /**
      * 
-     * @param diffX
-     * @param diffY
+     * @param x
+     * @param y
      * @param w
      * @param h
      * @return
@@ -343,8 +411,8 @@ public class PixselMap extends Object
 
     /**
      * 
-     * @param diffX
-     * @param diffY
+     * @param x
+     * @param y
      * @param fragment
      */
     public void setFragment(int x, int y, PixselMap fragment) {
@@ -368,40 +436,11 @@ public class PixselMap extends Object
         }
     }
 
-    public PixselMap getDifferent(PixselMap old) {
-        PixselMap rv;
-        int w = 0;
-        int h = 0;
-
-        if (old == null) return null;
-
-        if (equals(old)) return null;
-
-        if (this.width != old.width || this.height != old.height) {
-            rv = new PixselMap(old);
-            rv.diff = true;
-            return rv;
-        }
-
-        rv = new PixselMap(w, h);
-
-        return rv;
-    }
-
-    public void restore(PixselMap different) {
-        if (different == null || different.diff == false) return;
-
-        if (different.diffX == 0 && different.diffY == 0) {
-            pixsels = different.pixsels;
-        }
-
-    }
-
     /**
      * Получение заданного пикселя.
      * 
-     * @param diffX номер пикселя в строке. Отсчёт с нуля.
-     * @param diffY номер строки. Отсчёт с нуля.
+     * @param x номер пикселя в строке. Отсчёт с нуля.
+     * @param y номер строки. Отсчёт с нуля.
      * @return <b>true</b> если пиксель установлен. Метод возвращает
      *         <b>false</b> если пиксель сброшен, а так же если параметры
      *         {@code diffX} и {@code diffY} выходят за границы символа.
@@ -416,8 +455,8 @@ public class PixselMap extends Object
     /**
      * Метод изменяет заданный пиксель.
      * 
-     * @param posX номер пикселя в строке. Отсчёт с нуля.
-     * @param posY номер строки. Отсчёт с нуля.
+     * @param column номер пикселя в строке. Отсчёт с нуля.
+     * @param row номер строки. Отсчёт с нуля.
      * @param set <b>true</b> если пиксель должен быть установлен, <b>false</b>
      *            если нужно сбросить.
      * @return <code>true</code> если метод действительно изменил содержимое.
@@ -639,36 +678,6 @@ public class PixselMap extends Object
         fromArray(a, pixsels);
     }
 
-    public void reflectVerticale() {
-        // TODO Auto-generated method stub
-        boolean end, start;
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width / 2; x++) {
-                start = getPixsel(x, y);
-                end = getPixsel(width - 1 - x, y);
-
-                changePixsel(x, y, end);
-                changePixsel(width - 1 - x, y, start);
-            }
-        }
-    }
-
-    public void reflectHorizontale() {
-        // TODO Auto-generated method stub
-        boolean end, start;
-
-        for (int y = 0; y < height / 2; y++) {
-            for (int x = 0; x < width; x++) {
-                start = getPixsel(x, y);
-                end = getPixsel(x, height - 1 - y);
-
-                changePixsel(x, y, end);
-                changePixsel(x, height - 1 - y, start);
-            }
-        }
-    }
-
     /**
      * Метод копирует фрагмент из одного массива в другой. Размер копируемого
      * фрагмента может быть уменьшен в случае, если он выходит за границы
@@ -768,7 +777,7 @@ public class PixselMap extends Object
      * Если суммарное количество бит <b>map</b> меньше длины <b>dst</b>, то
      * остаток в приёмнике не изменяется.
      * 
-     * @param map Источник копирования.
+     * @param src Источник копирования.
      * @param dst Цель копирования.
      */
     private void toArray(byte[] src, byte[] dst) {
@@ -798,7 +807,7 @@ public class PixselMap extends Object
      * Если суммарное количество бит <b>map</b> меньше длины <b>dst</b>, то
      * остаток в приёмнике не изменяется.
      * 
-     * @param map Источник копирования.
+     * @param src Источник копирования.
      * @param dst Цель копирования.
      */
     private void fromArray(boolean[] src, byte[] dst) {
@@ -813,7 +822,7 @@ public class PixselMap extends Object
      * Если суммарное количество бит <b>map</b> меньше длины <b>dst</b>, то
      * остаток в приёмнике не изменяется.
      * 
-     * @param map Источник копирования.
+     * @param src Источник копирования.
      * @param dst Цель копирования.
      */
     private void fromArray(byte[] src, byte[] dst) {

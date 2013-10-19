@@ -57,7 +57,7 @@ public class MSymbol extends Object
     /** Индекс символа в шрифте. */
     protected int                      index;
     /** Массив пикселей */
-    protected PixselMap               pixsels;
+    private PixselMap                  pixsels;
     /** Список получателей события после изменения символа. */
     private ArrayList<MSymbolListener> listListener = new ArrayList<MSymbolListener>();
 
@@ -76,7 +76,7 @@ public class MSymbol extends Object
         if (i < 0) throw (new IllegalArgumentException("Invalid index"));
         index = i;
 
-        pixsels = new PixselMap(w, h, a);
+        setPixsels(new PixselMap(w, h, a));
     }
 
     /**
@@ -108,7 +108,7 @@ public class MSymbol extends Object
         if (i < 0) throw (new IllegalArgumentException("Invalid index"));
         index = i;
 
-        pixsels = new PixselMap(w, h, a);
+        setPixsels(new PixselMap(w, h, a));
     }
 
     /**
@@ -147,11 +147,13 @@ public class MSymbol extends Object
     public void copy(MSymbol s) {
         if (s == null) throw (new NullPointerException());
 
-        if (s.pixsels == null) pixsels = null;
-        else pixsels = s.pixsels.clone();
+        if (s.getPixsels() == null) setPixsels(null);
+        else setPixsels(s.getPixsels().clone());
 
-        fireEvent(MSymbolEvent.SIZE, 0, 0, pixsels.width, pixsels.height);
-        fireEvent(MSymbolEvent.COPY, 0, 0, pixsels.width, pixsels.height);
+        fireEvent(MSymbolEvent.SIZE, 0, 0, getPixsels().getWidth(),
+                        getPixsels().getHeight());
+        fireEvent(MSymbolEvent.COPY, 0, 0, getPixsels().getWidth(),
+                        getPixsels().getHeight());
     }
 
     /**
@@ -167,8 +169,8 @@ public class MSymbol extends Object
         MSymbol ret;
 
         ret = new MSymbol();
-        if (pixsels == null) ret.pixsels = null;
-        else ret.pixsels = pixsels.clone();
+        if (getPixsels() == null) ret.setPixsels(null);
+        else ret.setPixsels(getPixsels().clone());
 
         ret.index = index;
         return ret;
@@ -201,9 +203,17 @@ public class MSymbol extends Object
 
         if ((index != s.index)) return false;
 
-        if (!pixsels.equals(s.pixsels)) return false;
+        if (!getPixsels().equals(s.getPixsels())) return false;
 
         return true;
+    }
+
+    public void setPixsels(PixselMap pixsels) {
+        this.pixsels = pixsels;
+    }
+
+    public PixselMap getPixsels() {
+        return pixsels;
     }
 
     /**
@@ -216,7 +226,7 @@ public class MSymbol extends Object
      *         {@code x} и {@code y} выходят за границы символа.
      */
     public boolean getPixsel(int x, int y) {
-        return pixsels.getPixsel(x, y);
+        return getPixsels().getPixsel(x, y);
     }
 
     /**
@@ -230,7 +240,7 @@ public class MSymbol extends Object
      * @throws IllegalArgumentException если позиция выходит за рамки символа.
      */
     public void setPixsel(int column, int row, boolean set) {
-        if (pixsels.changePixsel(column, row, set))
+        if (getPixsels().changePixsel(column, row, set))
             fireEvent(MSymbolEvent.PIXSEL, column, row, 1, 1);
     }
 
@@ -240,7 +250,7 @@ public class MSymbol extends Object
      * @return Количество пикселей по горизонтали.
      */
     public int getWidth() {
-        return pixsels.width;
+        return getPixsels().getWidth();
     }
 
     /**
@@ -254,8 +264,9 @@ public class MSymbol extends Object
      *            изменяется.
      */
     public void setWidth(int w) {
-        if (pixsels.setWidth(w))
-            fireEvent(MSymbolEvent.SIZE, 0, 0, pixsels.width, pixsels.height);
+        if (getPixsels().setWidth(w))
+            fireEvent(MSymbolEvent.SIZE, 0, 0, getPixsels().getWidth(),
+                            getPixsels().getHeight());
     }
 
     /**
@@ -264,7 +275,7 @@ public class MSymbol extends Object
      * @return Количество пикселей по вертикали.
      */
     public int getHeight() {
-        return pixsels.getHeight();
+        return getPixsels().getHeight();
     }
 
     /**
@@ -278,15 +289,16 @@ public class MSymbol extends Object
      *            изменяется.
      */
     public void setHeight(int h) {
-        if (pixsels.setHeight(h))
-            fireEvent(MSymbolEvent.SIZE, 0, 0, pixsels.width, pixsels.height);
+        if (getPixsels().setHeight(h))
+            fireEvent(MSymbolEvent.SIZE, 0, 0, getPixsels().getWidth(),
+                            getPixsels().getHeight());
     }
 
     /**
      * Метод возвращает ширину и высоту символа.
      */
     public Dimension getSize() {
-        return pixsels.getSize();
+        return getPixsels().getSize();
     }
 
     /**
@@ -305,8 +317,9 @@ public class MSymbol extends Object
      *            изменяется.
      */
     public void setSize(int w, int h) {
-        if (pixsels.setSize(w, h))
-            fireEvent(MSymbolEvent.SIZE, 0, 0, pixsels.width, pixsels.height);
+        if (getPixsels().setSize(w, h))
+            fireEvent(MSymbolEvent.SIZE, 0, 0, getPixsels().getWidth(),
+                            getPixsels().getHeight());
     }
 
     /**
@@ -324,8 +337,9 @@ public class MSymbol extends Object
      *            изменяется.
      */
     public void setSize(Dimension sz) {
-        if (pixsels.setSize(sz.width, sz.height))
-            fireEvent(MSymbolEvent.SIZE, 0, 0, pixsels.width, pixsels.height);
+        if (getPixsels().setSize(sz.width, sz.height))
+            fireEvent(MSymbolEvent.SIZE, 0, 0, getPixsels().getWidth(),
+                            getPixsels().getHeight());
     }
 
     /**
@@ -333,7 +347,7 @@ public class MSymbol extends Object
      * ширину и/или высоту, то возвращается <b>null</b>.
      */
     public boolean[] getArray() {
-        return pixsels.getArray();
+        return getPixsels().getArray();
     }
 
     /**
@@ -344,7 +358,7 @@ public class MSymbol extends Object
      * бита самого первого элемента.
      */
     public byte[] getByteArray() {
-        return pixsels.getByteArray();
+        return getPixsels().getByteArray();
     }
 
     /**
@@ -356,8 +370,9 @@ public class MSymbol extends Object
      * @throws IllegalArgumentException
      */
     public void setArray(boolean[] a) throws IllegalArgumentException {
-        pixsels.setArray(a);
-        this.fireEvent(MSymbolEvent.COPY, 0, 0, pixsels.width, pixsels.height);
+        getPixsels().setArray(a);
+        this.fireEvent(MSymbolEvent.COPY, 0, 0, getPixsels().getWidth(),
+                        getPixsels().getHeight());
     }
 
     /**
@@ -370,8 +385,9 @@ public class MSymbol extends Object
      * @throws IllegalArgumentException
      */
     public void setArray(byte[] a) throws IllegalArgumentException {
-        pixsels.setArray(a);
-        fireEvent(MSymbolEvent.COPY, 0, 0, pixsels.width, pixsels.height);
+        getPixsels().setArray(a);
+        fireEvent(MSymbolEvent.COPY, 0, 0, getPixsels().getWidth(),
+                        getPixsels().getHeight());
     }
 
     /**
@@ -379,10 +395,11 @@ public class MSymbol extends Object
      * Генерируется сообщение {@link MSymbolEvent#SHIFT SHIFT}.
      */
     public void shiftRight() {
-        PixselMap.copyFrame(pixsels, -1, 0, pixsels, 0, 0, pixsels.width,
-                        pixsels.height);
+        PixselMap.copyFrame(getPixsels(), -1, 0, getPixsels(), 0, 0,
+                        getPixsels().getWidth(), getPixsels().getHeight());
 
-        this.fireEvent(MSymbolEvent.SHIFT, 0, 0, pixsels.width, pixsels.height);
+        this.fireEvent(MSymbolEvent.SHIFT, 0, 0, getPixsels().getWidth(),
+                        getPixsels().getHeight());
     }
 
     /**
@@ -390,10 +407,11 @@ public class MSymbol extends Object
      * Генерируется сообщение {@link MSymbolEvent#SHIFT SHIFT}.
      */
     public void shiftLeft() {
-        PixselMap.copyFrame(this.pixsels, 1, 0, this.pixsels, 0, 0,
-                        pixsels.width, pixsels.height);
+        PixselMap.copyFrame(this.getPixsels(), 1, 0, this.getPixsels(), 0, 0,
+                        getPixsels().getWidth(), getPixsels().getHeight());
 
-        this.fireEvent(MSymbolEvent.SHIFT, 0, 0, pixsels.width, pixsels.height);
+        this.fireEvent(MSymbolEvent.SHIFT, 0, 0, getPixsels().getWidth(),
+                        getPixsels().getHeight());
     }
 
     /**
@@ -401,10 +419,11 @@ public class MSymbol extends Object
      * Генерируется сообщение {@link MSymbolEvent#SHIFT SHIFT}.
      */
     public void shiftUp() {
-        PixselMap.copyFrame(pixsels, 0, 1, pixsels, 0, 0, pixsels.width,
-                        pixsels.height);
+        PixselMap.copyFrame(getPixsels(), 0, 1, getPixsels(), 0, 0,
+                        getPixsels().getWidth(), getPixsels().getHeight());
 
-        this.fireEvent(MSymbolEvent.SHIFT, 0, 0, pixsels.width, pixsels.height);
+        this.fireEvent(MSymbolEvent.SHIFT, 0, 0, getPixsels().getWidth(),
+                        getPixsels().getHeight());
     }
 
     /**
@@ -412,10 +431,11 @@ public class MSymbol extends Object
      * Генерируется сообщение {@link MSymbolEvent#SHIFT SHIFT}.
      */
     public void shiftDown() {
-        PixselMap.copyFrame(pixsels, 0, -1, pixsels, 0, 0, pixsels.width,
-                        pixsels.height);
+        PixselMap.copyFrame(getPixsels(), 0, -1, getPixsels(), 0, 0,
+                        getPixsels().getWidth(), getPixsels().getHeight());
 
-        this.fireEvent(MSymbolEvent.SHIFT, 0, 0, pixsels.width, pixsels.height);
+        this.fireEvent(MSymbolEvent.SHIFT, 0, 0, getPixsels().getWidth(),
+                        getPixsels().getHeight());
     }
 
     /**
@@ -427,24 +447,28 @@ public class MSymbol extends Object
     public void removeColumn(int pos) throws IllegalArgumentException {
         PixselMap newarr;
 
-        if (pixsels.width == 0 || pixsels.height == 0) return;
+        if (getPixsels().getWidth() == 0 || getPixsels().getHeight() == 0)
+            return;
 
-        if (pos < 0 || pos >= pixsels.width)
+        if (pos < 0 || pos >= getPixsels().getWidth())
             throw (new IllegalArgumentException());
 
-        if (pixsels.width == 1) {
+        if (getPixsels().getWidth() == 1) {
             newarr = null;
         }
         else {
-            newarr = new PixselMap(pixsels.width - 1, pixsels.height);
-            PixselMap.copyFrame(pixsels, 0, 0, newarr, 0, 0, pos - 1,
-                            pixsels.height);
-            PixselMap.copyFrame(pixsels, pos + 1, 0, newarr, pos, 0,
-                            pixsels.width - pos, pixsels.height);
+            newarr = new PixselMap(getPixsels().getWidth() - 1, getPixsels()
+                            .getHeight());
+            PixselMap.copyFrame(getPixsels(), 0, 0, newarr, 0, 0, pos - 1,
+                            getPixsels().getHeight());
+            PixselMap.copyFrame(getPixsels(), pos + 1, 0, newarr, pos, 0,
+                            getPixsels().getWidth() - pos, getPixsels()
+                                            .getHeight());
         }
 
-        this.fireEvent(MSymbolEvent.SIZE, 0, 0, pixsels.width, pixsels.height);
-        this.pixsels = newarr;
+        this.fireEvent(MSymbolEvent.SIZE, 0, 0, getPixsels().getWidth(),
+                        getPixsels().getHeight());
+        this.setPixsels(newarr);
     }
 
     /**
@@ -456,24 +480,28 @@ public class MSymbol extends Object
     public void removeRow(int pos) throws IllegalArgumentException {
         PixselMap newarr;
 
-        if (pixsels.width == 0 || pixsels.height == 0) return;
+        if (getPixsels().getWidth() == 0 || getPixsels().getHeight() == 0)
+            return;
 
-        if (pos < 0 || pos >= pixsels.height)
+        if (pos < 0 || pos >= getPixsels().getHeight())
             throw (new IllegalArgumentException());
 
-        if (pixsels.height == 1) {
+        if (getPixsels().getHeight() == 1) {
             newarr = null;
         }
         else {
-            newarr = new PixselMap(pixsels.width, pixsels.height - 1);
-            PixselMap.copyFrame(pixsels, 0, 0, newarr, 0, 0, pixsels.width,
-                            pos - 1);
-            PixselMap.copyFrame(pixsels, 0, pos + 1, newarr, 0, pos,
-                            pixsels.width, pixsels.height - pos);
+            newarr = new PixselMap(getPixsels().getWidth(), getPixsels()
+                            .getHeight() - 1);
+            PixselMap.copyFrame(getPixsels(), 0, 0, newarr, 0, 0, getPixsels()
+                            .getWidth(), pos - 1);
+            PixselMap.copyFrame(getPixsels(), 0, pos + 1, newarr, 0, pos,
+                            getPixsels().getWidth(), getPixsels().getHeight()
+                                            - pos);
         }
 
-        this.fireEvent(MSymbolEvent.SIZE, 0, 0, pixsels.width, pixsels.height);
-        this.pixsels = newarr;
+        this.fireEvent(MSymbolEvent.SIZE, 0, 0, getPixsels().getWidth(),
+                        getPixsels().getHeight());
+        this.setPixsels(newarr);
     }
 
     /**
@@ -503,7 +531,8 @@ public class MSymbol extends Object
         }
 
         if (changed)
-            fireEvent(MSymbolEvent.INDEX, 0, 0, pixsels.width, pixsels.height);
+            fireEvent(MSymbolEvent.INDEX, 0, 0, getPixsels().getWidth(),
+                            getPixsels().getHeight());
     }
 
     /**
@@ -586,12 +615,38 @@ public class MSymbol extends Object
     }
 
     public void reflectVerticale() {
-        pixsels.reflectVerticale();
-        fireEvent(MSymbolEvent.COPY, 0, 0, pixsels.width, pixsels.height);
+        int w, h;
+        boolean end, start;
+
+        w = pixsels.getWidth();
+        h = pixsels.getHeight();
+
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w / 2; x++) {
+                start = getPixsel(x, y);
+                end = getPixsel(w - 1 - x, y);
+
+                pixsels.changePixsel(x, y, end);
+                pixsels.changePixsel(w - 1 - x, y, start);
+            }
+        }
     }
 
     public void reflectHorizontale() {
-        pixsels.reflectHorizontale();
-        fireEvent(MSymbolEvent.COPY, 0, 0, pixsels.width, pixsels.height);
+        int w, h;
+        boolean end, start;
+
+        w = pixsels.getWidth();
+        h = pixsels.getHeight();
+
+        for (int y = 0; y < h / 2; y++) {
+            for (int x = 0; x < w; x++) {
+                start = getPixsel(x, y);
+                end = getPixsel(x, h - 1 - y);
+
+                pixsels.changePixsel(x, y, end);
+                pixsels.changePixsel(x, h - 1 - y, start);
+            }
+        }
     }
 }

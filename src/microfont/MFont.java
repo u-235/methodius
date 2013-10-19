@@ -253,9 +253,9 @@ public class MFont extends Object implements MSymbolListener
 
             turn = firstSymbol;
             while (turn != null) {
-                w += turn.pixsels.width;
-                min = (min < turn.pixsels.width) ? min : turn.pixsels.width;
-                max = (max > turn.pixsels.width) ? max : turn.pixsels.width;
+                w += turn.getPixsels().getWidth();
+                min = (min < turn.getPixsels().getWidth()) ? min : turn.getPixsels().getWidth();
+                max = (max > turn.getPixsels().getWidth()) ? max : turn.getPixsels().getWidth();
                 turn = turn.nextSymbol;
 
                 if (i == 0) {
