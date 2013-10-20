@@ -3,6 +3,7 @@ package microfont;
 import java.awt.Dimension;
 import java.util.*;
 
+import microfont.PixselMap.PixselIterator;
 import microfont.events.MSymbolEvent;
 import microfont.events.MSymbolListener;
 
@@ -226,7 +227,7 @@ public class MSymbol extends Object
      *         {@code x} и {@code y} выходят за границы символа.
      */
     public boolean getPixsel(int x, int y) {
-        return getPixsels().getPixsel(x, y);
+        return pixsels.getPixsel(x, y);
     }
 
     /**
@@ -240,7 +241,7 @@ public class MSymbol extends Object
      * @throws IllegalArgumentException если позиция выходит за рамки символа.
      */
     public void setPixsel(int column, int row, boolean set) {
-        if (getPixsels().changePixsel(column, row, set))
+        if (pixsels.changePixsel(column, row, set))
             fireEvent(MSymbolEvent.PIXSEL, column, row, 1, 1);
     }
 
@@ -445,30 +446,38 @@ public class MSymbol extends Object
      * @throws IllegalArgumentException
      */
     public void removeColumn(int pos) throws IllegalArgumentException {
-        PixselMap newarr;
+        PixselMap tMap;
+        int w, h;
 
-        if (getPixsels().getWidth() == 0 || getPixsels().getHeight() == 0)
-            return;
+        if (pixsels.isEmpty()) return;
 
-        if (pos < 0 || pos >= getPixsels().getWidth())
-            throw (new IllegalArgumentException());
+        w = pixsels.getWidth();
+        h = pixsels.getHeight();
 
-        if (getPixsels().getWidth() == 1) {
-            newarr = null;
+        if (pos < 0 || pos >= w) throw (new IllegalArgumentException());
+
+        tMap = new PixselMap(w - 1, h);
+
+        if (w > 1) {
+            PixselIterator dst, src;
+            dst = tMap.getIterator(0, 0, w - 1, h, PixselIterator.DIR_LEFT_TOP);
+            src = pixsels.getIterator(0, 0, pos, h, PixselIterator.DIR_LEFT_TOP);
+
+            while (src.hasNext()) {
+                dst.changeNext(src.getNext());
+            }
+
+            src = pixsels.getIterator(pos + 1, 0, w - pos, h,
+                            PixselIterator.DIR_LEFT_TOP);
+
+            while (src.hasNext()) {
+                dst.changeNext(src.getNext());
+            }
         }
-        else {
-            newarr = new PixselMap(getPixsels().getWidth() - 1, getPixsels()
-                            .getHeight());
-            PixselMap.copyFrame(getPixsels(), 0, 0, newarr, 0, 0, pos - 1,
-                            getPixsels().getHeight());
-            PixselMap.copyFrame(getPixsels(), pos + 1, 0, newarr, pos, 0,
-                            getPixsels().getWidth() - pos, getPixsels()
-                                            .getHeight());
-        }
 
-        this.fireEvent(MSymbolEvent.SIZE, 0, 0, getPixsels().getWidth(),
-                        getPixsels().getHeight());
-        this.setPixsels(newarr);
+        pixsels = tMap;
+        fireEvent(MSymbolEvent.SIZE, 0, 0, pixsels.getWidth(),
+                        pixsels.getHeight());
     }
 
     /**
@@ -616,37 +625,49 @@ public class MSymbol extends Object
 
     public void reflectVerticale() {
         int w, h;
-        boolean end, start;
+        boolean end, start, changed = false;
 
         w = pixsels.getWidth();
         h = pixsels.getHeight();
 
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w / 2; x++) {
-                start = getPixsel(x, y);
-                end = getPixsel(w - 1 - x, y);
+                start = pixsels.getPixsel(x, y);
+                end = pixsels.getPixsel(w - 1 - x, y);
+
+                if (start != end) changed = true;
 
                 pixsels.changePixsel(x, y, end);
                 pixsels.changePixsel(w - 1 - x, y, start);
             }
         }
+
+        if (changed)
+            fireEvent(MSymbolEvent.COPY, 0, 0, pixsels.getWidth(),
+                            pixsels.getHeight());
     }
 
     public void reflectHorizontale() {
         int w, h;
-        boolean end, start;
+        boolean end, start, changed = false;
 
         w = pixsels.getWidth();
         h = pixsels.getHeight();
 
         for (int y = 0; y < h / 2; y++) {
             for (int x = 0; x < w; x++) {
-                start = getPixsel(x, y);
-                end = getPixsel(x, h - 1 - y);
+                start = pixsels.getPixsel(x, y);
+                end = pixsels.getPixsel(x, h - 1 - y);
+
+                if (start != end) changed = true;
 
                 pixsels.changePixsel(x, y, end);
                 pixsels.changePixsel(x, h - 1 - y, start);
             }
         }
+
+        if (changed)
+            fireEvent(MSymbolEvent.COPY, 0, 0, pixsels.getWidth(),
+                            pixsels.getHeight());
     }
 }

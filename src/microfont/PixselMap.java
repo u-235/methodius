@@ -38,6 +38,14 @@ public class PixselMap extends Object
      * однако это может произойти в результате коррекции или ошибки при задании
      * параметров конструктора. В таком случае {@link #hasNext()} вернёт
      * <code>false</code> сразу после создания итератора.
+     * <p>
+     * Для проверки окончания сканирования есть два способа.
+     * <ol>
+     * <li>Вызывать метод {@link #hasNext()} перед вызовом {@link #getNext()}
+     * или {@link #changeNext(boolean)}.
+     * <li>Поместить <code>getNext</code> <code>changeNext</code> в блок
+     * <code>try</code> и отлавливать исключение {@link BadIterationException}.
+     * </ol>
      */
     public class PixselIterator
     {
@@ -58,9 +66,9 @@ public class PixselMap extends Object
         /** Направление снизу вверх, справа налево. */
         public final static int DIR_BOTTOM_RIGHT = 7;
 
-        private PixselMap       map;
+        private PixselMap       parent;
         private int             dir;
-        private int             startX, startY, w, h;
+        private int             startX, startY, endX, endY;
         private int             posX, posY;
 
         /**
@@ -73,8 +81,8 @@ public class PixselMap extends Object
          * @param src Карта, для которой будет создан итератор.
          * @param x Позиция области по горизонтали.
          * @param y Позиция области по вертикали.
-         * @param w Ширина области.
-         * @param h Высота области.
+         * @param width Ширина области.
+         * @param height Высота области.
          * @param dir Направление сканирования. Может быть одним из
          *            <ul>
          *            <li>{@link #DIR_LEFT_TOP} <li>{@link #DIR_RIGHT_TOP} <li>
@@ -83,30 +91,111 @@ public class PixselMap extends Object
          *            {@link #DIR_BOTTOM_LEFT} <li>{@link #DIR_BOTTOM_RIGHT}
          *            </ul>
          */
-        protected PixselIterator(PixselMap src, int x, int y, int w, int h,
-                        int dir) {
-            this.map = src;
+        protected PixselIterator(PixselMap src, int x, int y, int width,
+                        int height, int dir) {
+            parent = src;
             this.dir = dir;
             startX = x;
             startY = y;
-            this.w = w;
-            this.h = h;
+            endX = x + width - 1;
+            endY = y + height - 1;
 
             if (startX < 0) {
-                this.w -= startX;
+                endX += startX;
                 startX = 0;
             }
+
             if (startY < 0) {
-                this.h -= startY;
+                endY += startY;
                 startY = 0;
             }
 
-            if (this.w < 0) w = 0;
-            if (this.h < 0) h = 0;
+            if (endX >= src.width) endX = src.width - 1;
+            if (endY >= src.height) endY = src.height - 1;
+
+            switch (this.dir) {
+            case DIR_BOTTOM_LEFT:
+            case DIR_LEFT_BOTTOM:
+                posX = startX;
+                posY = endY;
+                break;
+            case DIR_BOTTOM_RIGHT:
+            case DIR_RIGHT_BOTTOM:
+                posX = endX;
+                posY = endY;
+                break;
+            default:// i.e. DIR_TOP_LEFT
+                this.dir = DIR_TOP_LEFT;
+            case DIR_LEFT_TOP:
+                posX = startX;
+                posY = startY;
+                break;
+            case DIR_RIGHT_TOP:
+            case DIR_TOP_RIGHT:
+                posX = endX;
+                posY = startY;
+                break;
+            }
         }
 
         private void updatePosition() {
-
+            switch (this.dir) {
+            case DIR_BOTTOM_LEFT:
+                posY--;
+                if (posY < startY) {
+                    posY = endY;
+                    posX++;
+                }
+                break;
+            case DIR_BOTTOM_RIGHT:
+                posY--;
+                if (posY < startY) {
+                    posY = endY;
+                    posX--;
+                }
+                break;
+            case DIR_LEFT_BOTTOM:
+                posX++;
+                if (posX > endX) {
+                    posX = startX;
+                    posY--;
+                }
+                break;
+            case DIR_LEFT_TOP:
+                posX++;
+                if (posX > endX) {
+                    posX = startX;
+                    posY++;
+                }
+                break;
+            case DIR_RIGHT_BOTTOM:
+                posX--;
+                if (posX < startX) {
+                    posX = endX;
+                    posY--;
+                }
+                break;
+            case DIR_RIGHT_TOP:
+                posX--;
+                if (posX < startX) {
+                    posX = endX;
+                    posY++;
+                }
+                break;
+            case DIR_TOP_RIGHT:
+                posY++;
+                if (posY > endY) {
+                    posY = startY;
+                    posX--;
+                }
+                break;
+            default:// i.e. DIR_TOP_LEFT
+                posY++;
+                if (posY > endY) {
+                    posY = startY;
+                    posX++;
+                }
+            }
         }
 
         /**
@@ -127,14 +216,14 @@ public class PixselMap extends Object
          * Возвращает ширину области сканирования.
          */
         public int getWidth() {
-            return w;
+            return endX;
         }
 
         /**
          * Возвращает высоту области сканирования.
          */
         public int getHeight() {
-            return h;
+            return endY;
         }
 
         /**
@@ -147,8 +236,8 @@ public class PixselMap extends Object
          * <code>true</code>.
          */
         public boolean hasNext() {
-            if (posY <= h && posX < w) return true;
-            return false;
+            return posY <= endY && posY >= startY && posX <= endX
+                            && posX >= startX;
         }
 
         /**
@@ -161,12 +250,11 @@ public class PixselMap extends Object
          * @see #hasNext()
          */
         public boolean getNext() {
-            boolean ret = false;
+            boolean rv = false;
             if (!hasNext()) throw new BadIterationException();
-            // TODO Auto-generated method stub
-
+            rv = parent.getPixsel(posX, posY);
             updatePosition();
-            return ret;
+            return rv;
         }
 
         /**
@@ -174,15 +262,17 @@ public class PixselMap extends Object
          * соответствии с направлением, заданным при создании итератора.
          * 
          * @param set Новое состояние пикселя.
+         * @return <code>true</code> если пиксель действительно был изменён.
          * @throws BadIterationException при попытке изменения состояния после
          *             завершения сканирования.
          * @see #hasNext()
          */
-        public void changeNext(boolean set) {
+        public boolean changeNext(boolean set) {
+            boolean rv;
             if (!hasNext()) throw new BadIterationException();
-            // TODO Auto-generated method stub
-
+            rv = parent.changePixsel(posX, posY, set);
             updatePosition();
+            return rv;
         }
     }
 
@@ -199,7 +289,7 @@ public class PixselMap extends Object
 
     /**
      * Конструктор для создания карты с заданными размерами и копированием
-     * пикселей из массива <code>map</code>.
+     * пикселей из массива <code>src</code>.
      * 
      * @param width Ширина карты.
      * @param height Высота карты.
@@ -208,12 +298,12 @@ public class PixselMap extends Object
      */
     public PixselMap(int width, int height, boolean[] src) {
         init(width, height);
-        fromArray(src, pixsels);
+        setArray(src);
     }
 
     /**
      * Конструктор для создания карты с заданными размерами и копированием
-     * пикселей из массива <code>map</code>.
+     * пикселей из массива <code>src</code>.
      * 
      * @param width Ширина карты.
      * @param height Высота карты.
@@ -222,7 +312,7 @@ public class PixselMap extends Object
      */
     public PixselMap(int width, int height, byte[] src) {
         init(width, height);
-        fromArray(src, pixsels);
+        setArray(src);
     }
 
     /**
@@ -282,6 +372,38 @@ public class PixselMap extends Object
 
     private int index(int x, int y) {
         return index(this.width, x, y);
+    }
+
+    /**
+     * 
+     * @param src
+     * @param dst
+     * @param x
+     * @return
+     */
+    public static int adjustWidth(PixselMap src, PixselMap dst, int x) {
+        int w = src.width - x;
+        return w > dst.width ? dst.width : w;
+    }
+
+    /**
+     * 
+     * @param src
+     * @param dst
+     * @param x
+     * @return
+     */
+    public static int adjustHeight(PixselMap src, PixselMap dst, int y) {
+        int h = src.height - y;
+        return h > dst.height ? dst.height : h;
+    }
+    
+    public PixselIterator getIterator(int x, int y, int width, int height, int dir) {
+        return new PixselIterator(this, x, y, width, height, dir);
+    }
+    
+    public boolean isEmpty() {
+        return pixsels == null;
     }
 
     /**
@@ -358,23 +480,6 @@ public class PixselMap extends Object
     }
 
     /**
-     * Создаёт и возвращает итератор для последовательного доступа к пикселям
-     * заданного фрагмента карты. Размеры фрагмента корректируются с целью
-     * предотвращения выхода за пределы карты.
-     * <p>
-     * Доступ к пикселям осуществляется слева направо, сверху вниз.
-     * 
-     * @param x
-     * @param y
-     * @param w
-     * @param h
-     * @return
-     */
-    public PixselIterator getIterator(int x, int y, int w, int h) {
-        return new PixselIterator(this, x, y, w, h, DIR_LEFT_TOP);
-    }
-
-    /**
      * 
      * @param x
      * @param y
@@ -411,11 +516,11 @@ public class PixselMap extends Object
 
     /**
      * 
+     * @param fragment
      * @param x
      * @param y
-     * @param fragment
      */
-    public void setFragment(int x, int y, PixselMap fragment) {
+    public void place(PixselMap fragment, int x, int y) {
         int w;
         int h;
 
@@ -488,28 +593,6 @@ public class PixselMap extends Object
     }
 
     /**
-     * 
-     * @param column
-     * @param row
-     * @return
-     * @throws IllegalArgumentException если позиция выходит за рамки символа.
-     */
-    public boolean setPixsel(int column, int row) {
-        return changePixsel(column, row, true);
-    }
-
-    /**
-     * 
-     * @param column
-     * @param row
-     * @return
-     * @throws IllegalArgumentException если позиция выходит за рамки символа.
-     */
-    public boolean cleanPixsel(int column, int row) {
-        return changePixsel(column, row, false);
-    }
-
-    /**
      * Метод возвращает ширину и высоту символа.
      */
     public Dimension getSize() {
@@ -527,25 +610,26 @@ public class PixselMap extends Object
      *         изменениях.
      */
     protected boolean setSize(int w, int h) {
+        boolean changed = false;
         int nw, nh;
         byte[] narr;
 
         /* Проверка ширины. */
         if (w < 0) {
-            nw = this.width;
+            nw = width;
         }
         else {
             nw = w;
         }
         /* Проверка высоты. */
         if (h < 0) {
-            nh = this.height;
+            nh = height;
         }
         else {
             nh = h;
         }
         /* Если новые размеры равны старым, то и делать ничего не надо. */
-        if (nw == this.width && nh == this.height) {
+        if (nw == width && nh == height) {
             return false;
         }
         /* Если один из размеров равен нулю, обнуляем символ. */
@@ -553,22 +637,37 @@ public class PixselMap extends Object
             narr = null;
         }
         else {
-            narr = doPixselArray(nw, nh);
             /*
              * Если старый массив не пуст, копировать его (насколько возможно) в
              * новый.
              */
-            if (this.pixsels != null) {
-                copyFrame(this.pixsels, this.width, this.height, 0, 0, narr,
-                                nw, nh, 0, 0, nw, nh);
+            if (this.pixsels == null) narr = doPixselArray(nw, nh);
+            else {
+                PixselMap temp = new PixselMap(nw, nh);
+
+                int cw = nw > width ? width : nw;
+                int ch = nh > height ? height : nh;
+
+                PixselIterator si = new PixselIterator(this, 0, 0, cw, ch,
+                                DIR_LEFT_TOP);
+                PixselIterator di = new PixselIterator(temp, 0, 0, cw, ch,
+                                DIR_LEFT_TOP);
+
+                while (si.hasNext() && di.hasNext()) {
+                    di.changeNext(si.getNext());
+                }
+
+                narr = temp.pixsels;
             }
         }
 
         /* Фиксируем изменения. */
-        this.pixsels = narr;
-        this.width = nw;
-        this.height = nh;
-        return true;
+        if (width != nw || height != nh) changed = true;
+
+        pixsels = narr;
+        width = nw;
+        height = nh;
+        return changed;
     }
 
     /**
@@ -646,8 +745,19 @@ public class PixselMap extends Object
     public byte[] getByteArray() {
         if (pixsels == null) return null;
 
+        PixselIterator pi = new PixselIterator(this, 0, 0, width, height,
+                        DIR_LEFT_TOP);
+
         byte[] rv = new byte[(width * height + 7) / 8];
-        toArray(pixsels, rv);
+
+        for (int i = 0; pi.hasNext() && i < rv.length; i++) {
+            byte m = 1;
+            rv[i] = 0;
+            for (int c = 0; pi.hasNext() && c < 8; c++) {
+                if (pi.getNext()) rv[i] |= m;
+                m = (byte) (m << 1);
+            }
+        }
         return rv;
     }
 
@@ -661,7 +771,14 @@ public class PixselMap extends Object
     public void setArray(boolean[] a) throws IllegalArgumentException {
         if (a == null) throw (new IllegalArgumentException());
 
-        fromArray(a, pixsels);
+        PixselIterator pi = new PixselIterator(this, 0, 0, width, height,
+                        DIR_LEFT_TOP);
+
+        int i = 0;
+        while (pi.hasNext() && i < a.length) {
+            pi.changeNext(a[i]);
+            i++;
+        }
     }
 
     /**
@@ -675,7 +792,16 @@ public class PixselMap extends Object
     public void setArray(byte[] a) throws IllegalArgumentException {
         if (a == null) throw (new IllegalArgumentException());
 
-        fromArray(a, pixsels);
+        PixselIterator pi = new PixselIterator(this, 0, 0, width, height,
+                        DIR_LEFT_TOP);
+
+        for (int i = 0; pi.hasNext() && i < a.length; i++) {
+            byte m = 1;
+            for (int c = 0; pi.hasNext() && c < 8; c++) {
+                pi.changeNext((a[i] & m) != 0);
+                m = (byte) (m << 1);
+            }
+        }
     }
 
     /**
@@ -767,65 +893,5 @@ public class PixselMap extends Object
                     PixselMap dst, int dstX, int dstY, int w, int h) {
         return copyFrame(src.pixsels, src.width, src.height, srcX, srcY,
                         dst.pixsels, dst.width, dst.height, dstX, dstY, w, h);
-    }
-
-    /**
-     * Метод копирует массив пикселей в массив <b>byte</b>. <br>
-     * Массив байт представлятся как непрерывная последовательность пикселей,
-     * начинающихся с младшего бита первого байта. Каждый бит источника
-     * трактуется как пиксель. <br>
-     * Если суммарное количество бит <b>map</b> меньше длины <b>dst</b>, то
-     * остаток в приёмнике не изменяется.
-     * 
-     * @param src Источник копирования.
-     * @param dst Цель копирования.
-     */
-    private void toArray(byte[] src, byte[] dst) {
-        int i = 0;
-        int b = 0;
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                if (i >= dst.length) return;
-                if ((src[index(width, x, y)] & (1 << (x & ITEM_MASK))) != 0) {
-                    dst[i] |= (1 << b);
-                }
-                b++;
-                if (b > 7) {
-                    b = 0;
-                    i++;
-                }
-            }
-        }
-    }
-
-    /**
-     * Метод копирует массив <b>byte</b> в массив пикселей. <br>
-     * Массив байт представлятся как непрерывная последовательность пикселей,
-     * начинающихся с младшего бита первого байта. Каждый бит источника
-     * трактуется как пиксель. <br>
-     * Если суммарное количество бит <b>map</b> меньше длины <b>dst</b>, то
-     * остаток в приёмнике не изменяется.
-     * 
-     * @param src Источник копирования.
-     * @param dst Цель копирования.
-     */
-    private void fromArray(boolean[] src, byte[] dst) {
-
-    }
-
-    /**
-     * Метод копирует массив <b>byte</b> в массив пикселей. <br>
-     * Массив байт представлятся как непрерывная последовательность пикселей,
-     * начинающихся с младшего бита первого байта. Каждый бит источника
-     * трактуется как пиксель. <br>
-     * Если суммарное количество бит <b>map</b> меньше длины <b>dst</b>, то
-     * остаток в приёмнике не изменяется.
-     * 
-     * @param src Источник копирования.
-     * @param dst Цель копирования.
-     */
-    private void fromArray(byte[] src, byte[] dst) {
-
     }
 }
