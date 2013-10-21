@@ -396,11 +396,26 @@ public class MSymbol extends Object
      * Генерируется сообщение {@link MSymbolEvent#SHIFT SHIFT}.
      */
     public void shiftRight() {
-        PixselMap.copyFrame(getPixsels(), -1, 0, getPixsels(), 0, 0,
-                        getPixsels().getWidth(), getPixsels().getHeight());
+        int w, h;
+        PixselIterator dst, src;
 
-        this.fireEvent(MSymbolEvent.SHIFT, 0, 0, getPixsels().getWidth(),
-                        getPixsels().getHeight());
+        if (pixsels.isEmpty()) return;
+
+        w = pixsels.getWidth();
+        h = pixsels.getHeight();
+
+        dst = pixsels.getIterator(0, 0, w, h, PixselIterator.DIR_TOP_RIGHT);
+        src = pixsels.getIterator(0, 0, w - 1, h, PixselIterator.DIR_TOP_RIGHT);
+
+        while (src.hasNext()) {
+            dst.changeNext(src.getNext());
+        }
+
+        while (dst.hasNext()) {
+            dst.changeNext(false);
+        }
+
+        fireEvent(MSymbolEvent.SHIFT, 0, 0, w, h);
     }
 
     /**
@@ -408,11 +423,26 @@ public class MSymbol extends Object
      * Генерируется сообщение {@link MSymbolEvent#SHIFT SHIFT}.
      */
     public void shiftLeft() {
-        PixselMap.copyFrame(this.getPixsels(), 1, 0, this.getPixsels(), 0, 0,
-                        getPixsels().getWidth(), getPixsels().getHeight());
+        int w, h;
+        PixselIterator dst, src;
 
-        this.fireEvent(MSymbolEvent.SHIFT, 0, 0, getPixsels().getWidth(),
-                        getPixsels().getHeight());
+        if (pixsels.isEmpty()) return;
+
+        w = pixsels.getWidth();
+        h = pixsels.getHeight();
+
+        dst = pixsels.getIterator(0, 0, w, h, PixselIterator.DIR_TOP_LEFT);
+        src = pixsels.getIterator(1, 0, w - 1, h, PixselIterator.DIR_TOP_LEFT);
+
+        while (src.hasNext()) {
+            dst.changeNext(src.getNext());
+        }
+
+        while (dst.hasNext()) {
+            dst.changeNext(false);
+        }
+
+        fireEvent(MSymbolEvent.SHIFT, 0, 0, w, h);
     }
 
     /**
@@ -420,11 +450,26 @@ public class MSymbol extends Object
      * Генерируется сообщение {@link MSymbolEvent#SHIFT SHIFT}.
      */
     public void shiftUp() {
-        PixselMap.copyFrame(getPixsels(), 0, 1, getPixsels(), 0, 0,
-                        getPixsels().getWidth(), getPixsels().getHeight());
+        int w, h;
+        PixselIterator dst, src;
 
-        this.fireEvent(MSymbolEvent.SHIFT, 0, 0, getPixsels().getWidth(),
-                        getPixsels().getHeight());
+        if (pixsels.isEmpty()) return;
+
+        w = pixsels.getWidth();
+        h = pixsels.getHeight();
+
+        dst = pixsels.getIterator(0, 0, w, h, PixselIterator.DIR_RIGHT_TOP);
+        src = pixsels.getIterator(0, 1, w, h - 1, PixselIterator.DIR_RIGHT_TOP);
+
+        while (src.hasNext()) {
+            dst.changeNext(src.getNext());
+        }
+
+        while (dst.hasNext()) {
+            dst.changeNext(false);
+        }
+
+        fireEvent(MSymbolEvent.SHIFT, 0, 0, w, h);
     }
 
     /**
@@ -432,11 +477,26 @@ public class MSymbol extends Object
      * Генерируется сообщение {@link MSymbolEvent#SHIFT SHIFT}.
      */
     public void shiftDown() {
-        PixselMap.copyFrame(getPixsels(), 0, -1, getPixsels(), 0, 0,
-                        getPixsels().getWidth(), getPixsels().getHeight());
+        int w, h;
+        PixselIterator dst, src;
 
-        this.fireEvent(MSymbolEvent.SHIFT, 0, 0, getPixsels().getWidth(),
-                        getPixsels().getHeight());
+        if (pixsels.isEmpty()) return;
+
+        w = pixsels.getWidth();
+        h = pixsels.getHeight();
+
+        dst = pixsels.getIterator(0, 0, w, h, PixselIterator.DIR_LEFT_BOTTOM);
+        src = pixsels.getIterator(0, 0, w, h - 1, PixselIterator.DIR_LEFT_BOTTOM);
+
+        while (src.hasNext()) {
+            dst.changeNext(src.getNext());
+        }
+
+        while (dst.hasNext()) {
+            dst.changeNext(false);
+        }
+
+        fireEvent(MSymbolEvent.SHIFT, 0, 0, w, h);
     }
 
     /**
@@ -476,8 +536,7 @@ public class MSymbol extends Object
         }
 
         pixsels = tMap;
-        fireEvent(MSymbolEvent.SIZE, 0, 0, pixsels.getWidth(),
-                        pixsels.getHeight());
+        fireEvent(MSymbolEvent.SIZE, 0, 0, w, h);
     }
 
     /**
@@ -487,30 +546,37 @@ public class MSymbol extends Object
      * @throws IllegalArgumentException
      */
     public void removeRow(int pos) throws IllegalArgumentException {
-        PixselMap newarr;
+        PixselMap tMap;
+        int w, h;
 
-        if (getPixsels().getWidth() == 0 || getPixsels().getHeight() == 0)
-            return;
+        if (pixsels.isEmpty()) return;
 
-        if (pos < 0 || pos >= getPixsels().getHeight())
-            throw (new IllegalArgumentException());
+        w = pixsels.getWidth();
+        h = pixsels.getHeight();
 
-        if (getPixsels().getHeight() == 1) {
-            newarr = null;
+        if (pos < 0 || pos >= h) throw (new IllegalArgumentException());
+
+        tMap = new PixselMap(w, h - 1);
+
+        if (h > 1) {
+            PixselIterator dst, src;
+            dst = tMap.getIterator(0, 0, w, h - 1, PixselIterator.DIR_TOP_LEFT);
+            src = pixsels.getIterator(0, 0, w, pos, PixselIterator.DIR_TOP_LEFT);
+
+            while (src.hasNext()) {
+                dst.changeNext(src.getNext());
+            }
+
+            src = pixsels.getIterator( 0,pos + 1, w, h - pos,
+                            PixselIterator.DIR_TOP_LEFT);
+
+            while (src.hasNext()) {
+                dst.changeNext(src.getNext());
+            }
         }
-        else {
-            newarr = new PixselMap(getPixsels().getWidth(), getPixsels()
-                            .getHeight() - 1);
-            PixselMap.copyFrame(getPixsels(), 0, 0, newarr, 0, 0, getPixsels()
-                            .getWidth(), pos - 1);
-            PixselMap.copyFrame(getPixsels(), 0, pos + 1, newarr, 0, pos,
-                            getPixsels().getWidth(), getPixsels().getHeight()
-                                            - pos);
-        }
 
-        this.fireEvent(MSymbolEvent.SIZE, 0, 0, getPixsels().getWidth(),
-                        getPixsels().getHeight());
-        this.setPixsels(newarr);
+        pixsels = tMap;
+        fireEvent(MSymbolEvent.SIZE, 0, 0, w, h);
     }
 
     /**

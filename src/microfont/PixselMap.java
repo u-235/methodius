@@ -22,16 +22,17 @@ public class PixselMap extends Object
 
     /**
      * Итератор для последовательного доступа к пикселям прямоугольной области
-     * {@linkplain PixselMap карты} произвольного размера. Так же возможен выбор
-     * направления сканирования пикселей.
+     * (<i>области сканирования</i>) {@linkplain PixselMap карты}. Область
+     * сканирования может быть произвольного размера, но оставаться в пределах
+     * карты. Так же возможен выбор направления сканирования пикселей.
      * <p>
      * Размеры, задаваемые при создании, могут быть скорректированы, если
-     * область сканирования выходит за границы карты. Например, если
-     * <code>x</code> равен -3 и <code>w</code> равен 7, то <code>x</code> будет
-     * 0 и <code>w</code> станет 4. Если же ширина карты меньше <code>x+w</code>
-     * , то <code>w</code> будет соответственно уменьшен. Так же корректируются
-     * вертикальные размеры. Получить действительные размеры можно при помощи
-     * {@link #getX()}, {@link #getY()}, {@link #getWidth()} и
+     * область сканирования выходит за границы карты. Например, если начальная
+     * точка по горизонтали <b>x</b> равна -3 и ширина области <b>w</b> равна 7,
+     * то <b>x</b> будет 0 и <b>w</b> станет 4. Если же ширина карты меньше
+     * <code>x+w</code> , то <b>w</b> будет соответственно уменьшен. Так же
+     * корректируются вертикальные размеры. Получить действительные размеры
+     * можно при помощи {@link #getX()}, {@link #getY()}, {@link #getWidth()} и
      * {@link #getHeight()}.
      * <p>
      * Ширина и высота области сканирования не может быть отрицательным числом,
@@ -366,42 +367,48 @@ public class PixselMap extends Object
         return new byte[((width + ITEM_SIZE - 1) / ITEM_SIZE) * height];
     }
 
-    private static int index(int width, int x, int y) {
+    /**
+     * Возвращает индекс байта в массиве для пикселя с заданной позицией.
+     * 
+     * @param x Горизонтальная позиция пикселя.
+     * @param y Вертикальная позиция пикселя.
+     */
+    private int index(int x, int y) {
         return ((width + ITEM_SIZE - 1) >> ITEM_SHIFT) * y + (x >> ITEM_SHIFT);
     }
 
-    private int index(int x, int y) {
-        return index(this.width, x, y);
-    }
-
     /**
+     * Возвращает {@linkplain PixselIterator итератор} карты с заданной областью
+     * и направлением сканирования.
      * 
-     * @param src
-     * @param dst
-     * @param x
-     * @return
+     * @param x Горизонтальная начальная координата области сканирования.
+     * @param y Вертикальная начальная координата области сканирования.
+     * @param width Ширина области сканирования.
+     * @param height Высота области сканирования.
+     * @param dir Направление сканирования. Может быть одним из
+     *            <ul>
+     *            <li>{@link #DIR_LEFT_TOP}
+     *            <li>{@link #DIR_RIGHT_TOP}
+     *            <li>
+     *            {@link #DIR_LEFT_BOTTOM}
+     *            <li>{@link #DIR_RIGHT_BOTTOM}
+     *            <li>{@link #DIR_TOP_LEFT}
+     *            <li>{@link #DIR_TOP_RIGHT}
+     *            <li>
+     *            {@link #DIR_BOTTOM_LEFT}
+     *            <li>{@link #DIR_BOTTOM_RIGHT}
+     *            </ul>
+     * @return Итератор для карты.
      */
-    public static int adjustWidth(PixselMap src, PixselMap dst, int x) {
-        int w = src.width - x;
-        return w > dst.width ? dst.width : w;
-    }
-
-    /**
-     * 
-     * @param src
-     * @param dst
-     * @param x
-     * @return
-     */
-    public static int adjustHeight(PixselMap src, PixselMap dst, int y) {
-        int h = src.height - y;
-        return h > dst.height ? dst.height : h;
-    }
-    
-    public PixselIterator getIterator(int x, int y, int width, int height, int dir) {
+    public PixselIterator getIterator(int x, int y, int width, int height,
+                    int dir) {
         return new PixselIterator(this, x, y, width, height, dir);
     }
-    
+
+    /**
+     * Возвращает <code>true</code> если карта пуста. Это значит, что по крайней
+     * мере один из размеров карты равен нулю.
+     */
     public boolean isEmpty() {
         return pixsels == null;
     }
@@ -477,68 +484,6 @@ public class PixselMap extends Object
         }
 
         return true;
-    }
-
-    /**
-     * 
-     * @param x
-     * @param y
-     * @param w
-     * @param h
-     * @return
-     */
-    public PixselMap getFragment(int x, int y, int w, int h) {
-        if (x < 0) {
-            w -= x;
-            x = 0;
-        }
-
-        if (y < 0) {
-            h -= y;
-            y = 0;
-        }
-
-        if (x + w > width) w = width - x;
-        if (y + h > height) h = height - y;
-
-        if (w <= 0 || h <= 0) return null;
-
-        PixselMap rv = new PixselMap(w, h);
-        PixselIterator src = new PixselIterator(this, x, y, w, h, DIR_LEFT_TOP);
-        PixselIterator dst = new PixselIterator(rv, 0, 0, w, h, DIR_LEFT_TOP);
-
-        while (src.hasNext() && dst.hasNext()) {
-            dst.changeNext(src.getNext());
-        }
-
-        return rv;
-    }
-
-    /**
-     * 
-     * @param fragment
-     * @param x
-     * @param y
-     */
-    public void place(PixselMap fragment, int x, int y) {
-        int w;
-        int h;
-
-        w = fragment.width;
-        h = fragment.height;
-
-        if (x + w > width) w = width - x;
-        if (y + h > height) h = height - y;
-
-        if (w <= 0 || h <= 0) return;
-
-        PixselIterator src = new PixselIterator(fragment, 0, 0, w, h,
-                        DIR_LEFT_TOP);
-        PixselIterator dst = new PixselIterator(this, x, y, w, h, DIR_LEFT_TOP);
-
-        while (src.hasNext() && dst.hasNext()) {
-            dst.changeNext(src.getNext());
-        }
     }
 
     /**
@@ -802,96 +747,5 @@ public class PixselMap extends Object
                 m = (byte) (m << 1);
             }
         }
-    }
-
-    /**
-     * Метод копирует фрагмент из одного массива в другой. Размер копируемого
-     * фрагмента может быть уменьшен в случае, если он выходит за границы
-     * символов.
-     * 
-     * @param src Массив, из которого копируется фрагмент.
-     * @param srcW Ширина символа, который представляет массив <b>src</b>.
-     * @param srcH Высота символа, который представляет массив <b>src</b>.
-     * @param srcX Горизонтальная позиция, с которой начинается копирование из
-     *            массива <b>src</b>.
-     * @param srcY Вертикальная позиция, с которой начинается копирование из
-     *            массива <b>src</b>.
-     * @param dst Массив, в который копируется фрагмент.
-     * @param dstW Ширина символа символа, который представляет массив
-     *            <b>dst</b>.
-     * @param dstH Высота символа, который представляет массив <b>dst</b>.
-     * @param dstX Горизонтальная позиция, с которой начинается копирование в
-     *            массив <b>dst</b>.
-     * @param dstY Вертикальная позиция, с которой начинается копирование в
-     *            массив <b>dst</b>.
-     * @param w Ширина копируемого фрагмента.
-     * @param h Высота копируемого фрагмента.
-     * @return <b>true</b> если копирование произошло.
-     */
-    private static boolean copyFrame(byte[] src, int srcW, int srcH, int srcX,
-                    int srcY, byte[] dst, int dstW, int dstH, int dstX,
-                    int dstY, int w, int h) {
-        boolean t, rv;
-
-        if (src == null || dst == null) {
-            return false;
-        }
-
-        rv = false;
-        /*
-         * Собственно копирование. В зависимости от точки копирования выбирается
-         * копирование от начала к концу или наоборот.
-         */
-        if (srcW * srcY + srcX > dstW * dstY + dstX) {
-            for (int ir = 0; ir < h; ir++) {
-                for (int ic = 0; ic < w; ic++) {
-                    if ((ir + srcY >= srcH) || (ir + srcY < 0)
-                                    || (ic + srcX >= srcW) || (ic + srcX < 0)) {
-                        t = false;
-                    }
-                    else {
-                        t = ((src[index(srcW, srcX + ic, ir + srcY)] & (1 << ((srcX + ic) & ITEM_MASK))) != 0);
-                    }
-
-                    if ((ir + dstY >= dstH) || (ir + dstY < 0)
-                                    || (ic + dstX >= dstW) || (ic + dstX < 0)) {
-                        continue;
-                    }
-
-                    if (t) dst[index(dstW, dstX + ic, ir + dstY)] |= (1 << ((dstX + ic) & ITEM_MASK));
-                    else dst[index(dstW, dstX + ic, ir + dstY)] &= ~(1 << ((dstX + ic) & ITEM_MASK));
-                    rv = true;
-                }
-            }
-        }
-        else {
-            for (int ir = h - 1; ir >= 0; ir--) {
-                for (int ic = w - 1; ic >= 0; ic--) {
-                    if ((ir + srcY >= srcH) || (ir + srcY < 0)
-                                    || (ic + srcX >= srcW) || (ic + srcX < 0)) {
-                        t = false;
-                    }
-                    else {
-                        t = ((src[index(srcW, srcX + ic, ir + srcY)] & (1 << ((srcX + ic) & ITEM_MASK))) != 0);
-                    }
-
-                    if ((ir + dstY >= dstH) || (ir + dstY < 0)
-                                    || (ic + dstX >= dstW) || (ic + dstX < 0)) {
-                        continue;
-                    }
-
-                    if (t) dst[index(dstW, dstX + ic, ir + dstY)] |= (1 << ((dstX + ic) & ITEM_MASK));
-                    else dst[index(dstW, dstX + ic, ir + dstY)] &= ~(1 << ((dstX + ic) & ITEM_MASK));
-                    rv = true;
-                }
-            }
-        }
-        return rv;
-    }
-
-    protected static boolean copyFrame(PixselMap src, int srcX, int srcY,
-                    PixselMap dst, int dstX, int dstY, int w, int h) {
-        return copyFrame(src.pixsels, src.width, src.height, srcX, srcY,
-                        dst.pixsels, dst.width, dst.height, dstX, dstY, w, h);
     }
 }
