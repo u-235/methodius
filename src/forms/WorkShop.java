@@ -7,8 +7,8 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -22,29 +22,14 @@ import logic.Application;
 
 public class WorkShop extends JFrame
 {
+    private static final long serialVersionUID = 1L;
     JSplitPane     split;
     public boolean exit;
 
     public WorkShop() {
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        this.addWindowListener(new WindowListener() {
-            @Override
-            public void windowOpened(WindowEvent e) {
-            }
-
-            @Override
-            public void windowIconified(WindowEvent e) {
-            }
-
-            @Override
-            public void windowDeiconified(WindowEvent e) {
-            }
-
-            @Override
-            public void windowDeactivated(WindowEvent e) {
-            }
-
+        this.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
                 if (Application.checkSaveFont()) dispose();
@@ -53,10 +38,6 @@ public class WorkShop extends JFrame
             @Override
             public void windowClosed(WindowEvent e) {
                 exit = true;
-            }
-
-            @Override
-            public void windowActivated(WindowEvent e) {
             }
         });
 

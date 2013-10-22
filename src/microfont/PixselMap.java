@@ -5,7 +5,7 @@ import java.awt.Dimension;
 import static microfont.PixselMap.PixselIterator.*;
 
 /**
- * Класс для представления карты пикселей.
+ * Класс для представления карты пикселей. 
  */
 public class PixselMap extends Object
 {
@@ -226,6 +226,20 @@ public class PixselMap extends Object
         public int getHeight() {
             return endY;
         }
+        
+        /**
+         * Возвращает текущую позицию сканирования по горизонтали.
+         */
+        public int posX() {
+            return posX;
+        }
+        
+        /**
+         * Возвращает текущую позицию сканирования по вертикали. 
+         */
+        public int posY() {
+            return posY;
+        }
 
         /**
          * Возвращает <code>false</code> если отсканирована вся область. В этом
@@ -295,11 +309,10 @@ public class PixselMap extends Object
      * @param width Ширина карты.
      * @param height Высота карты.
      * @param src Копируемый массив.
-     * @see #fromArray(boolean[], byte[])
      */
     public PixselMap(int width, int height, boolean[] src) {
         init(width, height);
-        setArray(src);
+        if (src != null) setArray(src);
     }
 
     /**
@@ -309,11 +322,10 @@ public class PixselMap extends Object
      * @param width Ширина карты.
      * @param height Высота карты.
      * @param src Копируемый массив.
-     * @see #fromArray(byte[], byte[])
      */
     public PixselMap(int width, int height, byte[] src) {
         init(width, height);
-        setArray(src);
+        if (src != null) setArray(src);
     }
 
     /**
@@ -387,16 +399,16 @@ public class PixselMap extends Object
      * @param height Высота области сканирования.
      * @param dir Направление сканирования. Может быть одним из
      *            <ul>
-     *            <li>{@link #DIR_LEFT_TOP}
-     *            <li>{@link #DIR_RIGHT_TOP}
+     *            <li>{@link PixselIterator#DIR_LEFT_TOP}
+     *            <li>{@link PixselIterator#DIR_RIGHT_TOP}
      *            <li>
-     *            {@link #DIR_LEFT_BOTTOM}
-     *            <li>{@link #DIR_RIGHT_BOTTOM}
-     *            <li>{@link #DIR_TOP_LEFT}
-     *            <li>{@link #DIR_TOP_RIGHT}
+     *            {@link PixselIterator#DIR_LEFT_BOTTOM}
+     *            <li>{@link PixselIterator#DIR_RIGHT_BOTTOM}
+     *            <li>{@link PixselIterator#DIR_TOP_LEFT}
+     *            <li>{@link PixselIterator#DIR_TOP_RIGHT}
      *            <li>
-     *            {@link #DIR_BOTTOM_LEFT}
-     *            <li>{@link #DIR_BOTTOM_RIGHT}
+     *            {@link PixselIterator#DIR_BOTTOM_LEFT}
+     *            <li>{@link PixselIterator#DIR_BOTTOM_RIGHT}
      *            </ul>
      * @return Итератор для карты.
      */

@@ -12,7 +12,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import utils.resource.Resource;
 
 import microfont.MFont;
-import microfont.MSymbol;
 import microfont.events.MFontEvent;
 import microfont.events.MFontListener;
 import microfont.ls.MFontLoadSave;
@@ -30,7 +29,7 @@ public class Application
 
     public static Resource       res;
     static File                  fontFile;
-    String                       fontName  = "new font";
+    static String                       fontName  = "new font";
     static boolean               fontSaved;
 
     static WorkShop              work;
@@ -41,8 +40,6 @@ public class Application
     static FontProperties        fpf;
 
     private static MFont         font;
-    private static MSymbol       symbol;
-
     private static MFontListener atFontChange;
     public static ActionX        actNew;
     public static ActionX        actOpen;
@@ -93,6 +90,7 @@ public class Application
         work.setLeft(fontPanel);
         work.setRight(editPanel);
 
+        updateTitle();
         setSaved(true);
 
         work.pack();
@@ -100,14 +98,14 @@ public class Application
         EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
-                Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+                //Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
                 work.setVisible(true);
                 System.out.println("gui thread pririy is "
                                 + Thread.currentThread().getPriority());
             }
         });
 
-        Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+        //Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
         System.out.println("back thread pririy is "
                         + Thread.currentThread().getPriority());
         System.out.println("do open dialog");
@@ -143,7 +141,7 @@ public class Application
         font = newFont;
 
         fontPanel.setMFont(font);
-
+        updateTitle();
         setSaved(true);
     }
 
@@ -237,7 +235,7 @@ public class Application
         else actModeRuber.setSelected(false);
     }
 
-    void updateTitle() {
+    static void updateTitle() {
         String title = Application.NAME;
         if (fontName != null) title += " : " + fontName;
         if (fontFile != null) title += " (" + fontFile.getName() + ")";
@@ -496,7 +494,7 @@ public class Application
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            MFont f, c;
+            MFont c;
             if (fpf == null) fpf = new FontProperties(work, res);
 
             if (font == null) return;

@@ -18,7 +18,7 @@ public class MFont extends Object implements MSymbolListener
     {
     }
 
-    Lock            lockFont = new Lock();
+    Lock            lockFont = new Lock() {};
     private MSymbol firstSymbol;
     private int     size;
     private String  name;
@@ -490,7 +490,7 @@ public class MFont extends Object implements MSymbolListener
 
         synchronized (lockFont) {
             while (ret != null) {
-                if (ret.index == index) break;
+                if (ret.getIndex() == index) break;
                 ret = ret.nextSymbol;
             }
         }
@@ -514,8 +514,8 @@ public class MFont extends Object implements MSymbolListener
             while (curr != null) {
                 next = curr.nextSymbol;
                 prev = curr.prevSymbol;
-                if (curr.index == symbol.index) break;
-                if (curr.index > symbol.index) {
+                if (curr.getIndex() == symbol.getIndex()) break;
+                if (curr.getIndex() > symbol.getIndex()) {
                     next = curr;
                     curr = null;
                     break;
