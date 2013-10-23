@@ -5,7 +5,7 @@ import java.awt.Dimension;
 import static microfont.PixselMap.PixselIterator.*;
 
 /**
- * Класс для представления карты пикселей. 
+ * Класс для представления карты пикселей.
  */
 public class PixselMap extends Object
 {
@@ -217,25 +217,25 @@ public class PixselMap extends Object
          * Возвращает ширину области сканирования.
          */
         public int getWidth() {
-            return endX;
+            return endX - startX + 1;
         }
 
         /**
          * Возвращает высоту области сканирования.
          */
         public int getHeight() {
-            return endY;
+            return endY - startY + 1;
         }
-        
+
         /**
          * Возвращает текущую позицию сканирования по горизонтали.
          */
         public int posX() {
             return posX;
         }
-        
+
         /**
-         * Возвращает текущую позицию сканирования по вертикали. 
+         * Возвращает текущую позицию сканирования по вертикали.
          */
         public int posY() {
             return posY;

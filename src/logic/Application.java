@@ -98,14 +98,14 @@ public class Application
         EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
-                //Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+                //Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
                 work.setVisible(true);
                 System.out.println("gui thread pririy is "
                                 + Thread.currentThread().getPriority());
             }
         });
 
-        //Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+        Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
         System.out.println("back thread pririy is "
                         + Thread.currentThread().getPriority());
         System.out.println("do open dialog");

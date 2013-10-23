@@ -54,19 +54,21 @@ import microfont.events.MSymbolListener;
 public class MSymbol extends Object
 {
     /**  */
-    protected MFont                    parent;
-    protected MSymbol                  prevSymbol   = null;
-    protected MSymbol                  nextSymbol   = null;
+    protected MFont   parent;
+    protected MSymbol prevSymbol = null;
+    protected MSymbol nextSymbol = null;
     /** Индекс символа в шрифте. */
-    private int                        index;
+    private int       index;
     /** Массив пикселей */
-    private PixselMap                  pixsels;
+    private PixselMap pixsels;
+
     /** Список получателей события после изменения символа. */
 
     private class Chain extends ListenerChain<MSymbolEvent>
     {
         @Override
-        protected void listenerCall(DataEventListener listener, MSymbolEvent event) {
+        protected void listenerCall(DataEventListener listener,
+                        MSymbolEvent event) {
             ((MSymbolListener) listener).mSymbolEvent(event);
         }
 
@@ -272,8 +274,12 @@ public class MSymbol extends Object
      * 
      * @param w Новая ширина символа. Если параметр меньше нуля, то ширина не
      *            изменяется.
+     * @throws DisallowOperationException
      */
-    public void setWidth(int w) {
+    public void setWidth(int w) throws DisallowOperationException {
+        if (parent != null && !parent.isValidWidth(w))
+            throw new DisallowOperationException("change width");
+
         if (pixsels.setWidth(w))
             fireEvent(MSymbolEvent.SIZE, 0, 0, pixsels.getWidth(),
                             pixsels.getHeight());
@@ -297,8 +303,12 @@ public class MSymbol extends Object
      * 
      * @param h Новая высота символа. Если параметр меньше нуля, то высота не
      *            изменяется.
+     * @throws DisallowOperationException
      */
-    public void setHeight(int h) {
+    public void setHeight(int h) throws DisallowOperationException {
+        if (parent != null && !parent.isValidHeight(h))
+            throw new DisallowOperationException("change height");
+
         if (pixsels.setHeight(h))
             fireEvent(MSymbolEvent.SIZE, 0, 0, pixsels.getWidth(),
                             pixsels.getHeight());
@@ -601,12 +611,13 @@ public class MSymbol extends Object
      * Генерируются события {@link MSymbolEvent#INDEX INDEX}.
      * 
      * @param i Новый индекс.
-     * @throws IllegalArgumentException
+     * @throws DisallowOperationException 
      */
-    public void setIndex(int i) throws IllegalArgumentException {
+    public void setIndex(int i) throws IllegalArgumentException, DisallowOperationException {
         boolean changed = false;
 
-        if (i < 0) throw (new IllegalArgumentException(" : index"));
+        if (parent != null && !parent.isValidIndex(i))
+            throw new DisallowOperationException("change index");
 
         if (parent != null) return;
 

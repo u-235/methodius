@@ -18,7 +18,8 @@ public class MFont extends Object implements MSymbolListener
     {
     }
 
-    Lock            lockFont = new Lock() {};
+    Lock            lockFont = new Lock() {
+                             };
     private MSymbol firstSymbol;
     private int     size;
     private String  name;
@@ -29,9 +30,11 @@ public class MFont extends Object implements MSymbolListener
     private String  authorName;
     private String  authorMail;
     private int     width;
+    private int     validWidth;
     private int     minWidth;
     private int     maxWidth;
     private int     height;
+    private int     validHeight;
     private int     marginLeft;
     private int     marginRight;
     private int     baseline;
@@ -54,6 +57,8 @@ public class MFont extends Object implements MSymbolListener
         this.charset = charset;
         this.width = width;
         this.height = height;
+        this.validWidth = width;
+        this.validHeight = height;
     }
 
     public MFont(int width, int height) {
@@ -76,6 +81,8 @@ public class MFont extends Object implements MSymbolListener
         ret.authorMail = this.authorMail;
         ret.width = this.width;
         ret.height = this.height;
+        ret.validWidth = this.validWidth;
+        ret.validHeight = this.validHeight;
         ret.setSymbols(this.getSymbols());
         ret.marginLeft = this.marginLeft;
         ret.marginRight = this.marginRight;
@@ -99,6 +106,8 @@ public class MFont extends Object implements MSymbolListener
         fixsed = font.fixsed;
         width = font.width;
         height = font.height;
+        validWidth = font.validWidth;
+        validHeight = font.validHeight;
 
         setName(font.name);
         setPrototype(font.prototype);
@@ -120,6 +129,36 @@ public class MFont extends Object implements MSymbolListener
         setHeight(font.height);
         fixsed = oldFix;
         setFixsed(font.fixsed);
+    }
+
+    /**
+     * 
+     * @param width
+     * @return
+     */
+    protected boolean isValidWidth(int width) {
+        if (width < 0) return false;
+        if (fixsed) return true;
+        return width == validWidth;
+    }
+
+    /**
+     * 
+     * @param height
+     * @return
+     */
+    protected boolean isValidHeight(int height) {
+        if (height < 0) return false;
+        return width == validHeight;
+    }
+
+    /**
+     * 
+     * @param index
+     * @return
+     */
+    protected boolean isValidIndex(int index) {
+        return symbolAtIndex(index) == null;
     }
 
     String convertName(String name) {
@@ -181,7 +220,11 @@ public class MFont extends Object implements MSymbolListener
 
         if (!old && this.fixsed) {
             while (turn != null) {
-                turn.setWidth(this.maxWidth);
+                try {
+                    turn.setWidth(this.maxWidth);
+                }
+                catch (DisallowOperationException e) {
+                }
                 turn = turn.nextSymbol;
             }
             updateWidth();
@@ -234,10 +277,15 @@ public class MFont extends Object implements MSymbolListener
         oldWidth = this.width;
         oldMax = this.maxWidth;
         oldMin = this.minWidth;
+        validWidth = width;
 
         if (this.fixsed) {
             while (turn != null) {
-                turn.setWidth(width);
+                try {
+                    turn.setWidth(width);
+                }
+                catch (DisallowOperationException e) {
+                }
                 turn = turn.nextSymbol;
             }
 
@@ -254,8 +302,10 @@ public class MFont extends Object implements MSymbolListener
             turn = firstSymbol;
             while (turn != null) {
                 w += turn.getPixsels().getWidth();
-                min = (min < turn.getPixsels().getWidth()) ? min : turn.getPixsels().getWidth();
-                max = (max > turn.getPixsels().getWidth()) ? max : turn.getPixsels().getWidth();
+                min = (min < turn.getPixsels().getWidth()) ? min : turn
+                                .getPixsels().getWidth();
+                max = (max > turn.getPixsels().getWidth()) ? max : turn
+                                .getPixsels().getWidth();
                 turn = turn.nextSymbol;
 
                 if (i == 0) {
@@ -301,11 +351,16 @@ public class MFont extends Object implements MSymbolListener
         if (height < 0) throw (new IllegalArgumentException("invalid height"));
 
         this.height = height;
+        validHeight = height;
 
         if (old != this.height) {
             MSymbol turn = firstSymbol;
             while (turn != null) {
-                turn.setHeight(this.height);
+                try {
+                    turn.setHeight(this.height);
+                }
+                catch (DisallowOperationException e) {
+                }
                 turn = turn.nextSymbol;
             }
         }
@@ -505,8 +560,18 @@ public class MFont extends Object implements MSymbolListener
         if (symbol == null) return;
         if (isBelong(symbol)) return;
 
-        symbol.setHeight(height);
-        if (fixsed) symbol.setWidth(width);
+        symbol.removeListener(symbol.parent);
+        symbol.parent = this;
+        try {
+            symbol.setHeight(height);
+        }
+        catch (DisallowOperationException e) {
+        }
+        if (fixsed) try {
+            symbol.setWidth(width);
+        }
+        catch (DisallowOperationException e) {
+        }
 
         synchronized (lockFont) {
             curr = firstSymbol;
@@ -527,7 +592,6 @@ public class MFont extends Object implements MSymbolListener
 
             symbol.prevSymbol = prev;
             symbol.nextSymbol = next;
-            symbol.parent = this;
             symbol.addListener(this);
 
             if (prev == null) firstSymbol = symbol;
@@ -674,7 +738,6 @@ public class MFont extends Object implements MSymbolListener
     }
 
     private void fireEvent(MSymbol oldValue, MSymbol newValue, int reason) {
-        // TODO Auto-generated method stub
         fireEvent(new MFontEvent(this, reason, oldValue, newValue));
     }
 
