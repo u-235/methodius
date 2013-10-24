@@ -137,7 +137,6 @@ public class MFont extends Object implements MSymbolListener
      * @return
      */
     protected boolean isValidWidth(int width) {
-        if (width < 0) return false;
         if (fixsed) return true;
         return width == validWidth;
     }
@@ -148,7 +147,6 @@ public class MFont extends Object implements MSymbolListener
      * @return
      */
     protected boolean isValidHeight(int height) {
-        if (height < 0) return false;
         return width == validHeight;
     }
 

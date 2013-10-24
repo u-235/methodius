@@ -78,37 +78,6 @@ public class MSymbol extends Object
 
     /**
      * Конструктор символа с заданными размерами, индексом и копированием
-     * массива <b>boolean</b>. <br>
-     * Если копируемый массив меньше количества пикселей, то оставшиеся пиксели
-     * будут установлены в ноль.
-     * 
-     * @param i Индекс символа в шрифте.
-     * @param w Ширина нового символа.
-     * @param h Высота нового символа.
-     * @param a Массив для копирования.
-     */
-    public MSymbol(int i, int w, int h, boolean[] a) {
-        if (i < 0) throw (new IllegalArgumentException("Invalid index"));
-        index = i;
-        pixsels = new PixselMap(w, h, a);
-    }
-
-    /**
-     * Конструктор символа с заданными размерами и копированием массива
-     * <b>boolean</b>. <br>
-     * Если копируемый массив меньше количества пикселей, то оставшиеся пиксели
-     * будут установлены в ноль.
-     * 
-     * @param w Ширина нового символа.
-     * @param h Высота нового символа.
-     * @param a Массив для копирования.
-     */
-    public MSymbol(int w, int h, boolean[] a) {
-        this(0, w, h, a);
-    }
-
-    /**
-     * Конструктор символа с заданными размерами, индексом и копированием
      * массива <b>byte</b>. <br>
      * Если копируемый массив меньше количества пикселей, то оставшиеся пиксели
      * будут установлены в ноль.
@@ -123,29 +92,6 @@ public class MSymbol extends Object
         index = i;
 
         pixsels = new PixselMap(w, h, a);
-    }
-
-    /**
-     * Конструктор символа с заданными размерами и копированием массива
-     * <b>byte</b>. <br>
-     * Если копируемый массив меньше количества пикселей, то оставшиеся пиксели
-     * будут установлены в ноль.<br>
-     * Индекс символа равен нулю.
-     * 
-     * @param w Ширина нового символа.
-     * @param h Высота нового символа.
-     * @param a Массив для копирования.
-     */
-    public MSymbol(int w, int h, byte[] a) {
-        this(0, w, h, a);
-    }
-
-    /**
-     * Конструктор по умолчанию. Символ имеет нулевую ширину и высоту. Индекс
-     * символа равен нулю.
-     */
-    public MSymbol() {
-        pixsels = new PixselMap();
     }
 
     /**
@@ -180,13 +126,8 @@ public class MSymbol extends Object
      */
     @Override
     public MSymbol clone() {
-        MSymbol ret;
-
-        ret = new MSymbol();
-        ret.pixsels = pixsels.clone();
-
-        ret.index = index;
-        return ret;
+        return new MSymbol(index, pixsels.getWidth(), pixsels.getHeight(),
+                        pixsels.getByteArray());
     }
 
     /**
@@ -220,7 +161,11 @@ public class MSymbol extends Object
         return pixsels.equals(s.pixsels);
     }
 
-    public void setPixsels(PixselMap pixsels) {
+    public void setPixsels(PixselMap pixsels) throws DisallowOperationException {
+        if (parent != null && !parent.isValidWidth(pixsels.getWidth()))
+            throw new DisallowOperationException("change width");
+        if (parent != null && !parent.isValidHeight(pixsels.getHeight()))
+            throw new DisallowOperationException("change height");
         this.pixsels = pixsels;
     }
 
@@ -335,8 +280,13 @@ public class MSymbol extends Object
      *            изменяется.
      * @param h Новая высота символа. Если параметр меньше нуля, то высота не
      *            изменяется.
+     * @throws DisallowOperationException 
      */
-    public void setSize(int w, int h) {
+    public void setSize(int w, int h) throws DisallowOperationException {
+        if (parent != null && !parent.isValidWidth(w))
+            throw new DisallowOperationException("change width");
+        if (parent != null && !parent.isValidHeight(h))
+            throw new DisallowOperationException("change height");
         if (pixsels.setSize(w, h))
             fireEvent(MSymbolEvent.SIZE, 0, 0, pixsels.getWidth(),
                             pixsels.getHeight());
@@ -524,8 +474,9 @@ public class MSymbol extends Object
      * 
      * @param pos Позиция удаляемого столбца.
      * @throws IllegalArgumentException
+     * @throws DisallowOperationException 
      */
-    public void removeColumn(int pos) throws IllegalArgumentException {
+    public void removeColumn(int pos) throws IllegalArgumentException, DisallowOperationException {
         PixselMap tMap;
         int w, h;
 
@@ -535,6 +486,9 @@ public class MSymbol extends Object
         h = pixsels.getHeight();
 
         if (pos < 0 || pos >= w) throw (new IllegalArgumentException());
+
+        if (parent != null && !parent.isValidWidth(w-1))
+            throw new DisallowOperationException("change width");
 
         tMap = new PixselMap(w - 1, h);
 
@@ -564,8 +518,9 @@ public class MSymbol extends Object
      * 
      * @param pos Позиция удаляемой строки.
      * @throws IllegalArgumentException
+     * @throws DisallowOperationException 
      */
-    public void removeRow(int pos) throws IllegalArgumentException {
+    public void removeRow(int pos) throws IllegalArgumentException, DisallowOperationException {
         PixselMap tMap;
         int w, h;
 
@@ -575,6 +530,9 @@ public class MSymbol extends Object
         h = pixsels.getHeight();
 
         if (pos < 0 || pos >= h) throw (new IllegalArgumentException());
+
+        if (parent != null && !parent.isValidHeight(h))
+            throw new DisallowOperationException("change height");
 
         tMap = new PixselMap(w, h - 1);
 
@@ -611,9 +569,10 @@ public class MSymbol extends Object
      * Генерируются события {@link MSymbolEvent#INDEX INDEX}.
      * 
      * @param i Новый индекс.
-     * @throws DisallowOperationException 
+     * @throws DisallowOperationException
      */
-    public void setIndex(int i) throws IllegalArgumentException, DisallowOperationException {
+    public void setIndex(int i) throws IllegalArgumentException,
+                    DisallowOperationException {
         boolean changed = false;
 
         if (parent != null && !parent.isValidIndex(i))
