@@ -30,7 +30,7 @@ public class Application
 
     public static Resource       res;
     static File                  fontFile;
-    static String                       fontName  = "new font";
+    static String                fontName  = "new font";
     static boolean               fontSaved;
 
     static WorkShop              work;

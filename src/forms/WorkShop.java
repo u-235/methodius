@@ -23,8 +23,8 @@ import logic.Application;
 public class WorkShop extends JFrame
 {
     private static final long serialVersionUID = 1L;
-    JSplitPane     split;
-    public boolean exit;
+    JSplitPane                split;
+    public boolean            exit;
 
     public WorkShop() {
         this.setLocationRelativeTo(null);

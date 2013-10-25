@@ -20,6 +20,9 @@ public class PixselMap extends Object
     /** Высота карты в пикселях. */
     private int       height;
 
+    protected int     left, right, top, bottom;
+    private boolean   change;
+
     /**
      * Итератор для последовательного доступа к пикселям прямоугольной области
      * (<i>области сканирования</i>) {@linkplain PixselMap карты}. Область
@@ -312,7 +315,7 @@ public class PixselMap extends Object
      */
     public PixselMap(int width, int height, boolean[] src) {
         init(width, height);
-        if (src != null) setArray(src);
+        if (src != null) this.setArray(src);
     }
 
     /**
@@ -325,7 +328,7 @@ public class PixselMap extends Object
      */
     public PixselMap(int width, int height, byte[] src) {
         init(width, height);
-        if (src != null) setArray(src);
+        if (src != null) this.setArray(src);
     }
 
     /**
@@ -423,6 +426,30 @@ public class PixselMap extends Object
      */
     public boolean isEmpty() {
         return pixsels == null;
+    }
+
+    protected boolean hasChange() {
+        return change;
+    }
+
+    protected void cleanChange() {
+        change = false;
+    }
+
+    protected void fixChange(int x, int y) {
+        if (!change) {
+            left = x;
+            right = x;
+            top = y;
+            bottom = y;
+        }
+
+        change = true;
+
+        left = left < x ? left : x;
+        right = right > x ? right : x;
+        top = top < y ? top : y;
+        bottom = bottom > y ? bottom : y;
     }
 
     /**
@@ -562,14 +589,12 @@ public class PixselMap extends Object
      * 
      * @param w Новая ширина. Если число отрицательное, то ширина не меняется.
      * @param h Новая высота. Если число отрицательное, то высота не меняется.
-     * @return <b>true</b> если размер действительно изменился. Это полезно,
-     *         например публичным методам для генерации уведомления об
-     *         изменениях.
      */
-    protected boolean setSize(int w, int h) {
-        boolean changed = false;
+    protected void changeSize(int w, int h) {
         int nw, nh;
         byte[] narr;
+
+        cleanChange();
 
         /* Проверка ширины. */
         if (w < 0) {
@@ -587,7 +612,7 @@ public class PixselMap extends Object
         }
         /* Если новые размеры равны старым, то и делать ничего не надо. */
         if (nw == width && nh == height) {
-            return false;
+            return;
         }
         /* Если один из размеров равен нулю, обнуляем символ. */
         if (nw == 0 || nh == 0) {
@@ -598,7 +623,7 @@ public class PixselMap extends Object
              * Если старый массив не пуст, копировать его (насколько возможно) в
              * новый.
              */
-            if (this.pixsels == null) narr = doPixselArray(nw, nh);
+            if (pixsels == null) narr = doPixselArray(nw, nh);
             else {
                 PixselMap temp = new PixselMap(nw, nh);
 
@@ -619,12 +644,15 @@ public class PixselMap extends Object
         }
 
         /* Фиксируем изменения. */
-        if (width != nw || height != nh) changed = true;
+        if (width != nw || height != nh) {
+            fixChange(0, 0);
+            fixChange(nw - 1, nh - 1);
+        }
 
         pixsels = narr;
         width = nw;
         height = nh;
-        return changed;
+        return;
     }
 
     /**
@@ -637,39 +665,12 @@ public class PixselMap extends Object
     }
 
     /**
-     * Метод изменяет ширину символа. <br>
-     * Если новая ширина меньше текущей, то лишние столбцы символа обрезаются
-     * справа. <br>
-     * Если новая ширина больше текущей, то справа добавляются пустые столбцы.
-     * 
-     * @param w Новая ширина символа. Если параметр меньше нуля, то ширина не
-     *            изменяется.
-     * @return <code>true</code> если метод действительно изменил содержимое.
-     */
-    protected boolean setWidth(int w) {
-        return setSize(w, height);
-    }
-
-    /**
      * Метод возвращает высоту символа.
      * 
      * @return Количество пикселей по вертикали.
      */
     public int getHeight() {
         return height;
-    }
-
-    /**
-     * Метод изменяет высоту символа. <br>
-     * Если новая высота меньше текущей, то лишние строки символа обрезаются
-     * снизу. <br>
-     * Если новая высота больше текущей, то внизу добавляются пустые строки. <br>
-     * 
-     * @param h Новая высота символа. Если параметр меньше нуля, то высота не
-     *            изменяется.
-     */
-    protected boolean setHeight(int h) {
-        return setSize(width, h);
     }
 
     /**

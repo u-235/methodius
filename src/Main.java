@@ -1,4 +1,3 @@
-
 import java.awt.EventQueue;
 
 import logic.Application;
