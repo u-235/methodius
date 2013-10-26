@@ -2,6 +2,7 @@ package microfont.events;
 
 import utils.event.DataEvent;
 import microfont.MSymbol;
+import microfont.PixselMap;
 
 public class MSymbolEvent extends DataEvent
 {
@@ -21,14 +22,25 @@ public class MSymbolEvent extends DataEvent
     public static final int   SHIFT            = 5;
     public static final int   UNKNOWN          = 0;
 
-    public MSymbol            source;
+    public PixselMap          source;
     public int                reason;
     public int                y;
     public int                x;
     public int                height;
     public int                width;
 
-    public MSymbolEvent(MSymbol s, int reason) {
+    public MSymbolEvent(PixselMap s, int reason, int x, int y, int width,
+                    int height) {
+        super(s, reason, null, null);
+        source = s;
+        this.reason = reason;
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+    }
+
+    public MSymbolEvent(PixselMap s, int reason) {
         super(s, reason, null, null);
         source = s;
         this.reason = reason;

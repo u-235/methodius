@@ -2,7 +2,7 @@ package microfont;
 
 /**
  * Исключение при попытке получения (или изменения) следующего пикселя через
- * {@linkplain PixselMap.PixselIterator итератор}, который уже достиг конца
+ * {@linkplain AbstractPixselMap.PixselIterator итератор}, который уже достиг конца
  * итераций.
  * 
  */
