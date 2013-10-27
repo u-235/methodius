@@ -137,7 +137,7 @@ public class MFont extends Object implements MSymbolListener
      * @return
      */
     protected boolean isValidWidth(int width) {
-        if (fixsed) return true;
+        if (!fixsed) return true;
         return width == validWidth;
     }
 
@@ -147,7 +147,7 @@ public class MFont extends Object implements MSymbolListener
      * @return
      */
     protected boolean isValidHeight(int height) {
-        return width == validHeight;
+        return height == validHeight;
     }
 
     /**
@@ -283,6 +283,7 @@ public class MFont extends Object implements MSymbolListener
                     turn.setWidth(width);
                 }
                 catch (DisallowOperationException e) {
+                    System.out.println("bad width");
                 }
                 turn = turn.nextSymbol;
             }
@@ -312,11 +313,11 @@ public class MFont extends Object implements MSymbolListener
                     max = 0;
                 }
                 else w /= i;
+                this.width = w;
+                this.minWidth = min;
+                this.maxWidth = max;
             }
 
-            this.width = w;
-            this.minWidth = min;
-            this.maxWidth = max;
         }
 
         fireEvent(oldWidth, this.width, MFontEvent.FONT_WIDTH);
@@ -358,6 +359,7 @@ public class MFont extends Object implements MSymbolListener
                     turn.setHeight(this.height);
                 }
                 catch (DisallowOperationException e) {
+                    System.out.println("bad height");
                 }
                 turn = turn.nextSymbol;
             }

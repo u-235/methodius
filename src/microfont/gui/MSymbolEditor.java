@@ -55,12 +55,14 @@ public class MSymbolEditor extends MAbstractComponent implements MouseListener,
             else return;
             changeEnable = true;
             symbolHit = hit(symbolHit, e.getX(), e.getY());
-            if ((symbolHit.flags & symbolHit.PIXSEL) != 0) try {
-                symbol.changePixsel(symbolHit.column, symbolHit.row, changeSet);
-            }
-            catch (IllegalArgumentException e1) {
-                e1.printStackTrace();
-            }
+            if ((symbolHit.flags & symbolHit.PIXSEL) != 0)
+                try {
+                    symbol.changePixsel(symbolHit.column, symbolHit.row,
+                                    changeSet);
+                }
+                catch (IllegalArgumentException e1) {
+                    e1.printStackTrace();
+                }
         }
     }
 
@@ -91,12 +93,14 @@ public class MSymbolEditor extends MAbstractComponent implements MouseListener,
         if ((symbolHit.flags & symbolHit.PIXSEL) != 0
                         && (symbolHit.flags & symbolHit.DEAD_ZONE) == 0
                         && changeEnable) {
-            if ((symbolHit.column != prevX) || (symbolHit.row != prevY)) try {
-                symbol.changePixsel(symbolHit.column, symbolHit.row, changeSet);
-            }
-            catch (IllegalArgumentException e1) {
-                e1.printStackTrace();
-            }
+            if ((symbolHit.column != prevX) || (symbolHit.row != prevY))
+                try {
+                    symbol.changePixsel(symbolHit.column, symbolHit.row,
+                                    changeSet);
+                }
+                catch (IllegalArgumentException e1) {
+                    e1.printStackTrace();
+                }
             prevX = symbolHit.column;
             prevY = symbolHit.row;
         }

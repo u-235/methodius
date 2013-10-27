@@ -68,13 +68,11 @@ public class PixselMap extends AbstractPixselMap
 
     @Override
     protected boolean isValidHeight(int h) {
-        // TODO Auto-generated method stub
         return true;
     }
 
     @Override
     protected boolean isValidWidth(int w) {
-        // TODO Auto-generated method stub
         return true;
     }
 
@@ -107,7 +105,7 @@ public class PixselMap extends AbstractPixselMap
         MSymbolEvent change;
 
         if (listListener == null) return;
-        
+
         if (!hasChange()) return;
 
         change = new MSymbolEvent(this, reason, left, top, right - left + 1,
@@ -168,6 +166,7 @@ public class PixselMap extends AbstractPixselMap
     public void setSize(int w, int h) throws DisallowOperationException {
         cleanChange();
         super._setSize(w, h);
+        fireEvent(MSymbolEvent.SIZE);
     }
 
     /**
@@ -192,7 +191,7 @@ public class PixselMap extends AbstractPixselMap
     }
 
     public void setHeight(int h) throws DisallowOperationException {
-        setSize(getHeight(), h);
+        setSize(getWidth(), h);
     }
 
     /**
@@ -236,8 +235,6 @@ public class PixselMap extends AbstractPixselMap
         _setArray(a);
         fireEvent(MSymbolEvent.COPY);
     }
-    
-
 
     /**
      * Сдвиг символа вправо. После сдвига левый столбец становится пустым. <br>
@@ -366,8 +363,7 @@ public class PixselMap extends AbstractPixselMap
             }
         }
 
-        if (changed)
-            fireEvent(MSymbolEvent.COPY);
+        if (changed) fireEvent(MSymbolEvent.COPY);
     }
 
     public void reflectHorizontale() {
@@ -389,7 +385,6 @@ public class PixselMap extends AbstractPixselMap
             }
         }
 
-        if (changed)
-            fireEvent(MSymbolEvent.COPY);
+        if (changed) fireEvent(MSymbolEvent.COPY);
     }
 }

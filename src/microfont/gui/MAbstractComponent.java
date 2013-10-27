@@ -222,6 +222,7 @@ public class MAbstractComponent extends ScrollableWindow implements
 
         if (old != pixselSize) {
             revalidate();
+            validate();
             repaint();
         }
     }
@@ -822,7 +823,11 @@ public class MAbstractComponent extends ScrollableWindow implements
      */
     @Override
     public void mSymbolEvent(MSymbolEvent change) {
-        if (change.reason == MSymbolEvent.SIZE) revalidate();
+        if (change.reason == MSymbolEvent.SIZE) {
+            revalidate();
+            validate();
+            repaint();
+        }
         else repaint(change.x * pixselSize, change.y * pixselSize, change.width
                         * pixselSize, change.height * pixselSize);
     }

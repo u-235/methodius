@@ -2,8 +2,8 @@ package microfont;
 
 /**
  * Исключение при попытке получения (или изменения) следующего пикселя через
- * {@linkplain AbstractPixselMap.PixselIterator итератор}, который уже достиг конца
- * итераций.
+ * {@linkplain AbstractPixselMap.PixselIterator итератор}, который уже достиг
+ * конца итераций.
  * 
  */
 public class BadIterationException extends RuntimeException

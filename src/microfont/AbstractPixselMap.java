@@ -1,34 +1,66 @@
 package microfont;
 
 import java.awt.Dimension;
+import java.awt.Rectangle;
 
 import static microfont.AbstractPixselMap.PixselIterator.*;
 
 /**
  * Базовый класс для представления карты пикселей.
  * 
+ * <h3><img src="doc-files/symbol.png" align=right> Организация карты.</h3>
  * <p>
- * <img src="doc-files/symbol.png" align=right> <b>Организация карты.</b><br>
  * AbstractPixselMap разработан исходя из следующих соображений.
  * <ul>
  * <li>Пиксель может принимать два значения, поэтому методы для доступа к
- * пикселям используют <code>boolean</code> для обозначения состояния.Состоянию
+ * пикселям используют <code>boolean</code> для обозначения состояния. Состоянию
  * пикселя "закрашен" соответствует <code>true</code>, состоянию "пуст" (другими
  * словами - прозрачен, то есть видна бумага) - <code>false</code>.
  * <li>Карта пикселей имеет ширину и высоту в пикселях.
- * <li>Координаты пикселя всегда положительны. Вершина координат находится в левом
- * верхнем углу карты.
+ * <li>Координаты пикселя всегда положительны. Вершина координат находится в
+ * левом верхнем углу карты.
  * <li>Вся область за границами символа считается прозрачной. То есть такой код
  * вернёт <code>false</code>.
+ * 
  * <pre>
- * AbstractPixselMap map;
- * boolean   result;
- * . . . . .
- * result = map.getPixsel(-1, 2);</pre>
+ *      AbstractPixselMap map;
+ *      boolean   result;
+ *      . . . . .
+ *      result = map.getPixsel(-1, 2);
+ * </pre>
+ * 
  * </ul>
  * На рисунке изображена карта высотой 8 и шириной 8 пикселей. Закрашены пиксели
  * с координатам <b>0</b>:<b>0</b>, <b>1</b>:<b>0</b> и <b>2</b>:<b>1</b> в
  * формате <b><i>колонка</i></b>:<b><i>строка</i></b>.
+ * 
+ * <h3>Доступ к данным.</h3>
+ * <p>
+ * Класс предоставляет публичные методы для получения данных и защищённые - для
+ * изменения. Таким образом, класс фактически является "readonly". Кроме того,
+ * успешность попытки изменить размеры карты зависит от
+ * {@link #isValidWidth(int)} и {@link #isValidHeight(int)}.
+ * 
+ * <h3>Фиксация изменений.</h3>
+ * <p>
+ * Методы {@link #cleanChange()}, {@link #fixChange(int, int)} и
+ * {@link #hasChange()}, а так же переменные {@link #left}, {@link #right},
+ * {@link #top} и {@link #bottom} предназначены для фиксации границ изменений в
+ * карте. Этот механизм в первую очередь предназначен для облегчения генерации
+ * сообщений о сделанных изменениях.
+ * <p>
+ * Суть работы этого механизма проста. Защищённые методы, изменяющие состояние
+ * карты, вызывают <code>fixChange</code> только в том случае, если карта
+ * действительно изменилась. В таком случае <code>hasChange</code> возвращает
+ * <code>true</code>.
+ * <p>
+ * Публичные методы потомков класса должны придерживаться следующего правила
+ * <ol>
+ * <li>Вызвать <code>cleanChange</code> для сброса флага изменений.
+ * <li>Выполнить требуемую работу при помощи защищённых методов этого класса.
+ * <li>Проверить <code>hasChange</code> и при необходимости сгенерировать
+ * сообщение.
+ * </ol>
  */
 public abstract class AbstractPixselMap extends Object
 {
@@ -43,14 +75,16 @@ public abstract class AbstractPixselMap extends Object
     /** Высота карты в пикселях. */
     private int       height;
 
+    /** Переменные для фиксации изменений. */
     protected int     left, right, top, bottom;
+    /** Переменная показывает, были изменения или нет. */
     private boolean   change;
 
     /**
      * Итератор для последовательного доступа к пикселям прямоугольной области
-     * (<i>области сканирования</i>) {@linkplain PixselMap карты}. Область
-     * сканирования может быть произвольного размера, но оставаться в пределах
-     * карты. Так же возможен выбор направления сканирования пикселей.
+     * (<i>области сканирования</i>) {@linkplain AbstractPixselMap карты}.
+     * Область сканирования может быть произвольного размера, но оставаться в
+     * пределах карты. Так же возможен выбор направления сканирования пикселей.
      * <p>
      * Размеры, задаваемые при создании, могут быть скорректированы, если
      * область сканирования выходит за границы карты. Например, если начальная
@@ -98,9 +132,13 @@ public abstract class AbstractPixselMap extends Object
         /** Направление снизу вверх, справа налево. */
         public final static int   DIR_BOTTOM_RIGHT = 7;
 
+        /** Сканируемая карта. */
         private AbstractPixselMap parent;
+        /** Направление сканирования. */
         private int               dir;
+        /** Координаты области сканирования. */
         private int               startX, startY, endX, endY;
+        /** Текущая позиция сканирования. */
         private int               posX, posY;
 
         /**
@@ -398,6 +436,7 @@ public abstract class AbstractPixselMap extends Object
     /**
      * Возвращает индекс байта в массиве для пикселя с заданной позицией.
      * 
+     * @param w Ширина карты.
      * @param x Горизонтальная позиция пикселя.
      * @param y Вертикальная позиция пикселя.
      */
@@ -439,18 +478,56 @@ public abstract class AbstractPixselMap extends Object
         return pixsels == null;
     }
 
+    /**
+     * Метод проверяет предполагаемую высоту на допустимость.
+     * 
+     * @param h Проверяемая высота.
+     * @return <code>true</code> если проверяемая высота является допустимой.
+     * @see #isValidWidth(int)
+     * @see #_setSize(int, int)
+     * @see #_copy(AbstractPixselMap)
+     */
     protected abstract boolean isValidHeight(int h);
 
+    /**
+     * Метод проверяет предполагаемую ширину на допустимость.
+     * 
+     * @param w Проверяемая ширина.
+     * @return <code>true</code> если проверяемая ширина является допустимой.
+     * @see #isValidHeight(int)
+     * @see #_setSize(int, int)
+     * @see #_copy(AbstractPixselMap)
+     */
     protected abstract boolean isValidWidth(int w);
 
+    /**
+     * Возвращает <code>true</code> если после вызова {@link #cleanChange()} был
+     * хотя бы один вызов {@link #fixChange(int, int)}.
+     */
     protected boolean hasChange() {
         return change;
     }
 
+    /**
+     * Сбрасывает внутренний флаг изменений.
+     * 
+     * @see #fixChange(int, int)
+     * @see #hasChange()
+     */
     protected void cleanChange() {
         change = false;
     }
 
+    /**
+     * Изменяет границы области изменений так, что бы точка с указанными
+     * координатами попадала в эту область. Так же устанавливается флаг
+     * изменений.
+     * 
+     * @param x Горизонтальная координата изменённого пикселя.
+     * @param y Вертикальная координата изменённого пикселя.
+     * @see #cleanChange()
+     * @see #hasChange()
+     */
     protected void fixChange(int x, int y) {
         if (!change) {
             left = x;
@@ -468,11 +545,20 @@ public abstract class AbstractPixselMap extends Object
     }
 
     /**
+     * Возвращает координаты области изменений, если они были, или
+     * <code>null</code> если изменений не было.
+     */
+    protected Rectangle getChange() {
+        if (!hasChange()) return null;
+        return new Rectangle(left, top, right - left + 1, bottom - top + 1);
+    }
+
+    /**
      * Сравнение карт. Карты считаются равными, если у них совпадают ширина,
      * высота и содержимое массивов пикселей.
      * 
      * @param s Карта для сравнения.
-     * @return <b>true</b> если символы равны.
+     * @return <code>true</code> если символы равны.
      */
     @Override
     public boolean equals(Object s) {
@@ -488,7 +574,7 @@ public abstract class AbstractPixselMap extends Object
      * высота и содержимое массивов пикселей.
      * 
      * @param s Карта для сравнения.
-     * @return <b>true</b> если символы равны.
+     * @return <code>true</code> если символы равны.
      */
     public boolean equals(AbstractPixselMap s) {
         int i;
@@ -507,14 +593,14 @@ public abstract class AbstractPixselMap extends Object
     }
 
     /**
-     * Метод возвращает ширину и высоту символа.
+     * Метод возвращает ширину и высоту карты.
      */
     public Dimension getSize() {
         return new Dimension(width, height);
     }
 
     /**
-     * Метод возвращает ширину символа.
+     * Метод возвращает ширину карты.
      * 
      * @return Количество пикселей по горизонтали.
      */
@@ -523,7 +609,7 @@ public abstract class AbstractPixselMap extends Object
     }
 
     /**
-     * Метод возвращает высоту символа.
+     * Метод возвращает высоту карты.
      * 
      * @return Количество пикселей по вертикали.
      */
@@ -537,10 +623,17 @@ public abstract class AbstractPixselMap extends Object
      * 
      * @param w Новая ширина.
      * @param h Новая высота.
-     * @throws DisallowOperationException
+     * @throws IllegalArgumentException если хотя бы один из размеров меньше
+     *             нуля.
+     * @throws DisallowOperationException если изменение высоты и/или ширины
+     *             запрещено текущей конфигурацией.
+     * @see #isValidWidth(int)
+     * @see #isValidHeight(int)
      */
     protected void _setSize(int w, int h) throws DisallowOperationException {
         int nw, nh;
+
+        if (w < 0 || h < 0) throw new IllegalArgumentException("bad size");
 
         if (!isValidWidth(w))
             throw new DisallowOperationException("change width");
@@ -603,9 +696,9 @@ public abstract class AbstractPixselMap extends Object
      * 
      * @param x номер пикселя в строке. Отсчёт с нуля.
      * @param y номер строки. Отсчёт с нуля.
-     * @return <b>true</b> если пиксель установлен. Метод возвращает
-     *         <b>false</b> если пиксель сброшен, а так же если параметры
-     *         {@code diffX} и {@code diffY} выходят за границы символа.
+     * @return <code>true</code> если пиксель установлен. Метод возвращает
+     *         <code>false</code> если пиксель сброшен, а так же если параметры
+     *         <code>x</code> и <code>y</code> выходят за границы символа.
      */
     public boolean getPixsel(int x, int y) {
         return _getPixsel(pixsels, width, x, y);
@@ -616,8 +709,8 @@ public abstract class AbstractPixselMap extends Object
      * 
      * @param x номер пикселя в строке. Отсчёт с нуля.
      * @param y номер строки. Отсчёт с нуля.
-     * @param set <b>true</b> если пиксель должен быть установлен, <b>false</b>
-     *            если нужно сбросить.
+     * @param set <code>true</code> если пиксель должен быть установлен,
+     *            <code>false</code> если нужно сбросить.
      * @throws IllegalArgumentException если позиция выходит за рамки символа.
      */
     protected void _changePixsel(int x, int y, boolean set) {
@@ -644,11 +737,16 @@ public abstract class AbstractPixselMap extends Object
     }
 
     /**
-     * Копирование из карты <code>map</code>. Кроме массива пикселей изменяются
+     * Копирование из карты <code>src</code>. Кроме массива пикселей изменяются
      * переменные {@link #width}, {@link #height}.
      * 
      * @param src Источник копирования.
-     * @throws DisallowOperationException
+     * @throws DisallowOperationException если изменение высоты и/или ширины
+     *             запрещено текущей конфигурацией.
+     * @throws NullPointerException если <code>src</code> равен
+     *             <code>null</code>
+     * @see #isValidWidth(int)
+     * @see #isValidHeight(int)
      * @see #clone()
      */
     protected void _copy(AbstractPixselMap src)
@@ -671,7 +769,7 @@ public abstract class AbstractPixselMap extends Object
 
     /**
      * Метод возвращает <b>копию</b> массива пикселей. Если символ имеет нулевую
-     * ширину и/или высоту, то возвращается <b>null</b>.
+     * ширину и/или высоту, то возвращается <code>null</code>.
      */
     public boolean[] getArray() {
         if (pixsels == null) return null;
@@ -691,8 +789,8 @@ public abstract class AbstractPixselMap extends Object
 
     /**
      * Метод возвращает <b>копию</b> массива пикселей, упакованную в
-     * <b>byte</b>. Если символ имеет нулевую ширину и/или высоту, то
-     * возвращается <b>null</b>. <br>
+     * <code>byte</code>. Если символ имеет нулевую ширину и/или высоту, то
+     * возвращается <code>null</code>. <br>
      * Пиксели заполняют возвращаемый массив последовательно начиная с младшего
      * бита самого первого элемента.
      */
@@ -716,34 +814,36 @@ public abstract class AbstractPixselMap extends Object
     }
 
     /**
-     * Метод копирует массив <b>a</b> во внутренний массив символа. Размеры
-     * символа не меняются.
+     * Метод копирует массив <code>src</code> во внутренний массив символа.
+     * Размеры символа не меняются.
      * 
-     * @param a Копируемый массив пикселей.
-     * @throws NullPointerException
+     * @param src Копируемый массив пикселей.
+     * @throws NullPointerException если <code>src</code> равен
+     *             <code>null</code>
      */
-    protected void _setArray(boolean[] a) throws IllegalArgumentException {
-        if (a == null) throw (new NullPointerException());
+    protected void _setArray(boolean[] src) throws NullPointerException {
+        if (src == null) throw (new NullPointerException());
 
         PixselIterator pi = new PixselIterator(this, 0, 0, width, height,
                         DIR_LEFT_TOP);
 
         int i = 0;
-        while (pi.hasNext() && i < a.length) {
-            pi.changeNext(a[i]);
+        while (pi.hasNext() && i < src.length) {
+            pi.changeNext(src[i]);
             i++;
         }
     }
 
     /**
-     * Метод копирует массив пикселей, упакованных в <b>byte</b>, во внутренний
-     * масссив. Пиксели в копируемом массиве располагаются с младшего байта
-     * самого первого элемента. <br>
+     * Метод копирует массив пикселей, упакованных в <code>byte</code>, во
+     * внутренний масссив. Пиксели в копируемом массиве располагаются с младшего
+     * байта самого первого элемента.
      * 
      * @param src Копируемый массив пикселей.
-     * @throws NullPointerException
+     * @throws NullPointerException если <code>src</code> равен
+     *             <code>null</code>
      */
-    protected void _setArray(byte[] src) throws IllegalArgumentException {
+    protected void _setArray(byte[] src) throws NullPointerException {
         if (src == null) throw (new NullPointerException());
 
         PixselIterator pi = new PixselIterator(this, 0, 0, width, height,

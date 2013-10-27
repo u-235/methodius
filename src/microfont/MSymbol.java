@@ -71,6 +71,18 @@ public class MSymbol extends PixselMap
         index = i;
     }
 
+    @Override
+    protected boolean isValidHeight(int h) {
+        if (parent != null) return parent.isValidHeight(h);
+        return super.isValidHeight(h);
+    }
+
+    @Override
+    protected boolean isValidWidth(int w) {
+        if (parent != null) return parent.isValidWidth(w);
+        return super.isValidWidth(w);
+    }
+
     /**
      * Копирование массива точек из символа s. Так же изменяются переменные
      * {@link #index index}. <br>
@@ -80,15 +92,16 @@ public class MSymbol extends PixselMap
      * сообщений} не копируются</b>.
      * 
      * @param s Источник копирования.
-     * @throws DisallowOperationException 
-     * @throws IllegalArgumentException 
+     * @throws DisallowOperationException
+     * @throws IllegalArgumentException
      * @see #clone()
      */
-    public void copy(MSymbol s) throws IllegalArgumentException, DisallowOperationException {
+    public void copy(MSymbol s) throws IllegalArgumentException,
+                    DisallowOperationException {
         if (s == null) throw (new NullPointerException());
-        
+
         setIndex(s.getIndex());
-        super.clone();        
+        super.clone();
 
         fireEvent(MSymbolEvent.SIZE);
         fireEvent(MSymbolEvent.COPY);
@@ -104,8 +117,7 @@ public class MSymbol extends PixselMap
      */
     @Override
     public MSymbol clone() {
-        return new MSymbol(index, this.getWidth(), this.getHeight(),
-                        this.getByteArray());
+        return new MSymbol(index, getWidth(), getHeight(), getByteArray());
     }
 
     /**
@@ -137,14 +149,6 @@ public class MSymbol extends PixselMap
         if ((index != s.index)) return false;
 
         return super.equals(s);
-    }
-
-    public void setPixsels(PixselMap pixsels) throws DisallowOperationException {
-        if (parent != null && !parent.isValidWidth(this.getWidth()))
-            throw new DisallowOperationException("change width");
-        if (parent != null && !parent.isValidHeight(this.getHeight()))
-            throw new DisallowOperationException("change height");
-        super.copy(pixsels);
     }
 
     public PixselMap getPixsels() {
@@ -269,8 +273,7 @@ public class MSymbol extends PixselMap
             changed = true;
         }
 
-        if (changed)
-            fireEvent(MSymbolEvent.INDEX);
+        if (changed) fireEvent(MSymbolEvent.INDEX);
     }
 
     /**
