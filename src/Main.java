@@ -1,5 +1,3 @@
-import java.awt.EventQueue;
-
 import logic.Application;
 
 import forms.MainForm;
@@ -18,14 +16,6 @@ public class Main
 
         Application.run();
 
-        // EventQueue.invokeLater(java.lang.Thread.currentThread());
-
-        EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                t.frame.setVisible(true);
-            }
-        });
         t.frame.setVisible(true);
         r = Runtime.getRuntime();
 

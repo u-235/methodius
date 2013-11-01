@@ -4,8 +4,6 @@ import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -96,32 +94,14 @@ public class Application
 
         work.pack();
 
-        try {
-            EventQueue.invokeAndWait(new Runnable() {
-                @Override
-                public void run() {
-                    Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-                    work.setVisible(true);
-                    System.out.println("gui thread pririy is "
-                                    + Thread.currentThread().getPriority());
-                }
-            });
-        }
-        catch (InvocationTargetException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                work.setVisible(true);
+            }
+        });
 
-        Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
-        System.out.println("back thread pririy is "
-                        + Thread.currentThread().getPriority());
-        System.out.println("do open dialog");
         doChooserOpen();
-        System.out.println("do save dialog");
         doChooserSave();
     }
 
