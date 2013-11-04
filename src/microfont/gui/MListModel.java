@@ -1,6 +1,10 @@
 package microfont.gui;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 import javax.swing.AbstractListModel;
+import javax.swing.Timer;
 
 import microfont.MFont;
 import microfont.MSymbol;
@@ -17,9 +21,30 @@ public class MListModel extends AbstractListModel<MSymbol> implements
     private static final long serialVersionUID = 1L;
     /** */
     private MFont             font;
+    private Timer             delay;
+    private int               firstIndex, lastIndex;
 
     public MListModel() {
-        // this.setFont(new MFont());
+        final MListModel p = this;
+        delay = new Timer(400, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                synchronized (this) {
+                    fireContentsChanged(p, firstIndex, firstIndex);
+                    firstIndex = Integer.MAX_VALUE;
+                    lastIndex = -1;
+                }
+            }
+        });
+        delay.setRepeats(false);
+    }
+
+    private void delayUpdate(int index) {
+        synchronized (delay) {
+            firstIndex = firstIndex > index ? index : firstIndex;
+            lastIndex = lastIndex < index ? index : lastIndex;
+            if (!delay.isRunning()) delay.start();
+        }
     }
 
     /**
@@ -44,10 +69,11 @@ public class MListModel extends AbstractListModel<MSymbol> implements
 
         this.font = font;
 
-        if (font == null) fireContentsChanged(this, 0, oldInd);
-        else {
-            this.font.addListener(this);
-            fireContentsChanged(this, 0, font.getSize() - 1);
+        fireIntervalRemoved(this, 0, oldInd);
+
+        if (font != null) {
+            font.addListener(this);
+            fireIntervalAdded(this, 0, font.getSize() - 1);
         }
     }
 
@@ -80,13 +106,11 @@ public class MListModel extends AbstractListModel<MSymbol> implements
             last = font.getSize() - 1;
             break;
         case MFontEvent.FONT_SYMBOL_CHANGED:
-            first = change.getIndex();
-            last = first;
-            break;
+            delayUpdate(change.getIndex());
+            return;
         default:
             first = 0;
             last = font.getSize() - 1;
-            // return;
         }
         fireContentsChanged(this, first, last);
     }

@@ -67,9 +67,12 @@ public class FontPanel extends JPanel
     }
 
     public void setMFont(MFont font) {
+        int index;
         this.font = font;
+        index = list.getSelectedIndex();
+        if (index < 0) index = 0;
         listModel.setFont(font);
-        list.setSelectedIndex(0);
+        list.setSelectedIndex(index);
     }
 
     void onSelect() {

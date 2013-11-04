@@ -6,8 +6,12 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.lang.String;
 import java.nio.charset.Charset;
+
+import javax.swing.Timer;
 
 import microfont.MSymbol;
 import microfont.events.MSymbolEvent;
@@ -47,16 +51,50 @@ public class MSymbolView extends MAbstractComponent
     /**  */
     protected Point           numberPos        = new Point();
 
+    private Timer             delay;
+    private int               delTop, delBottom, delLeft, delRight;
+
     public MSymbolView(MSymbol symbol) {
         super(symbol);
         super.pixselSize = 1;
         sampleFont = new Font("Courier", Font.BOLD, 16);
         numberFont = new Font("Courier New", Font.PLAIN, 16);
         setBackground(new Color(247, 247, 255));
+
+        delay = new Timer(200, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                synchronized (this) {
+                    repaint(delLeft, delTop, delRight - delLeft + 1, delBottom
+                                    - delTop + 1);
+                    delBottom = -1;
+                    delRight = -1;
+                    delTop = Integer.MAX_VALUE;
+                    delLeft = Integer.MAX_VALUE;
+                }
+            }
+        });
+        delay.setRepeats(false);
     }
 
     public MSymbolView() {
         this(null);
+    }
+
+    private void delayUpdate(int x, int y, int width, int height) {
+        int bottom;
+        int right;
+
+        right = width + x - 1;
+        bottom = height + y - 1;
+        synchronized (delay) {
+            delLeft = delLeft > x ? x : delLeft;
+            delRight = delRight < right ? right : delRight;
+            delTop = delTop > y ? y : delTop;
+            delBottom = delBottom < bottom ? bottom : delBottom;
+
+            if (!delay.isRunning()) delay.start();
+        }
     }
 
     protected String getSample(int ind, Charset lang) {
@@ -198,8 +236,8 @@ public class MSymbolView extends MAbstractComponent
     public void mSymbolEvent(MSymbolEvent change) {
         if (change.reason == MSymbolEvent.SIZE) revalidate();
         else {
-            repaint(symbolPos.x + change.x * pixselSize, symbolPos.y + change.y
-                            * pixselSize, change.width * pixselSize,
+            delayUpdate(symbolPos.x + change.x * pixselSize, symbolPos.y
+                            + change.y * pixselSize, change.width * pixselSize,
                             change.height * pixselSize);
         }
     }

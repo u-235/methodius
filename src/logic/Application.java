@@ -1,6 +1,5 @@
 package logic;
 
-import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -77,7 +76,10 @@ public class Application
         long us;
         String heaps;
 
+        Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
         doWorkShop();
+
+        Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
         r = Runtime.getRuntime();
 
         while (!exit) {
@@ -127,16 +129,17 @@ public class Application
         setSaved(true);
 
         work.pack();
+        work.setVisible(true);
 
-        EventQueue.invokeLater(new Runnable() {
+        new Thread() {
             @Override
             public void run() {
-                work.setVisible(true);
+                Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+                doChooserOpen();
+                doChooserSave();
             }
-        });
 
-        doChooserOpen();
-        doChooserSave();
+        }.start();
     }
 
     static ActionMap doActions() {

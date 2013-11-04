@@ -502,20 +502,6 @@ public class MAbstractComponent extends ScrollableWindow implements
     /**
      * 
      * @param g
-     * @param symbol
-     * @param offsetX
-     * @param offsetY
-     * @see #drawSymbol(Graphics, MSymbol, boolean, int, int, int, int, Color,
-     *      Color)
-     */
-    public void drawSymbol(Graphics g, MSymbol symbol, int offsetX, int offsetY) {
-        drawSymbol(g, symbol, false, offsetX, offsetY, this.pixselSize,
-                        this.pixselSize, this.paper, this.ink);
-    }
-
-    /**
-     * 
-     * @param g
      * @param offsetX
      * @param offsetY
      * @see #drawSymbol(Graphics, MSymbol, boolean, int, int, int, int, Color,
@@ -523,29 +509,6 @@ public class MAbstractComponent extends ScrollableWindow implements
      */
     public void drawSymbol(Graphics g, int offsetX, int offsetY) {
         drawSymbol(g, this.symbol, false, offsetX, offsetY, this.pixselSize,
-                        this.pixselSize, this.paper, this.ink);
-    }
-
-    /**
-     * 
-     * @param g
-     * @param symbol
-     * @see #drawSymbol(Graphics, MSymbol, boolean, int, int, int, int, Color,
-     *      Color)
-     */
-    public void drawSymbol(Graphics g, MSymbol symbol) {
-        drawSymbol(g, symbol, false, 0, 0, this.pixselSize, this.pixselSize,
-                        this.paper, this.ink);
-    }
-
-    /**
-     * 
-     * @param g
-     * @see #drawSymbol(Graphics, MSymbol, boolean, int, int, int, int, Color,
-     *      Color)
-     */
-    public void drawSymbol(Graphics g) {
-        drawSymbol(g, this.symbol, false, 0, 0, this.pixselSize,
                         this.pixselSize, this.paper, this.ink);
     }
 
@@ -610,28 +573,10 @@ public class MAbstractComponent extends ScrollableWindow implements
         g.setColor(c);
     }
 
-    public void drawGrid(Graphics g, MSymbol symbol, int offsetX, int offsetY) {
-        if (!gridEnable) return;
-        drawGrid(g, symbol, offsetX, offsetY, pixselSize, pixselSize,
-                        gridColor, gridObesity);
-    }
-
     public void drawGrid(Graphics g, int offsetX, int offsetY) {
         if (!gridEnable) return;
         drawGrid(g, symbol, offsetX, offsetY, pixselSize, pixselSize,
                         gridColor, gridObesity);
-    }
-
-    public void drawGrid(Graphics g, MSymbol symbol) {
-        if (!gridEnable) return;
-        drawGrid(g, symbol, 0, 0, pixselSize, pixselSize, gridColor,
-                        gridObesity);
-    }
-
-    public void drawGrid(Graphics g) {
-        if (!gridEnable) return;
-        drawGrid(g, symbol, 0, 0, pixselSize, pixselSize, gridColor,
-                        gridObesity);
     }
 
     public void drawMargins(Graphics g, int offsetX, int offsetY) {
@@ -700,36 +645,6 @@ public class MAbstractComponent extends ScrollableWindow implements
      *            <b>null</b>, то создаётся и возвращается новый объект.
      * @param posX Горизонтальная позиция точки.
      * @param posY Вертикальная позиция точки.
-     * @param offsetX Горизонтальное смещение символа.
-     * @param offsetY Вертикальное смещение символа.
-     */
-    public MSymbolHit hit(MSymbolHit rv, int posX, int posY, int offsetX,
-                    int offsetY) {
-        return this.hit(rv, posX, posY, symbol, offsetX, offsetY);
-    }
-
-    /**
-     * Метод определяет место на символе, к которому принадлежит точка. Позиция
-     * точки и смещение символа задаются в координатах виджета.
-     * 
-     * @param rv Объект для сохранения информации о точке. Если задан
-     *            <b>null</b>, то создаётся и возвращается новый объект.
-     * @param posX Горизонтальная позиция точки.
-     * @param posY Вертикальная позиция точки.
-     * @param symbol Отображаемый символ.
-     */
-    public MSymbolHit hit(MSymbolHit rv, int posX, int posY, MSymbol symbol) {
-        return this.hit(rv, posX, posY, symbol, 0, 0);
-    }
-
-    /**
-     * Метод определяет место на символе, к которому принадлежит точка. Позиция
-     * точки и смещение символа задаются в координатах виджета.
-     * 
-     * @param rv Объект для сохранения информации о точке. Если задан
-     *            <b>null</b>, то создаётся и возвращается новый объект.
-     * @param posX Горизонтальная позиция точки.
-     * @param posY Вертикальная позиция точки.
      * @param symbol Отображаемый символ.
      * @param offsetX Горизонтальное смещение символа.
      * @param offsetY Вертикальное смещение символа.
@@ -786,22 +701,7 @@ public class MAbstractComponent extends ScrollableWindow implements
         if ((ret.flags & ret.VALID_COLUMN) != 0
                         && (ret.flags & ret.VALID_ROW) != 0) {
             ret.flags |= ret.PIXSEL;
-            /* Проверка на "мёртвую зону". */
-            int dX, dY;
-            dX = pixselSize * deadzone / 100;
-            dY = pixselSize * deadzone / 100;
-            if ((dX != 0)
-                            && (!isAbove(0, dY, dX, 0, x, y)
-                                            || !isAbove(pixselSize - dX, 0,
-                                                            pixselSize, dY, x,
-                                                            y)
-                                            || isAbove(pixselSize - dX,
-                                                            pixselSize,
-                                                            pixselSize,
-                                                            pixselSize - dY, x,
-                                                            y) || isAbove(0,
-                                            pixselSize - dY, dX, pixselSize, x,
-                                            y))) ret.flags |= ret.VALID_COLUMN;// DEAD_ZONE;
+            ret.flags |= ret.VALID_COLUMN;// DEAD_ZONE;
         }
 
         if ((ret.flags & ret.VALID_COLUMN) == 0
@@ -809,13 +709,6 @@ public class MAbstractComponent extends ScrollableWindow implements
             ret.flags |= ret.OUTSIDE;
         }
         return ret;
-    }
-
-    boolean isAbove(int firstX, int firstY, int secondX, int secondY,
-                    int testX, int testY) {
-        int y;
-        y = firstY + (secondY - firstY) * (testX - firstX) / (secondX - firstX);
-        return testY > y;
     }
 
     /**
