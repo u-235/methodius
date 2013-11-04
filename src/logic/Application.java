@@ -2,9 +2,15 @@ package logic;
 
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -22,14 +28,38 @@ import gui.ActionX;
 
 public class Application
 {
-    public static final String   NAME      = "Mifodius";
-    public static final int      VER_MAJOR = 0;
-    public static final int      VER_MINOR = 8;
+    public static final String   NAME             = "Mifodius";
+    public static final int      VER_MAJOR        = 0;
+    public static final int      VER_MINOR        = 8;
+
+    public static final String   ON_NEW_FONT      = "font.new";
+    public static final String   ON_OPEN_FONT     = "font.open";
+    public static final String   ON_SAVE_FONT     = "font.save";
+    public static final String   ON_SAVE_AS       = "font.save.as";
+    public static final String   ON_UNDO          = "undo";
+    public static final String   ON_REDO          = "redo";
+    public static final String   ON_REFLECT_HOR   = "refl.hor";
+    public static final String   ON_REFLECT_VERT  = "refl.vert";
+    public static final String   ON_PROPERTIES    = "font.prop";
+    public static final String   ON_EXIT          = "exit";
+    public static final String   ON_SHIFT_LEFT    = "shift.left";
+    public static final String   ON_SHIFT_RIGHT   = "shift.right";
+    public static final String   ON_SHIFT_UP      = "shift.up";
+    public static final String   ON_SHIFT_DOWN    = "shift.down";
+    public static final String   ON_MODE_POINTER  = "mode.point";
+    public static final String   ON_MODE_XPENSIL  = "mode.x.pensil";
+    public static final String   ON_MODE_PENSIL   = "mode.pensil";
+    public static final String   ON_MODE_RUBER    = "mode.ruber";
+    public static final String   ON_SYMBOL_CHANGE = "symbol.change";
+    public static final String   ON_HEAP_SIZE     = "heap.size";
 
     public static Resource       res;
     static File                  fontFile;
-    static String                fontName  = "new font";
+    static String                fontName         = "new font";
     static boolean               fontSaved;
+    public static boolean        exit;
+
+    static ActionMap             actions;
 
     static WorkShop              work;
     static FontPanel             fontPanel;
@@ -40,52 +70,56 @@ public class Application
 
     private static MFont         font;
     private static MFontListener atFontChange;
-    public static ActionX        actNew;
-    public static ActionX        actOpen;
-    public static ActionX        actSave;
-    public static ActionX        actSaveAs;
-    public static ActionX        actUndo;
-    public static ActionX        actRedo;
-    public static ActionX        actReflectHorz;
-    public static ActionX        actReflectVert;
-    public static ActionX        actProperties;
-    public static ActionX        actExit;
-    public static ActionX        actShiftLeft;
-    public static ActionX        actShiftRight;
-    public static ActionX        actShiftUp;
-    public static ActionX        actShiftDown;
-    public static ActionX        actModePointer;
-    public static ActionX        actModeXPensil;
-    public static ActionX        actModePensil;
-    public static ActionX        actModeRuber;
     private static int           mode;
 
-    public static void run() {
+    public static void main(String[] args) {
+        Runtime r;
+        long us;
+        String heaps;
+
+        doWorkShop();
+        r = Runtime.getRuntime();
+
+        while (!exit) {
+            us = r.totalMemory() - r.freeMemory();
+            heaps = "heap : " + us / 1000 + " kb ("
+                            + (us * 100 / r.totalMemory()) + "%)";
+
+            if (actions.get(ON_HEAP_SIZE) != null)
+                actions.get(ON_HEAP_SIZE).actionPerformed(
+                                new ActionEvent(work,
+                                                ActionEvent.ACTION_PERFORMED,
+                                                heaps));
+            try {
+                java.lang.Thread.sleep(750);
+            }
+            catch (InterruptedException e) {
+            }
+        }/* */
+    }
+
+    public static void doWorkShop() {
         if (work != null) return;
         res = new Resource("locale/MainForm");
         atFontChange = new OnFontChange();
-        actOpen = new OnOpen();
-        actNew = new OnNew();
-        actSave = new OnSave();
-        actSaveAs = new OnSaveAs();
-        actExit = new OnExit();
-        actUndo = new OnUndo();
-        actRedo = new OnRedo();
-        actReflectHorz = new OnReflectHorz();
-        actReflectVert = new OnReflectVert();
-        actShiftLeft = new OnShiftLeft();
-        actShiftRight = new OnShiftRight();
-        actShiftUp = new OnShiftUp();
-        actShiftDown = new OnShiftDown();
-        actProperties = new OnProperties();
-        actModeXPensil = new OnModeXPensil();
-        actModePensil = new OnModePensil();
-        actModeRuber = new OnModeRuber();
-        actModePointer = new OnModePointer();
 
-        work = new WorkShop();
-        editPanel = new EditPanel();
-        fontPanel = new FontPanel();
+        actions = doActions();
+        work = new WorkShop(actions);
+
+        work.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        work.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if (Application.checkSaveFont()) work.dispose();
+            }
+
+            @Override
+            public void windowClosed(WindowEvent e) {
+                exit = true;
+            }
+        });
+        editPanel = new EditPanel(actions);
+        fontPanel = new FontPanel(actions);
         work.setLeft(fontPanel);
         work.setRight(editPanel);
 
@@ -103,6 +137,32 @@ public class Application
 
         doChooserOpen();
         doChooserSave();
+    }
+
+    static ActionMap doActions() {
+        ActionMap am = new ActionMap();
+
+        am.put(ON_OPEN_FONT, new OnOpen());
+        am.put(ON_NEW_FONT, new OnNew());
+        am.put(ON_SAVE_FONT, new OnSave());
+        am.put(ON_SAVE_AS, new OnSaveAs());
+        am.put(ON_EXIT, new OnExit());
+        am.put(ON_UNDO, new OnUndo());
+        am.put(ON_REDO, new OnRedo());
+        am.put(ON_REFLECT_HOR, new OnReflectHorz());
+        am.put(ON_REFLECT_VERT, new OnReflectVert());
+        am.put(ON_SHIFT_LEFT, new OnShiftLeft());
+        am.put(ON_SHIFT_RIGHT, new OnShiftRight());
+        am.put(ON_SHIFT_UP, new OnShiftUp());
+        am.put(ON_SHIFT_DOWN, new OnShiftDown());
+        am.put(ON_PROPERTIES, new OnProperties());
+        am.put(ON_MODE_XPENSIL, new OnModeXPensil());
+        am.put(ON_MODE_PENSIL, new OnModePensil());
+        am.put(ON_MODE_RUBER, new OnModeRuber());
+        am.put(ON_MODE_POINTER, new OnModePointer());
+        am.put(ON_SYMBOL_CHANGE, new OnSymbolChange());
+
+        return am;
     }
 
     static synchronized void doChooserOpen() {
@@ -208,11 +268,16 @@ public class Application
 
         if (old != saved) {
             fontSaved = saved;
-            actSave.setEnabled(!fontSaved);
+            actions.get(ON_SAVE_FONT).setEnabled(!fontSaved);
         }
     }
 
     public static void updateButtonMode() {
+        ActionX actModePointer = (ActionX) actions.get(ON_MODE_POINTER);
+        ActionX actModeXPensil = (ActionX) actions.get(ON_MODE_XPENSIL);
+        ActionX actModePensil = (ActionX) actions.get(ON_MODE_PENSIL);
+        ActionX actModeRuber = (ActionX) actions.get(ON_MODE_RUBER);
+
         if (mode == 0) actModePointer.setSelected(true);
         else actModePointer.setSelected(false);
 
@@ -243,6 +308,16 @@ public class Application
             setSaved(false);
         }
     }
+
+    public static class OnSymbolChange extends AbstractAction
+    {
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            editPanel.setMSymbol(fontPanel.getSelectedSymbol());
+        }
+    };
 
     public static class OnNew extends ActionX
     {
@@ -363,7 +438,7 @@ public class Application
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
-                editPanel.edit.getSymbol().reflectHorizontale();
+                editPanel.getMSymbol().reflectHorizontale();
             }
             catch (NullPointerException ex) {
             }
@@ -381,7 +456,7 @@ public class Application
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
-                editPanel.edit.getSymbol().reflectVerticale();
+                editPanel.getMSymbol().reflectVerticale();
             }
             catch (NullPointerException ex) {
             }
@@ -399,7 +474,7 @@ public class Application
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
-                editPanel.edit.getSymbol().shiftLeft();
+                editPanel.getMSymbol().shiftLeft();
             }
             catch (NullPointerException ex) {
             }
@@ -417,7 +492,7 @@ public class Application
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
-                editPanel.edit.getSymbol().shiftRight();
+                editPanel.getMSymbol().shiftRight();
             }
             catch (NullPointerException ex) {
             }
@@ -435,7 +510,7 @@ public class Application
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
-                editPanel.edit.getSymbol().shiftUp();
+                editPanel.getMSymbol().shiftUp();
             }
             catch (NullPointerException ex) {
             }
@@ -453,7 +528,7 @@ public class Application
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
-                editPanel.edit.getSymbol().shiftDown();
+                editPanel.getMSymbol().shiftDown();
             }
             catch (NullPointerException ex) {
             }

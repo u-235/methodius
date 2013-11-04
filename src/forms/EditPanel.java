@@ -5,6 +5,7 @@ import gui.IToggleButton;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 
+import javax.swing.ActionMap;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
@@ -15,22 +16,23 @@ import microfont.gui.MSymbolEditor;
 
 public class EditPanel extends JPanel
 {
-    public MSymbolEditor edit;
+    private MSymbolEditor edit;
 
-    public EditPanel() {
+    public EditPanel(ActionMap am) {
         JToolBar tools;
         IToggleButton btnXPensil, btnPensil, btnRuber, btnPointer;
 
-        this.setMaximumSize(new Dimension(100000, 1000));
-        this.setLayout(new BorderLayout());
+        setLayout(new BorderLayout());
+
+        edit = new MSymbolEditor();
 
         tools = new JToolBar(JToolBar.VERTICAL);
         tools.setFloatable(false);
 
-        btnPointer = new IToggleButton(Application.actModePointer);
-        btnXPensil = new IToggleButton(Application.actModeXPensil);
-        btnPensil = new IToggleButton(Application.actModePensil);
-        btnRuber = new IToggleButton(Application.actModeRuber);
+        btnPointer = new IToggleButton(am.get(Application.ON_MODE_POINTER));
+        btnXPensil = new IToggleButton(am.get(Application.ON_MODE_XPENSIL));
+        btnPensil = new IToggleButton(am.get(Application.ON_MODE_PENSIL));
+        btnRuber = new IToggleButton(am.get(Application.ON_MODE_RUBER));
         Application.updateButtonMode();
 
         tools.add(btnPointer);
@@ -39,8 +41,12 @@ public class EditPanel extends JPanel
         tools.add(btnRuber);
         tools.add(new JToolBar.Separator());
 
-        this.add(tools, BorderLayout.WEST);
-        this.add(new JScrollPane(edit), BorderLayout.CENTER);
+        add(tools, BorderLayout.WEST);
+        add(new JScrollPane(edit), BorderLayout.CENTER);
+    }
+
+    public MSymbol getMSymbol() {
+        return edit.getSymbol();
     }
 
     public void setMSymbol(MSymbol symbol) {

@@ -7,15 +7,17 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import javax.swing.JButton;
+
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JRootPane;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
+
 import utils.resource.Resource;
 
 import logic.Application;
@@ -24,35 +26,26 @@ public class WorkShop extends JFrame
 {
     private static final long serialVersionUID = 1L;
     JSplitPane                split;
-    public boolean            exit;
+    JRootPane                 root;
 
-    public WorkShop() {
+    public WorkShop(ActionMap am) {
         this.setLocationRelativeTo(null);
-        this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        this.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                if (Application.checkSaveFont()) dispose();
-            }
 
-            @Override
-            public void windowClosed(WindowEvent e) {
-                exit = true;
-            }
-        });
+        root = this.getRootPane();
+        root.setActionMap(am);
 
         this.setLayout(new BorderLayout());
 
-        this.setJMenuBar(doMenuBar());
-        this.add(doToolBar(), BorderLayout.NORTH);
+        this.setJMenuBar(doMenuBar(am));
+        this.add(doToolBar(am), BorderLayout.NORTH);
 
         split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true);
         this.add(split);
 
-        this.add(doStatusBar(), BorderLayout.SOUTH);
+        this.add(doStatusBar(am), BorderLayout.SOUTH);
     }
 
-    private JMenuBar doMenuBar() {
+    private JMenuBar doMenuBar(ActionMap am) {
         JMenuBar mb;
         JMenu mFile;
         JMenu mEdit;
@@ -67,34 +60,34 @@ public class WorkShop extends JFrame
 
         mFile = new IMenu(Application.res.getString("menubar.file",
                         Resource.TEXT_NAME_KEY));
-        mFile.add(Application.actOpen);
-        mFile.add(Application.actNew);
+        mFile.add(am.get(Application.ON_OPEN_FONT));
+        mFile.add(am.get(Application.ON_NEW_FONT));
         mFile.addSeparator();
-        mFile.add(Application.actSave);
-        mFile.add(Application.actSaveAs);
+        mFile.add(am.get(Application.ON_SAVE_FONT));
+        mFile.add(am.get(Application.ON_SAVE_AS));
         mFile.addSeparator();
-        mFile.add(Application.actProperties);
+        mFile.add(am.get(Application.ON_PROPERTIES));
         mFile.addSeparator();
-        mFile.add(Application.actExit);
+        mFile.add(am.get(Application.ON_EXIT));
         mb.add(mFile);
 
         mEdit = new IMenu(Application.res.getString("menubar.edit",
                         Resource.TEXT_NAME_KEY));
-        mEdit.add(Application.actUndo);
-        mEdit.add(Application.actRedo);
+        mEdit.add(am.get(Application.ON_UNDO));
+        mEdit.add(am.get(Application.ON_REDO));
         mEdit.addSeparator();
         shift = new JMenu(Application.res.getString("shift",
                         Resource.TEXT_NAME_KEY));
-        shift.add(Application.actShiftLeft);
-        shift.add(Application.actShiftRight);
-        shift.add(Application.actShiftUp);
-        shift.add(Application.actShiftDown);
+        shift.add(am.get(Application.ON_SHIFT_LEFT));
+        shift.add(am.get(Application.ON_SHIFT_RIGHT));
+        shift.add(am.get(Application.ON_SHIFT_UP));
+        shift.add(am.get(Application.ON_SHIFT_DOWN));
         mEdit.add(shift);
         mEdit.addSeparator();
         refl = new JMenu(Application.res.getString("reflect",
                         Resource.TEXT_NAME_KEY));
-        refl.add(Application.actReflectHorz);
-        refl.add(Application.actReflectVert);
+        refl.add(am.get(Application.ON_REFLECT_HOR));
+        refl.add(am.get(Application.ON_REFLECT_VERT));
         mEdit.add(refl);
         mb.add(mEdit);
 
@@ -106,10 +99,10 @@ public class WorkShop extends JFrame
                         Resource.TEXT_NAME_KEY));
         mode = new IMenu(Application.res.getString("mode",
                         Resource.TEXT_NAME_KEY));
-        mode.add(new ICheckBoxMenuItem(Application.actModePointer));
-        mode.add(new ICheckBoxMenuItem(Application.actModeXPensil));
-        mode.add(new ICheckBoxMenuItem(Application.actModePensil));
-        mode.add(new ICheckBoxMenuItem(Application.actModeRuber));
+        mode.add(new ICheckBoxMenuItem(am.get(Application.ON_MODE_POINTER)));
+        mode.add(new ICheckBoxMenuItem(am.get(Application.ON_MODE_XPENSIL)));
+        mode.add(new ICheckBoxMenuItem(am.get(Application.ON_MODE_PENSIL)));
+        mode.add(new ICheckBoxMenuItem(am.get(Application.ON_MODE_RUBER)));
         mTools.add(mode);
         mb.add(mTools);
 
@@ -120,59 +113,35 @@ public class WorkShop extends JFrame
         return mb;
     }
 
-    private JToolBar doToolBar() {
+    private JToolBar doToolBar(ActionMap am) {
         JToolBar buttonBar;
-        JButton btnOpen;
-        JButton btnSave;
-        JButton btnUndo;
-        JButton btnRedo;
-        JButton btnReflHorz;
-        JButton btnReflVert;
-        JButton btnDown;
-        JButton btnUp;
-        JButton btnLeft;
-        JButton btnRight;
 
         buttonBar = new JToolBar();
         buttonBar.setFloatable(false);
 
-        btnOpen = new IButton(Application.actOpen);
-        btnSave = new IButton(Application.actSave);
-
-        btnReflHorz = new IButton(Application.actReflectHorz);
-        btnReflVert = new IButton(Application.actReflectVert);
-
-        btnUndo = new IButton(Application.actUndo);
-        btnRedo = new IButton(Application.actRedo);
-
-        btnDown = new IButton(Application.actShiftDown);
-        btnUp = new IButton(Application.actShiftUp);
-        btnLeft = new IButton(Application.actShiftLeft);
-        btnRight = new IButton(Application.actShiftRight);
-
-        buttonBar.add(btnOpen);
-        buttonBar.add(btnSave);
+        buttonBar.add(new IButton(am.get(Application.ON_OPEN_FONT)));
+        buttonBar.add(new IButton(am.get(Application.ON_SAVE_FONT)));
 
         buttonBar.add(new JToolBar.Separator());
 
-        buttonBar.add(btnUndo);
-        buttonBar.add(btnRedo);
+        buttonBar.add(new IButton(am.get(Application.ON_UNDO)));
+        buttonBar.add(new IButton(am.get(Application.ON_REDO)));
 
         buttonBar.add(new JToolBar.Separator());
 
-        buttonBar.add(btnReflHorz);
-        buttonBar.add(btnReflVert);
+        buttonBar.add(new IButton(am.get(Application.ON_REFLECT_HOR)));
+        buttonBar.add(new IButton(am.get(Application.ON_REFLECT_VERT)));
 
         buttonBar.add(new JToolBar.Separator());
 
-        buttonBar.add(btnDown);
-        buttonBar.add(btnUp);
-        buttonBar.add(btnLeft);
-        buttonBar.add(btnRight);
+        buttonBar.add(new IButton(am.get(Application.ON_SHIFT_DOWN)));
+        buttonBar.add(new IButton(am.get(Application.ON_SHIFT_UP)));
+        buttonBar.add(new IButton(am.get(Application.ON_SHIFT_LEFT)));
+        buttonBar.add(new IButton(am.get(Application.ON_SHIFT_RIGHT)));
         return buttonBar;
     }
 
-    private JToolBar doStatusBar() {
+    private JToolBar doStatusBar(ActionMap am) {
         JToolBar statusBar;
         IButton btnGC;
 
@@ -191,7 +160,13 @@ public class WorkShop extends JFrame
 
         statusBar.add(new JToolBar.Separator());
 
-        JLabel lblUsage = new JLabel();
+        final JLabel lblUsage = new JLabel();
+        am.put(Application.ON_HEAP_SIZE, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                lblUsage.setText(e.getActionCommand());
+            }
+        });
         statusBar.add(lblUsage);
 
         return statusBar;
