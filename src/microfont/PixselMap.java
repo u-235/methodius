@@ -1,7 +1,8 @@
 package microfont;
 
 import java.awt.Dimension;
-import utils.event.DataEventListener;
+import java.util.EventListener;
+
 import utils.event.ListenerChain;
 
 import microfont.events.MSymbolEvent;
@@ -12,12 +13,17 @@ import microfont.events.MSymbolListener;
  */
 public class PixselMap extends AbstractPixselMap
 {
+    public static final int SHIFT_LEFT  = 0;
+    public static final int SHIFT_RIGHT = 1;
+    public static final int SHIFT_UP    = 2;
+    public static final int SHIFT_DOWN  = 3;
+
     /** Список получателей события после изменения символа. */
 
     private class Chain extends ListenerChain<MSymbolEvent>
     {
         @Override
-        protected void listenerCall(DataEventListener listener,
+        protected void listenerCall(EventListener listener,
                         MSymbolEvent event) {
             ((MSymbolListener) listener).mSymbolEvent(event);
         }
@@ -236,21 +242,43 @@ public class PixselMap extends AbstractPixselMap
         fireEvent(MSymbolEvent.COPY);
     }
 
-    /**
-     * Сдвиг символа вправо. После сдвига левый столбец становится пустым. <br>
-     * Генерируется сообщение {@link MSymbolEvent#SHIFT SHIFT}.
-     */
-    public void shiftRight() {
-        int w, h;
+    public void shift(int dir, int step) {
+        int x, y, w, h;
+        int iterDir;
         PixselIterator dst, src;
 
         if (this.isEmpty()) return;
 
+        x = 0;
+        y = 0;
         w = getWidth();
         h = getHeight();
 
-        dst = getIterator(0, 0, w, h, PixselIterator.DIR_TOP_RIGHT);
-        src = getIterator(0, 0, w - 1, h, PixselIterator.DIR_TOP_RIGHT);
+        switch (dir) {
+        case SHIFT_DOWN:
+            iterDir = PixselIterator.DIR_RIGHT_BOTTOM;
+            h -= step;
+            break;
+        case SHIFT_LEFT:
+            iterDir = PixselIterator.DIR_TOP_LEFT;
+            x = step;
+            w -= step;
+            break;
+        case SHIFT_RIGHT:
+            iterDir = PixselIterator.DIR_TOP_RIGHT;
+            w -= step;
+            break;
+        case SHIFT_UP:
+            iterDir = PixselIterator.DIR_RIGHT_TOP;
+            y = step;
+            h -= step;
+            break;
+        default:
+            throw new IllegalArgumentException();
+        }
+
+        dst = getIterator(0, 0, getWidth(), getHeight(), iterDir);
+        src = getIterator(x, y, w, h, iterDir);
 
         while (src.hasNext()) {
             dst.changeNext(src.getNext());
@@ -261,6 +289,14 @@ public class PixselMap extends AbstractPixselMap
         }
 
         fireEvent(MSymbolEvent.SHIFT);
+    }
+
+    /**
+     * Сдвиг символа вправо. После сдвига левый столбец становится пустым. <br>
+     * Генерируется сообщение {@link MSymbolEvent#SHIFT SHIFT}.
+     */
+    public void shiftRight() {
+        shift(SHIFT_RIGHT, 1);
     }
 
     /**
@@ -268,26 +304,7 @@ public class PixselMap extends AbstractPixselMap
      * Генерируется сообщение {@link MSymbolEvent#SHIFT SHIFT}.
      */
     public void shiftLeft() {
-        int w, h;
-        PixselIterator dst, src;
-
-        if (isEmpty()) return;
-
-        w = getWidth();
-        h = getHeight();
-
-        dst = getIterator(0, 0, w, h, PixselIterator.DIR_TOP_LEFT);
-        src = getIterator(1, 0, w - 1, h, PixselIterator.DIR_TOP_LEFT);
-
-        while (src.hasNext()) {
-            dst.changeNext(src.getNext());
-        }
-
-        while (dst.hasNext()) {
-            dst.changeNext(false);
-        }
-
-        fireEvent(MSymbolEvent.SHIFT);
+        shift(SHIFT_LEFT, 1);
     }
 
     /**
@@ -295,26 +312,7 @@ public class PixselMap extends AbstractPixselMap
      * Генерируется сообщение {@link MSymbolEvent#SHIFT SHIFT}.
      */
     public void shiftUp() {
-        int w, h;
-        PixselIterator dst, src;
-
-        if (isEmpty()) return;
-
-        w = getWidth();
-        h = getHeight();
-
-        dst = getIterator(0, 0, w, h, PixselIterator.DIR_RIGHT_TOP);
-        src = getIterator(0, 1, w, h - 1, PixselIterator.DIR_RIGHT_TOP);
-
-        while (src.hasNext()) {
-            dst.changeNext(src.getNext());
-        }
-
-        while (dst.hasNext()) {
-            dst.changeNext(false);
-        }
-
-        fireEvent(MSymbolEvent.SHIFT);
+        shift(SHIFT_UP, 1);
     }
 
     /**
@@ -322,69 +320,46 @@ public class PixselMap extends AbstractPixselMap
      * Генерируется сообщение {@link MSymbolEvent#SHIFT SHIFT}.
      */
     public void shiftDown() {
-        int w, h;
-        PixselIterator dst, src;
-
-        if (isEmpty()) return;
-
-        w = getWidth();
-        h = getHeight();
-
-        dst = getIterator(0, 0, w, h, PixselIterator.DIR_LEFT_BOTTOM);
-        src = getIterator(0, 0, w, h - 1, PixselIterator.DIR_LEFT_BOTTOM);
-
-        while (src.hasNext()) {
-            dst.changeNext(src.getNext());
-        }
-
-        while (dst.hasNext()) {
-            dst.changeNext(false);
-        }
-
-        fireEvent(MSymbolEvent.SHIFT);
+        shift(SHIFT_DOWN, 1);
     }
 
     public void reflectVerticale() {
         int w, h;
-        boolean end, start, changed = false;
+        boolean end, start;
 
-        w = this.getWidth();
-        h = this.getHeight();
+        w = getWidth();
+        h = getHeight();
 
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w / 2; x++) {
-                start = this.getPixsel(x, y);
-                end = this.getPixsel(w - 1 - x, y);
+                start = getPixsel(x, y);
+                end = getPixsel(w - 1 - x, y);
 
-                if (start != end) changed = true;
-
-                this.changePixsel(x, y, end);
-                this.changePixsel(w - 1 - x, y, start);
+                changePixsel(x, y, end);
+                changePixsel(w - 1 - x, y, start);
             }
         }
 
-        if (changed) fireEvent(MSymbolEvent.COPY);
+        fireEvent(MSymbolEvent.COPY);
     }
 
     public void reflectHorizontale() {
         int w, h;
-        boolean end, start, changed = false;
+        boolean end, start;
 
-        w = this.getWidth();
-        h = this.getHeight();
+        w = getWidth();
+        h = getHeight();
 
         for (int y = 0; y < h / 2; y++) {
             for (int x = 0; x < w; x++) {
-                start = this.getPixsel(x, y);
-                end = this.getPixsel(x, h - 1 - y);
+                start = getPixsel(x, y);
+                end = getPixsel(x, h - 1 - y);
 
-                if (start != end) changed = true;
-
-                this.changePixsel(x, y, end);
-                this.changePixsel(x, h - 1 - y, start);
+                changePixsel(x, y, end);
+                changePixsel(x, h - 1 - y, start);
             }
         }
 
-        if (changed) fireEvent(MSymbolEvent.COPY);
+        fireEvent(MSymbolEvent.COPY);
     }
 }

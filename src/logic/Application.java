@@ -134,7 +134,6 @@ public class Application
         new Thread() {
             @Override
             public void run() {
-                Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
                 doChooserOpen();
                 doChooserSave();
             }

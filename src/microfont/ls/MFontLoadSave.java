@@ -129,7 +129,7 @@ public class MFontLoadSave
                 writer.write(SYMBOLS_INDEX + " = " + sym.getIndex() + "\r\n");
             last = i;
 
-            w = sym.getPixsels().getWidth();
+            w = sym.getWidth();
             if (!mFont.isFixsed())
                 writer.write(SYMBOLS_WIDTH + " = " + w + "\r\n");
 

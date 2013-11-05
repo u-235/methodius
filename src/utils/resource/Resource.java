@@ -2,6 +2,7 @@ package utils.resource;
 
 import java.awt.Image;
 import java.net.URL;
+import java.util.EventListener;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -9,7 +10,6 @@ import java.util.ResourceBundle;
 
 import javax.swing.ImageIcon;
 
-import utils.event.DataEventListener;
 import utils.event.ListenerChain;
 
 public class Resource implements Cloneable
@@ -25,7 +25,7 @@ public class Resource implements Cloneable
     private class Chain extends ListenerChain<ResourceEvent>
     {
         @Override
-        protected void listenerCall(DataEventListener listener,
+        protected void listenerCall(EventListener listener,
                         ResourceEvent event) {
             ((ResourceListener) listener).onResourceEvent(event);
         }

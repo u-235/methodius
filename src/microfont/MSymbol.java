@@ -151,10 +151,6 @@ public class MSymbol extends PixselMap
         return super.equals(s);
     }
 
-    public PixselMap getPixsels() {
-        return this;
-    }
-
     /**
      * Удаляет заданный столбец.
      * 

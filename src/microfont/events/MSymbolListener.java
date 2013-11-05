@@ -1,11 +1,11 @@
 package microfont.events;
 
-import utils.event.DataEventListener;
+import java.util.EventListener;
 
 /**
  * Интерфейс получателя события при изменении символа.
  */
-public interface MSymbolListener extends DataEventListener
+public interface MSymbolListener extends EventListener
 {
     /**
      * Метод вызывается после изменений {@link microfont.MSymbol символа}.

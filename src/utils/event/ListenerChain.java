@@ -1,5 +1,8 @@
 package utils.event;
 
+import java.util.EventListener;
+import java.util.EventObject;
+
 /**
  * Класс для хранения {@linkplain DataEventListener получателей} событий при
  * изменении данных и для генерации этих событий.
@@ -25,7 +28,7 @@ package utils.event;
  *            .
  * @author Николай Егоров
  */
-public abstract class ListenerChain<E extends DataEvent>
+public abstract class ListenerChain<E extends EventObject>
 {
     /**
      * Вспомогательный класс, представляющий {@linkplain DataEventListener
@@ -40,9 +43,9 @@ public abstract class ListenerChain<E extends DataEvent>
          */
         Element           next;
         /** Собственно получатель событий. */
-        DataEventListener listener;
+        EventListener listener;
 
-        protected Element(DataEventListener listener) {
+        protected Element(EventListener listener) {
             this.listener = listener;
             next = null;
         }
@@ -51,7 +54,7 @@ public abstract class ListenerChain<E extends DataEvent>
     /** Первый элемент цепочки получателей событий. */
     Element firstElement;
 
-    protected Element getPrev(DataEventListener tested) {
+    protected Element getPrev(EventListener tested) {
         Element ret = null;
         Element turn = firstElement;
 
@@ -71,7 +74,7 @@ public abstract class ListenerChain<E extends DataEvent>
      * @param toAdd Добавляемый слушатель.
      * @see #remove(DataEventListener)
      */
-    public void add(DataEventListener toAdd) {
+    public void add(EventListener toAdd) {
         Element turn;
 
         if (toAdd == null) return;
@@ -98,7 +101,7 @@ public abstract class ListenerChain<E extends DataEvent>
      * 
      * @param toRemove Удаляемый слушатель.
      */
-    public void remove(DataEventListener toRemove) {
+    public void remove(EventListener toRemove) {
         Element prev;
         Element removed;
 
@@ -148,5 +151,5 @@ public abstract class ListenerChain<E extends DataEvent>
      * @param event Передаваемое сообщение.
      * @see #fire(DataEvent)
      */
-    abstract protected void listenerCall(DataEventListener listener, E event);
+    abstract protected void listenerCall(EventListener listener, E event);
 }

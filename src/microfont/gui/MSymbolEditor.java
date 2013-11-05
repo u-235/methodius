@@ -41,7 +41,7 @@ public class MSymbolEditor extends MAbstractComponent implements MouseListener,
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        // requestFocus();
+        requestFocus();
         hit(null, e.getX(), e.getY());
     }
 

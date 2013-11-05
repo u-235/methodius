@@ -1,8 +1,8 @@
 package microfont.events;
 
-import utils.event.DataEventListener;
+import java.util.EventListener;
 
-public interface MFontListener extends DataEventListener
+public interface MFontListener extends EventListener
 {
     public void mFontEvent(MFontEvent ev);
 }

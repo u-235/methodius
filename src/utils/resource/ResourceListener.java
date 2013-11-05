@@ -1,8 +1,8 @@
 package utils.resource;
 
-import utils.event.DataEventListener;
+import java.util.EventListener;
 
-public interface ResourceListener extends DataEventListener
+public interface ResourceListener extends EventListener
 {
     public void onResourceEvent(ResourceEvent ev);
 }

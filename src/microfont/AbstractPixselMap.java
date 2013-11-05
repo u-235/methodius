@@ -440,7 +440,7 @@ public abstract class AbstractPixselMap extends Object
      * @param x Горизонтальная позиция пикселя.
      * @param y Вертикальная позиция пикселя.
      */
-    private int index(int w, int x, int y) {
+    private final int index(int w, int x, int y) {
         return ((w + ITEM_SIZE - 1) >> ITEM_SHIFT) * y + (x >> ITEM_SHIFT);
     }
 
@@ -630,7 +630,8 @@ public abstract class AbstractPixselMap extends Object
      * @see #isValidWidth(int)
      * @see #isValidHeight(int)
      */
-    protected void _setSize(int w, int h) throws DisallowOperationException {
+    protected final void _setSize(int w, int h)
+                    throws DisallowOperationException {
         int nw, nh;
 
         if (w < 0 || h < 0) throw new IllegalArgumentException("bad size");
@@ -682,7 +683,7 @@ public abstract class AbstractPixselMap extends Object
         return;
     }
 
-    protected boolean _getPixsel(byte[] pixsels, int w, int x, int y) {
+    protected final boolean _getPixsel(byte[] pixsels, int w, int x, int y) {
         int i;
         if (x < 0 || x >= w) return false;
         i = index(w, x, y);
@@ -713,7 +714,7 @@ public abstract class AbstractPixselMap extends Object
      *            <code>false</code> если нужно сбросить.
      * @throws IllegalArgumentException если позиция выходит за рамки символа.
      */
-    protected void _changePixsel(int x, int y, boolean set) {
+    protected final void _changePixsel(int x, int y, boolean set) {
         int index;
         byte mask;
         if (x < 0 || x >= width)
@@ -749,7 +750,7 @@ public abstract class AbstractPixselMap extends Object
      * @see #isValidHeight(int)
      * @see #clone()
      */
-    protected void _copy(AbstractPixselMap src)
+    protected final void _copy(AbstractPixselMap src)
                     throws DisallowOperationException {
         if (src == null) throw (new NullPointerException());
 
@@ -821,7 +822,7 @@ public abstract class AbstractPixselMap extends Object
      * @throws NullPointerException если <code>src</code> равен
      *             <code>null</code>
      */
-    protected void _setArray(boolean[] src) throws NullPointerException {
+    protected final void _setArray(boolean[] src) throws NullPointerException {
         if (src == null) throw (new NullPointerException());
 
         PixselIterator pi = new PixselIterator(this, 0, 0, width, height,
@@ -843,7 +844,7 @@ public abstract class AbstractPixselMap extends Object
      * @throws NullPointerException если <code>src</code> равен
      *             <code>null</code>
      */
-    protected void _setArray(byte[] src) throws NullPointerException {
+    protected final void _setArray(byte[] src) throws NullPointerException {
         if (src == null) throw (new NullPointerException());
 
         PixselIterator pi = new PixselIterator(this, 0, 0, width, height,

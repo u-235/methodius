@@ -1,6 +1,10 @@
 package microfont;
 
-import utils.event.DataEventListener;
+import java.util.EventListener;
+
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
+
 import utils.event.ListenerChain;
 import microfont.events.MFontEvent;
 import microfont.events.MFontListener;
@@ -45,13 +49,24 @@ public class MFont extends Object implements MSymbolListener
     private class Chain extends ListenerChain<MFontEvent>
     {
         @Override
-        protected void listenerCall(DataEventListener listener, MFontEvent event) {
+        protected void listenerCall(EventListener listener, MFontEvent event) {
             ((MFontListener) listener).mFontEvent(event);
         }
 
     }
 
     private Chain listeners = new Chain();
+
+    private class UndoChain extends ListenerChain<UndoableEditEvent>
+    {
+        @Override
+        protected void listenerCall(EventListener listener, UndoableEditEvent event) {
+            ((UndoableEditListener) listener).undoableEditHappened(event);
+        }
+
+    }
+
+    private UndoChain undoListeners = new UndoChain();
 
     public MFont(int width, int height, String charset) {
         this.charset = charset;
@@ -300,11 +315,9 @@ public class MFont extends Object implements MSymbolListener
 
             turn = firstSymbol;
             while (turn != null) {
-                w += turn.getPixsels().getWidth();
-                min = (min < turn.getPixsels().getWidth()) ? min : turn
-                                .getPixsels().getWidth();
-                max = (max > turn.getPixsels().getWidth()) ? max : turn
-                                .getPixsels().getWidth();
+                w += turn.getWidth();
+                min = (min < turn.getWidth()) ? min : turn.getWidth();
+                max = (max > turn.getWidth()) ? max : turn.getWidth();
                 turn = turn.nextSymbol;
 
                 if (i == 0) {
@@ -767,5 +780,19 @@ public class MFont extends Object implements MSymbolListener
     @Override
     public void mSymbolEvent(MSymbolEvent change) {
         fireEvent(new MFontEvent(this, change));
+    }
+    
+
+
+    protected void fireEvent(UndoableEditEvent change) {
+        undoListeners.fire(change);
+    }
+
+    public void addUndoableEditListener(UndoableEditListener listener) {
+        undoListeners.add(listener);
+    }
+
+    public void removeUndoableEditListener(UndoableEditListener listener) {
+        undoListeners.remove(listener);
     }
 }
