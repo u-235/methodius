@@ -135,8 +135,8 @@ public class MSymbolView extends MAbstractComponent
             lang = Charset.defaultCharset();
         }
 
-        sample = getSample(symbol.getIndex(), lang);
-        number = getNumber(symbol.getIndex());
+        sample = getSample(symbol.getCode(), lang);
+        number = getNumber(symbol.getCode());
     }
 
     protected void checkCellSize() {

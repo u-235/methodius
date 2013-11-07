@@ -125,8 +125,8 @@ public class MFontLoadSave
         for (int i = 0; i < mFont.getSize(); i++) {
             sym = mFont.symbolAtNumber(i);
             last++;
-            if (last != sym.getIndex())
-                writer.write(SYMBOLS_INDEX + " = " + sym.getIndex() + "\r\n");
+            if (last != sym.getCode())
+                writer.write(SYMBOLS_INDEX + " = " + sym.getCode() + "\r\n");
             last = i;
 
             w = sym.getWidth();

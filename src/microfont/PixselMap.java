@@ -1,8 +1,6 @@
 package microfont;
 
 import java.awt.Dimension;
-import java.util.EventListener;
-
 import utils.event.ListenerChain;
 
 import microfont.events.MSymbolEvent;
@@ -19,17 +17,7 @@ public class PixselMap extends AbstractPixselMap
     public static final int SHIFT_DOWN  = 3;
 
     /** Список получателей события после изменения символа. */
-
-    private class Chain extends ListenerChain<MSymbolEvent>
-    {
-        @Override
-        protected void listenerCall(EventListener listener,
-                        MSymbolEvent event) {
-            ((MSymbolListener) listener).mSymbolEvent(event);
-        }
-    }
-
-    private Chain listListener = new Chain();
+    protected ListenerChain listeners   = new ListenerChain();
 
     /**
      * Конструктор для создания карты с заданными размерами. Все пиксели
@@ -88,7 +76,7 @@ public class PixselMap extends AbstractPixselMap
      * @param toAdd Добавляемый получатель события.
      */
     public void addListener(MSymbolListener toAdd) {
-        listListener.add(toAdd);
+        listeners.add(MSymbolListener.class, toAdd);
     }
 
     /**
@@ -97,7 +85,7 @@ public class PixselMap extends AbstractPixselMap
      * @param toRemove Удаляемый получатель события.
      */
     public void removeListener(MSymbolListener toRemove) {
-        listListener.remove(toRemove);
+        listeners.remove(MSymbolListener.class, toRemove);
     }
 
     /**
@@ -109,14 +97,20 @@ public class PixselMap extends AbstractPixselMap
      */
     protected void fireEvent(int reason) {
         MSymbolEvent change;
+        Object[] listenerArray;
 
-        if (listListener == null) return;
+        if (listeners == null) return;
 
         if (!hasChange()) return;
 
         change = new MSymbolEvent(this, reason, left, top, right - left + 1,
                         bottom - top + 1);
-        listListener.fire(change);
+
+        listenerArray = listeners.getListenerList();
+        for (int i = 1; i < listenerArray.length; i += 2) {
+            if (listenerArray[i] instanceof MSymbolListener)
+                ((MSymbolListener) listenerArray[i]).mSymbolEvent(change);
+        }
     }
 
     /**

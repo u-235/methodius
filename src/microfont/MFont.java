@@ -1,7 +1,5 @@
 package microfont;
 
-import java.util.EventListener;
-
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 
@@ -22,51 +20,30 @@ public class MFont extends Object implements MSymbolListener
     {
     }
 
-    Lock            lockFont = new Lock() {
-                             };
-    private MSymbol firstSymbol;
-    private int     size;
-    private String  name;
-    private String  prototype;
-    private String  description;
-    private boolean fixsed;
-    private String  charset;
-    private String  authorName;
-    private String  authorMail;
-    private int     width;
-    private int     validWidth;
-    private int     minWidth;
-    private int     maxWidth;
-    private int     height;
-    private int     validHeight;
-    private int     marginLeft;
-    private int     marginRight;
-    private int     baseline;
-    private int     ascent;
-    private int     ascentCapital;
-    private int     descent;
-
-    private class Chain extends ListenerChain<MFontEvent>
-    {
-        @Override
-        protected void listenerCall(EventListener listener, MFontEvent event) {
-            ((MFontListener) listener).mFontEvent(event);
-        }
-
-    }
-
-    private Chain listeners = new Chain();
-
-    private class UndoChain extends ListenerChain<UndoableEditEvent>
-    {
-        @Override
-        protected void listenerCall(EventListener listener, UndoableEditEvent event) {
-            ((UndoableEditListener) listener).undoableEditHappened(event);
-        }
-
-    }
-
-    private UndoChain undoListeners = new UndoChain();
+    Lock                  lockFont  = new Lock() {
+                                    };
+    private MSymbol       firstSymbol;
+    private int           size;
+    private String        name;
+    private String        prototype;
+    private String        description;
+    private boolean       fixsed;
+    private String        charset;
+    private String        authorName;
+    private String        authorMail;
+    private int           width;
+    private int           validWidth;
+    private int           minWidth;
+    private int           maxWidth;
+    private int           height;
+    private int           validHeight;
+    private int           marginLeft;
+    private int           marginRight;
+    private int           baseline;
+    private int           ascent;
+    private int           ascentCapital;
+    private int           descent;
+    private ListenerChain listeners = new ListenerChain();
 
     public MFont(int width, int height, String charset) {
         this.charset = charset;
@@ -558,7 +535,7 @@ public class MFont extends Object implements MSymbolListener
 
         synchronized (lockFont) {
             while (ret != null) {
-                if (ret.getIndex() == index) break;
+                if (ret.getCode() == index) break;
                 ret = ret.nextSymbol;
             }
         }
@@ -592,8 +569,8 @@ public class MFont extends Object implements MSymbolListener
             while (curr != null) {
                 next = curr.nextSymbol;
                 prev = curr.prevSymbol;
-                if (curr.getIndex() == symbol.getIndex()) break;
-                if (curr.getIndex() > symbol.getIndex()) {
+                if (curr.getCode() == symbol.getCode()) break;
+                if (curr.getCode() > symbol.getCode()) {
                     next = curr;
                     curr = null;
                     break;
@@ -717,7 +694,7 @@ public class MFont extends Object implements MSymbolListener
      * @param toAdd Добавляемый получатель события.
      */
     public void addListener(MFontListener toAdd) {
-        listeners.add(toAdd);
+        listeners.add(MFontListener.class, toAdd);
     }
 
     /**
@@ -726,11 +703,19 @@ public class MFont extends Object implements MSymbolListener
      * @param toRemove Удаляемый получатель события.
      */
     public void removeListener(MFontListener toRemove) {
-        listeners.remove(toRemove);
+        listeners.remove(MFontListener.class, toRemove);
     }
 
     protected void fireEvent(MFontEvent change) {
-        listeners.fire(change);
+        Object[] listenerArray = listeners.getListenerList();
+
+        if (listeners == null) return;
+
+        listenerArray = listeners.getListenerList();
+        for (int i = 1; i < listenerArray.length; i += 2) {
+            if (listenerArray[i] instanceof MFontListener)
+                ((MFontListener) listenerArray[i]).mFontEvent(change);
+        }
     }
 
     protected void fireEvent(MSymbol oldValue, MSymbol newValue) {
@@ -747,10 +732,9 @@ public class MFont extends Object implements MSymbolListener
         }
 
         fireEvent(new MFontEvent(this, reason, oldValue, newValue));
-
     }
 
-    private void fireEvent(MSymbol oldValue, MSymbol newValue, int reason) {
+    protected void fireEvent(MSymbol oldValue, MSymbol newValue, int reason) {
         fireEvent(new MFontEvent(this, reason, oldValue, newValue));
     }
 
@@ -781,18 +765,24 @@ public class MFont extends Object implements MSymbolListener
     public void mSymbolEvent(MSymbolEvent change) {
         fireEvent(new MFontEvent(this, change));
     }
-    
 
+    protected void fireUndoEvent(UndoableEditEvent change) {
+        Object[] listenerArray;
 
-    protected void fireEvent(UndoableEditEvent change) {
-        undoListeners.fire(change);
+        if (listeners == null) return;
+
+        listenerArray = listeners.getListenerList();
+        for (int i = 1; i < listenerArray.length; i++) {
+            if (listenerArray[i] instanceof UndoableEditListener)
+                ((UndoableEditListener) listenerArray[i]).undoableEditHappened(change);
+        }
     }
 
     public void addUndoableEditListener(UndoableEditListener listener) {
-        undoListeners.add(listener);
+        listeners.add(UndoableEditListener.class, listener);
     }
 
     public void removeUndoableEditListener(UndoableEditListener listener) {
-        undoListeners.remove(listener);
+        listeners.remove(UndoableEditListener.class, listener);
     }
 }

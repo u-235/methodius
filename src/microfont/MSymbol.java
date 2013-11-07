@@ -1,7 +1,11 @@
 package microfont;
 
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
+
 import microfont.events.MSymbolEvent;
 import microfont.events.MSymbolListener;
+import microfont.undo.MSymbolUndo;
 
 /**
  * Класс MSymbol для хранения и изменения символа {@link MFont шрифта}.<br>
@@ -48,11 +52,13 @@ import microfont.events.MSymbolListener;
 public class MSymbol extends PixselMap
 {
     /**  */
-    protected MFont   parent;
-    protected MSymbol prevSymbol = null;
-    protected MSymbol nextSymbol = null;
+    protected MFont     parent;
+    protected MSymbol   prevSymbol = null;
+    protected MSymbol   nextSymbol = null;
     /** Индекс символа в шрифте. */
-    private int       index;
+    private int         code;
+    
+    private MSymbolUndo undo;
 
     /**
      * Конструктор символа с заданными размерами, индексом и копированием
@@ -67,8 +73,8 @@ public class MSymbol extends PixselMap
      */
     public MSymbol(int i, int w, int h, byte[] a) {
         super(w, h, a);
-        if (i < 0) throw (new IllegalArgumentException("Invalid index"));
-        index = i;
+        if (i < 0) throw (new IllegalArgumentException("Invalid code"));
+        code = i;
     }
 
     @Override
@@ -85,7 +91,7 @@ public class MSymbol extends PixselMap
 
     /**
      * Копирование массива точек из символа s. Так же изменяются переменные
-     * {@link #index index}. <br>
+     * {@link #code code}. <br>
      * Генерируются сообщения {@link MSymbolEvent#SIZE SIZE} и
      * {@link MSymbolEvent#COPY COPY}. <br>
      * Важно знать, что <b>списки {@linkplain MSymbolListener получателей
@@ -100,7 +106,7 @@ public class MSymbol extends PixselMap
                     DisallowOperationException {
         if (s == null) throw (new NullPointerException());
 
-        setIndex(s.getIndex());
+        setCode(s.getCode());
         super.clone();
 
         fireEvent(MSymbolEvent.SIZE);
@@ -117,7 +123,7 @@ public class MSymbol extends PixselMap
      */
     @Override
     public MSymbol clone() {
-        return new MSymbol(index, getWidth(), getHeight(), getByteArray());
+        return new MSymbol(code, getWidth(), getHeight(), getByteArray());
     }
 
     /**
@@ -146,7 +152,7 @@ public class MSymbol extends PixselMap
 
         if (s == null) return false;
 
-        if ((index != s.index)) return false;
+        if ((code != s.code)) return false;
 
         return super.equals(s);
     }
@@ -244,8 +250,8 @@ public class MSymbol extends PixselMap
     /**
      * Метод возвращает индекс символа в шрифте.
      */
-    public int getIndex() {
-        return index;
+    public int getCode() {
+        return code;
     }
 
     /**
@@ -255,17 +261,17 @@ public class MSymbol extends PixselMap
      * @param i Новый индекс.
      * @throws DisallowOperationException
      */
-    public void setIndex(int i) throws IllegalArgumentException,
+    public void setCode(int i) throws IllegalArgumentException,
                     DisallowOperationException {
         boolean changed = false;
 
         if (parent != null && !parent.isValidIndex(i))
-            throw new DisallowOperationException("change index");
+            throw new DisallowOperationException("change code");
 
         if (parent != null) return;
 
-        if (index != i) {
-            index = i;
+        if (code != i) {
+            code = i;
             changed = true;
         }
 
@@ -280,5 +286,41 @@ public class MSymbol extends PixselMap
      */
     public MFont getParent() {
         return parent;
+    }
+
+    protected void fireUndoEvent(UndoableEditEvent change) {
+        Object[] listenerArray;
+
+        if (listeners == null) return;
+
+        listenerArray = listeners.getListenerList();
+        for (int i = 1; i < listenerArray.length; i++) {
+            if (listenerArray[i] instanceof UndoableEditListener)
+                ((UndoableEditListener) listenerArray[i])
+                                .undoableEditHappened(change);
+        }
+    }
+
+    public void addUndoableEditListener(UndoableEditListener listener) {
+        listeners.add(UndoableEditListener.class, listener);
+    }
+
+    public void removeUndoableEditListener(UndoableEditListener listener) {
+        listeners.remove(UndoableEditListener.class, listener);
+    }
+
+    public synchronized void beginChange(String operation) {
+        if (undo != null) return;
+        
+        undo=new MSymbolUndo(this, operation);
+    }
+
+    public synchronized void endChange() {
+        if (undo == null) return;
+        
+        undo.end();
+        
+        if (undo.canUndo()) fireUndoEvent(new UndoableEditEvent(this, undo));
+        undo=null;
     }
 }

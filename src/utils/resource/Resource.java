@@ -2,7 +2,6 @@ package utils.resource;
 
 import java.awt.Image;
 import java.net.URL;
-import java.util.EventListener;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -18,34 +17,24 @@ public class Resource implements Cloneable
     Class<? extends Resource>       imgClass;
     private String                  prefix;
     private String                  baseName;
-    private String                  imgType = "gif";
-    private String                  imgPath = "/icons/16/";
+    private String                  imgType                    = "gif";
+    private String                  imgPath                    = "/icons/16/";
     private HashMap<String, String> iconStateMap;
 
-    private class Chain extends ListenerChain<ResourceEvent>
-    {
-        @Override
-        protected void listenerCall(EventListener listener,
-                        ResourceEvent event) {
-            ((ResourceListener) listener).onResourceEvent(event);
-        }
+    private ListenerChain           listeners                  = new ListenerChain();
 
-    }
+    public static final String      TEXT_NAME_KEY              = "text";
+    public static final String      TEXT_TIP_KEY               = "tooltip";
+    public static final String      TEXT_HELP_KEY              = "help";
+    private static final String     TEXT_IMAGE_KEY             = "image";
 
-    private Chain               listeners                  = new Chain();
-
-    public static final String  TEXT_NAME_KEY              = "text";
-    public static final String  TEXT_TIP_KEY               = "tooltip";
-    public static final String  TEXT_HELP_KEY              = "help";
-    private static final String TEXT_IMAGE_KEY             = "image";
-
-    public static final String  ICON_KEY                   = "Icon";
-    public static final String  ICON_DISABLED_KEY          = "DisabledIcon";
-    public static final String  ICON_DISABLED_SELECTED_KEY = "DisabledSelectedIcon";
-    public static final String  ICON_SELECTED_KEY          = "SelectedIcon";
-    public static final String  ICON_ROLLOVED_KEY          = "RollovedIcon";
-    public static final String  ICON_ROLLOVED_SELECTED_KEY = "RollovedSelectedIcon";
-    public static final String  ICON_PRESSED_KEY           = "SPressedIcon";
+    public static final String      ICON_KEY                   = "Icon";
+    public static final String      ICON_DISABLED_KEY          = "DisabledIcon";
+    public static final String      ICON_DISABLED_SELECTED_KEY = "DisabledSelectedIcon";
+    public static final String      ICON_SELECTED_KEY          = "SelectedIcon";
+    public static final String      ICON_ROLLOVED_KEY          = "RollovedIcon";
+    public static final String      ICON_ROLLOVED_SELECTED_KEY = "RollovedSelectedIcon";
+    public static final String      ICON_PRESSED_KEY           = "SPressedIcon";
 
     public Resource(String baseName, Locale locale) {
         this.baseName = baseName;
@@ -158,21 +147,33 @@ public class Resource implements Cloneable
     }
 
     public void addListener(ResourceListener listener) {
-        listeners.add(listener);
+        listeners.add(ResourceListener.class, listener);
     }
 
     public void removeListener(ResourceListener listener) {
-        listeners.remove(listener);
+        listeners.remove(ResourceListener.class, listener);
+    }
+
+    protected void fireEvent(ResourceEvent event) {
+        Object[] listenerArray;
+
+        if (listeners == null) return;
+
+        listenerArray = listeners.getListenerList();
+        for (int i = 1; i < listenerArray.length; i += 2) {
+            if (listenerArray[i] instanceof ResourceListener)
+                ((ResourceListener) listenerArray[i]).onResourceEvent(event);
+        }
     }
 
     protected void fireEvent(int reason, int oldValue, int newValue) {
         if (oldValue == newValue) return;
-        listeners.fire(new ResourceEvent(this, reason, oldValue, newValue));
+        fireEvent(new ResourceEvent(this, reason, oldValue, newValue));
     }
 
     protected void fireEvent(int reason, boolean oldValue, boolean newValue) {
         if (oldValue == newValue) return;
-        listeners.fire(new ResourceEvent(this, reason, oldValue, newValue));
+        fireEvent(new ResourceEvent(this, reason, oldValue, newValue));
     }
 
     protected void fireEvent(int reason, String oldValue, String newValue) {
@@ -183,6 +184,6 @@ public class Resource implements Cloneable
             if (newValue != null && oldValue.equals(newValue)) return;
         }
 
-        listeners.fire(new ResourceEvent(this, reason, oldValue, newValue));
+        fireEvent(new ResourceEvent(this, reason, oldValue, newValue));
     }
 }

@@ -4,7 +4,7 @@ import java.util.EventObject;
 
 /**
  * Объект для расширенного описания событий. Это базовый объект для
- * {@link ListenerChain} и {@link DataEventListener}. Добавлены методы
+ * {@link ListenerChain}. Добавлены методы
  * <ul>
  * <li>{@link #getReason()}
  * <li>{@link #getNewValue()}
