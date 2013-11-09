@@ -107,9 +107,9 @@ public class PixselMap extends AbstractPixselMap
                         bottom - top + 1);
 
         listenerArray = listeners.getListenerList();
-        for (int i = 1; i < listenerArray.length; i += 2) {
-            if (listenerArray[i] instanceof MSymbolListener)
-                ((MSymbolListener) listenerArray[i]).mSymbolEvent(change);
+        for (int i = 0; i < listenerArray.length; i += 2) {
+            if (listenerArray[i] == MSymbolListener.class)
+                ((MSymbolListener) listenerArray[i + 1]).mSymbolEvent(change);
         }
     }
 

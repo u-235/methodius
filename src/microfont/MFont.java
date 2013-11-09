@@ -3,18 +3,20 @@ package microfont;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 
-import utils.event.ListenerChain;
 import microfont.events.MFontEvent;
 import microfont.events.MFontListener;
 import microfont.events.MSymbolEvent;
 import microfont.events.MSymbolListener;
+import microfont.undo.MFontUndo;
+import utils.event.ListenerChain;
 
 /**
  * 
  * @author Николай
  * 
  */
-public class MFont extends Object implements MSymbolListener
+public class MFont extends Object implements MSymbolListener,
+                UndoableEditListener
 {
     class Lock
     {
@@ -44,6 +46,7 @@ public class MFont extends Object implements MSymbolListener
     private int           ascentCapital;
     private int           descent;
     private ListenerChain listeners = new ListenerChain();
+    private MFontUndo undo;
 
     public MFont(int width, int height, String charset) {
         this.charset = charset;
@@ -551,6 +554,7 @@ public class MFont extends Object implements MSymbolListener
         if (isBelong(symbol)) return;
 
         symbol.removeListener(symbol.parent);
+        symbol.removeUndoableEditListener(symbol.parent);
         symbol.parent = this;
         try {
             symbol.setHeight(height);
@@ -583,6 +587,7 @@ public class MFont extends Object implements MSymbolListener
             symbol.prevSymbol = prev;
             symbol.nextSymbol = next;
             symbol.addListener(this);
+            symbol.addUndoableEditListener(this);
 
             if (prev == null) firstSymbol = symbol;
             else prev.nextSymbol = symbol;
@@ -712,9 +717,9 @@ public class MFont extends Object implements MSymbolListener
         if (listeners == null) return;
 
         listenerArray = listeners.getListenerList();
-        for (int i = 1; i < listenerArray.length; i += 2) {
-            if (listenerArray[i] instanceof MFontListener)
-                ((MFontListener) listenerArray[i]).mFontEvent(change);
+        for (int i = 0; i < listenerArray.length; i += 2) {
+            if (listenerArray[i] == MFontListener.class)
+                ((MFontListener) listenerArray[i + 1]).mFontEvent(change);
         }
     }
 
@@ -770,11 +775,13 @@ public class MFont extends Object implements MSymbolListener
         Object[] listenerArray;
 
         if (listeners == null) return;
+        System.out.println("MFont: fire undo event");
 
         listenerArray = listeners.getListenerList();
-        for (int i = 1; i < listenerArray.length; i++) {
-            if (listenerArray[i] instanceof UndoableEditListener)
-                ((UndoableEditListener) listenerArray[i]).undoableEditHappened(change);
+        for (int i = 0; i < listenerArray.length; i+=2) {
+            if (listenerArray[i] ==UndoableEditListener.class)
+                ((UndoableEditListener) listenerArray[i+1])
+                                .undoableEditHappened(change);
         }
     }
 
@@ -784,5 +791,26 @@ public class MFont extends Object implements MSymbolListener
 
     public void removeUndoableEditListener(UndoableEditListener listener) {
         listeners.remove(UndoableEditListener.class, listener);
+    }
+
+    public synchronized void beginChange(String operation) {
+        if (undo != null) return;
+
+        undo = new MFontUndo(this, operation);
+    }
+
+    public synchronized void endChange() {
+        if (undo == null) return;
+
+        undo.end();
+
+        if (undo.canUndo()) fireUndoEvent(new UndoableEditEvent(this, undo));
+        undo = null;
+    }
+
+    @Override
+    public void undoableEditHappened(UndoableEditEvent event) {
+        // TODO Здесь надо проверить, нужно ли добавить event к MFontUndo
+        fireUndoEvent(event);
     }
 }

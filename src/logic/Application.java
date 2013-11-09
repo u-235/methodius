@@ -7,15 +7,20 @@ import java.io.File;
 import java.io.IOException;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.undo.UndoManager;
 
 import utils.resource.Resource;
 
 import microfont.MFont;
+import microfont.MSymbol;
 import microfont.events.MFontEvent;
 import microfont.events.MFontListener;
 import microfont.ls.MFontLoadSave;
@@ -59,6 +64,9 @@ public class Application
     public static boolean        exit;
 
     static ActionMap             actions;
+
+    private static OnUndoRedo    atUndoRedo;
+    static UndoManager           uManager;
 
     static WorkShop              work;
     static FontPanel             fontPanel;
@@ -107,6 +115,9 @@ public class Application
 
         actions = doActions();
         work = new WorkShop(actions);
+
+        atUndoRedo = new OnUndoRedo();
+        uManager = new UndoManager();
 
         work.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         work.addWindowListener(new WindowAdapter() {
@@ -189,9 +200,19 @@ public class Application
     }
 
     static void setMFont(MFont newFont) {
-        if (font != null) font.removeListener(atFontChange);
-        if (newFont != null) newFont.addListener(atFontChange);
+        if (font != null) {
+            font.removeListener(atFontChange);
+            font.removeUndoableEditListener(uManager);
+            font.removeUndoableEditListener(atUndoRedo);
+            uManager.discardAllEdits();
+        }
+        if (newFont != null) {
+            newFont.addListener(atFontChange);
+            newFont.addUndoableEditListener(uManager);
+            newFont.addUndoableEditListener(atUndoRedo);
+        }
         font = newFont;
+        fontName=font.getName();
 
         fontPanel.setMFont(font);
         updateTitle();
@@ -262,6 +283,9 @@ public class Application
         }
 
         setSaved(true);
+        uManager.discardAllEdits();
+        updateUndoRedo();
+        updateTitle();
         return true;
     }
 
@@ -300,6 +324,14 @@ public class Application
         work.setTitle(title);
     }
 
+    private static class OnUndoRedo implements UndoableEditListener
+    {
+        @Override
+        public void undoableEditHappened(UndoableEditEvent e) {
+            updateUndoRedo();
+        }
+    }
+
     private static class OnFontChange implements MFontListener
     {
         @Override
@@ -308,6 +340,7 @@ public class Application
                             + change.getReasonString() + " index="
                             + change.getIndex());
             setSaved(false);
+            updateUndoRedo();
         }
     }
 
@@ -375,6 +408,19 @@ public class Application
         }
     }
 
+    static void updateUndoRedo() {
+        Action undo = actions.get(ON_UNDO);
+        Action redo = actions.get(ON_REDO);
+
+        undo.setEnabled(uManager.canUndo());
+        undo.putValue(Action.SHORT_DESCRIPTION,
+                        uManager.getUndoPresentationName());
+
+        redo.setEnabled(uManager.canRedo());
+        redo.putValue(Action.SHORT_DESCRIPTION,
+                        uManager.getRedoPresentationName());
+    }
+
     public static class OnSave extends ActionX
     {
         private static final long serialVersionUID = 1L;
@@ -413,6 +459,8 @@ public class Application
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            if (uManager.canUndo()) uManager.undo();
+            updateUndoRedo();
         }
     }
 
@@ -426,6 +474,8 @@ public class Application
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            if (uManager.canRedo()) uManager.redo();
+            updateUndoRedo();
         }
     }
 
@@ -440,7 +490,10 @@ public class Application
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
-                editPanel.getMSymbol().reflectHorizontale();
+                MSymbol symbol = editPanel.getMSymbol();
+                symbol.beginChange("reflect horizontale");
+                symbol.reflectHorizontale();
+                symbol.endChange();
             }
             catch (NullPointerException ex) {
             }
@@ -458,7 +511,10 @@ public class Application
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
-                editPanel.getMSymbol().reflectVerticale();
+                MSymbol symbol = editPanel.getMSymbol();
+                symbol.beginChange("reflect verticale");
+                symbol.reflectVerticale();
+                symbol.endChange();
             }
             catch (NullPointerException ex) {
             }
@@ -476,7 +532,10 @@ public class Application
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
-                editPanel.getMSymbol().shiftLeft();
+                MSymbol symbol = editPanel.getMSymbol();
+                symbol.beginChange("shift left");
+                symbol.shiftLeft();
+                symbol.endChange();
             }
             catch (NullPointerException ex) {
             }
@@ -494,7 +553,10 @@ public class Application
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
-                editPanel.getMSymbol().shiftRight();
+                MSymbol symbol = editPanel.getMSymbol();
+                symbol.beginChange("shift right");
+                symbol.shiftRight();
+                symbol.endChange();
             }
             catch (NullPointerException ex) {
             }
@@ -512,7 +574,10 @@ public class Application
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
-                editPanel.getMSymbol().shiftUp();
+                MSymbol symbol = editPanel.getMSymbol();
+                symbol.beginChange("shift up");
+                symbol.shiftUp();
+                symbol.endChange();
             }
             catch (NullPointerException ex) {
             }
@@ -530,7 +595,10 @@ public class Application
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
-                editPanel.getMSymbol().shiftDown();
+                MSymbol symbol = editPanel.getMSymbol();
+                symbol.beginChange("shift down");
+                symbol.shiftDown();
+                symbol.endChange();
             }
             catch (NullPointerException ex) {
             }

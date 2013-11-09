@@ -53,7 +53,10 @@ public class MSymbolEditor extends MAbstractComponent implements MouseListener,
             if (e.getButton() == MouseEvent.BUTTON1) changeSet = true;
             else if (e.getButton() == MouseEvent.BUTTON3) changeSet = false;
             else return;
+            
             changeEnable = true;
+            if (symbol != null) symbol.beginChange("paint");
+            
             symbolHit = hit(symbolHit, e.getX(), e.getY());
             if ((symbolHit.flags & symbolHit.PIXSEL) != 0)
                 try {
@@ -70,6 +73,7 @@ public class MSymbolEditor extends MAbstractComponent implements MouseListener,
 
     @Override
     public void mouseReleased(MouseEvent e) {
+        if (symbol != null) symbol.endChange();
         if (changeEnable) changeEnable = false;
     }
 

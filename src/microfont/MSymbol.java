@@ -57,7 +57,7 @@ public class MSymbol extends PixselMap
     protected MSymbol   nextSymbol = null;
     /** Индекс символа в шрифте. */
     private int         code;
-    
+
     private MSymbolUndo undo;
 
     /**
@@ -107,7 +107,7 @@ public class MSymbol extends PixselMap
         if (s == null) throw (new NullPointerException());
 
         setCode(s.getCode());
-        super.clone();
+        super.copy(s);
 
         fireEvent(MSymbolEvent.SIZE);
         fireEvent(MSymbolEvent.COPY);
@@ -263,19 +263,13 @@ public class MSymbol extends PixselMap
      */
     public void setCode(int i) throws IllegalArgumentException,
                     DisallowOperationException {
-        boolean changed = false;
+        if (code == i) return;
 
         if (parent != null && !parent.isValidIndex(i))
             throw new DisallowOperationException("change code");
 
-        if (parent != null) return;
-
-        if (code != i) {
-            code = i;
-            changed = true;
-        }
-
-        if (changed) fireEvent(MSymbolEvent.INDEX);
+        code = i;
+        fireEvent(MSymbolEvent.INDEX);
     }
 
     /**
@@ -292,11 +286,12 @@ public class MSymbol extends PixselMap
         Object[] listenerArray;
 
         if (listeners == null) return;
+        System.out.println("MSymbol: fire undo event");
 
         listenerArray = listeners.getListenerList();
-        for (int i = 1; i < listenerArray.length; i++) {
-            if (listenerArray[i] instanceof UndoableEditListener)
-                ((UndoableEditListener) listenerArray[i])
+        for (int i = 0; i < listenerArray.length; i++) {
+            if (listenerArray[i] == UndoableEditListener.class)
+                ((UndoableEditListener) listenerArray[i + 1])
                                 .undoableEditHappened(change);
         }
     }
@@ -311,16 +306,16 @@ public class MSymbol extends PixselMap
 
     public synchronized void beginChange(String operation) {
         if (undo != null) return;
-        
-        undo=new MSymbolUndo(this, operation);
+
+        undo = new MSymbolUndo(this, operation);
     }
 
     public synchronized void endChange() {
         if (undo == null) return;
-        
+
         undo.end();
-        
+
         if (undo.canUndo()) fireUndoEvent(new UndoableEditEvent(this, undo));
-        undo=null;
+        undo = null;
     }
 }

@@ -7,6 +7,8 @@ import java.util.EventListener;
  * <code>javax.swing.event.EventListenerList</code>
  * {@link #add(Class, EventListener) добавление} одного и того же получателя
  * возможно только один раз.
+ * <p>
+ * 
  * 
  * <pre>
  * // Пример использования ListenerChain для обслуживания UndoableEditEvent.
@@ -28,9 +30,9 @@ import java.util.EventListener;
  *     protected void fireUndoEvent(UndoableEditEvent event) {
  *         Object[] listenerArray = listeners.getListenerList();
  * 
- *         for (int i = 1; i &lt; listenerArray.length; i++) {
- *             if (listenerArray[i] instanceof UndoableEditListener)
- *                 ((UndoableEditListener) listenerArray[i])
+ *         for (int i = 0; i &lt; listenerArray.length; i++) {
+ *             if (listenerArray[i] == UndoableEditListener.class)
+ *                 ((UndoableEditListener) listenerArray[i + 1])
  *                                 .undoableEditHappened(event);
  *         }
  *     }
@@ -49,6 +51,9 @@ public class ListenerChain
     /** Массив для хранения пар <code>класс:получатель</code>. */
     private Object[]     items;
 
+    /**
+     *
+     */
     public ListenerChain() {
         actualSize = 0;
         items = new Object[ARRAY_STEP_SIZE];
@@ -57,7 +62,8 @@ public class ListenerChain
     /**
      * При необходимости изменяет размер массива {@link #items}. Переменная
      * {@link #actualSize} принимает значение <code>size</size>.
-     * @param size Требуемый размер массива. 
+     * 
+     * @param size Требуемый размер массива.
      */
     protected void _allocate(int size) {
         int sz;
@@ -77,10 +83,11 @@ public class ListenerChain
     }
 
     /**
+     * Добавляет получателя сообщений. Никаких проверок не производится.
      * 
-     * @param <С>
-     * @param lClass
-     * @param listener
+     * @param <С> Тип получателя сообщений.
+     * @param lClass Класс получателя сообщений.
+     * @param listener Добавляемый получатель сообщений.
      */
     protected <С extends EventListener> void _add(Class<С> lClass, С listener) {
         _allocate(actualSize + 2);
@@ -89,14 +96,15 @@ public class ListenerChain
     }
 
     /**
+     * Удаляет зарегистрированного получателя сообщений. Удаление происходит при
+     * совпадении <code>lClass</code> и <code>listener</code>. Других проверок
+     * не производится.
      * 
-     * @param <С>
-     * @param lClass
-     * @param listener
+     * @param <С> Тип получателя сообщений.
+     * @param lClass Класс получателя сообщений.
+     * @param listener Удаляемый получатель сообщений.
      */
     protected <С extends EventListener> void _remove(Class<С> lClass, С listener) {
-        if (items == null) return;
-
         for (int i = 0; i < actualSize; i += 2) {
             if (items[i] == lClass && items[i + 1] == listener) {
                 System.arraycopy(items, i + 2, items, i, actualSize - i - 2);
@@ -107,8 +115,11 @@ public class ListenerChain
     }
 
     /**
+     * Возвращает массив с парами <code>класс:получатель</code>. Чётные элементы
+     * массива содержат класс получателя; нечётные - самого получателя
+     * сообщений.
      * 
-     * @return
+     * @see {@linkplain ListenerChain Общее описание}
      */
     public Object[] getListenerList() {
         return items;
@@ -116,9 +127,9 @@ public class ListenerChain
 
     /**
      * 
-     * @param <С>
-     * @param lClass
-     * @param listener
+     * @param <С> Тип получателя сообщений.
+     * @param lClass Класс получателя сообщений.
+     * @param listener Добавляемый получатель сообщений.
      */
     public synchronized <С extends EventListener> void add(Class<С> lClass,
                     С listener) {
@@ -129,10 +140,12 @@ public class ListenerChain
     }
 
     /**
+     * Удаляет зарегистрированного получателя сообщений. Удаление происходит при
+     * совпадении <code>lClass</code> и <code>listener</code>.
      * 
-     * @param <С>
-     * @param lClass
-     * @param listener
+     * @param <С> Тип получателя сообщений.
+     * @param lClass Класс получателя сообщений.
+     * @param listener Удаляемый получатель сообщений.
      */
     public synchronized <С extends EventListener> void remove(Class<С> lClass,
                     С listener) {

@@ -160,9 +160,10 @@ public class Resource implements Cloneable
         if (listeners == null) return;
 
         listenerArray = listeners.getListenerList();
-        for (int i = 1; i < listenerArray.length; i += 2) {
-            if (listenerArray[i] instanceof ResourceListener)
-                ((ResourceListener) listenerArray[i]).onResourceEvent(event);
+        for (int i = 0; i < listenerArray.length; i += 2) {
+            if (listenerArray[i] == ResourceListener.class)
+                ((ResourceListener) listenerArray[i + 1])
+                                .onResourceEvent(event);
         }
     }
 
