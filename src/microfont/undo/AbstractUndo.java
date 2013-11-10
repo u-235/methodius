@@ -24,7 +24,7 @@ public abstract class AbstractUndo implements UndoableEdit
     @Override
     public void undo() throws CannotUndoException {
         if (!canUndo()) throw new CannotUndoException();
-        isUndo=false;
+        isUndo = false;
     }
 
     @Override
@@ -35,17 +35,17 @@ public abstract class AbstractUndo implements UndoableEdit
     @Override
     public void redo() throws CannotRedoException {
         if (!canRedo()) throw new CannotRedoException();
-        isUndo=true;
+        isUndo = true;
     }
 
     @Override
     public boolean canRedo() {
-        return  !isUndo && !isEmpty;
+        return !isUndo && !isEmpty;
     }
 
     @Override
     public void die() {
-        isEmpty=true;
+        isEmpty = true;
     }
 
     @Override

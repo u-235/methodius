@@ -67,6 +67,7 @@ public class Application
 
     private static OnUndoRedo    atUndoRedo;
     static UndoManager           uManager;
+    static int                   undoCount;
 
     static WorkShop              work;
     static FontPanel             fontPanel;
@@ -199,23 +200,27 @@ public class Application
         }
     }
 
-    static void setMFont(MFont newFont) {
+    static synchronized void setMFont(MFont newFont) {
         if (font != null) {
             font.removeListener(atFontChange);
             font.removeUndoableEditListener(uManager);
             font.removeUndoableEditListener(atUndoRedo);
             uManager.discardAllEdits();
         }
-        if (newFont != null) {
-            newFont.addListener(atFontChange);
-            newFont.addUndoableEditListener(uManager);
-            newFont.addUndoableEditListener(atUndoRedo);
-        }
+
         font = newFont;
-        fontName=font.getName();
+
+        if (font != null) {
+            font.addListener(atFontChange);
+            font.addUndoableEditListener(uManager);
+            font.addUndoableEditListener(atUndoRedo);
+            fontName = font.getName();
+        }
+        else fontName = null;
 
         fontPanel.setMFont(font);
         updateTitle();
+        updateUndoRedo();
         setSaved(true);
     }
 
@@ -282,8 +287,8 @@ public class Application
             return false;
         }
 
-        setSaved(true);
-        uManager.discardAllEdits();
+        if (saveAs) uManager.discardAllEdits();
+        undoCount = 0;
         updateUndoRedo();
         updateTitle();
         return true;
@@ -328,6 +333,8 @@ public class Application
     {
         @Override
         public void undoableEditHappened(UndoableEditEvent e) {
+            if (undoCount < 0) undoCount = Integer.MIN_VALUE;
+            undoCount++;
             updateUndoRedo();
         }
     }
@@ -339,7 +346,6 @@ public class Application
             System.out.println(change.toString() + " "
                             + change.getReasonString() + " index="
                             + change.getIndex());
-            setSaved(false);
             updateUndoRedo();
         }
     }
@@ -403,6 +409,9 @@ public class Application
             if (font == null)
                 JOptionPane.showMessageDialog(null, "Error on load font.",
                                 "Error", JOptionPane.OK_OPTION);
+
+            undoCount = 0;
+            updateUndoRedo();
             fontFile = file;
             setMFont(font);
         }
@@ -419,6 +428,8 @@ public class Application
         redo.setEnabled(uManager.canRedo());
         redo.putValue(Action.SHORT_DESCRIPTION,
                         uManager.getRedoPresentationName());
+
+        setSaved(undoCount == 0);
     }
 
     public static class OnSave extends ActionX
@@ -459,7 +470,10 @@ public class Application
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (uManager.canUndo()) uManager.undo();
+            if (uManager.canUndo()) {
+                undoCount--;
+                uManager.undo();
+            }
             updateUndoRedo();
         }
     }
@@ -474,7 +488,10 @@ public class Application
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (uManager.canRedo()) uManager.redo();
+            if (uManager.canRedo()) {
+                undoCount++;
+                uManager.redo();
+            }
             updateUndoRedo();
         }
     }
@@ -634,7 +651,7 @@ public class Application
             if (fpf == null) fpf = new FontProperties(work, res);
 
             if (font == null) return;
-            c = font.clone();
+            c = new MFont(font);
             if (fpf.start(c) == FontProperties.ACTION_OK) font.copy(c);
             fpf.setMFont(null);
         }

@@ -15,7 +15,7 @@ public abstract class ActionX extends AbstractAction implements
     private String             name;
     protected boolean          selected;
 
-    public static final String LARGE_ICON_KEY                   = "SwingLargeIconKey";
+    // public static final String LARGE_ICON_KEY = "SwingLargeIconKey";
     public static final String LARGE_ICON_DISABLED_KEY          = "SwingLargeDisableIconKey";
     public static final String LARGE_ICON_DISABLED_SELECTED_KEY = "SwingLargeDisableSelectedIconKey";
     public static final String LARGE_ICON_SELECTED_KEY          = "SwingLargeSelectedIconKey";

@@ -41,25 +41,27 @@ public class AbstractButtonX
         if (action instanceof ActionX) {
             ax = (ActionX) action;
 
-            if (propertyName == "selected") {
+            if ("selected".equals(propertyName)) {
                 btn.setSelected(ax.selected);
             }
-            else if (propertyName == ActionX.LARGE_ICON_DISABLED_KEY) {
+            else if (ActionX.LARGE_ICON_DISABLED_KEY.equals(propertyName)) {
                 btn.setDisabledIcon(getIconFromAction(ax, propertyName));
             }
-            else if (propertyName == ActionX.LARGE_ICON_DISABLED_SELECTED_KEY) {
+            else if (ActionX.LARGE_ICON_DISABLED_SELECTED_KEY
+                            .equals(propertyName)) {
                 btn.setDisabledSelectedIcon(getIconFromAction(ax, propertyName));
             }
-            else if (propertyName == ActionX.LARGE_ICON_PRESSED_KEY) {
+            else if (ActionX.LARGE_ICON_PRESSED_KEY.equals(propertyName)) {
                 btn.setPressedIcon(getIconFromAction(ax, propertyName));
             }
-            else if (propertyName == ActionX.LARGE_ICON_ROLLOVER_KEY) {
+            else if (ActionX.LARGE_ICON_ROLLOVER_KEY.equals(propertyName)) {
                 btn.setRolloverIcon(getIconFromAction(ax, propertyName));
             }
-            else if (propertyName == ActionX.LARGE_ICON_ROLLOVER_SELECTED_KEY) {
+            else if (ActionX.LARGE_ICON_ROLLOVER_SELECTED_KEY
+                            .equals(propertyName)) {
                 btn.setRolloverSelectedIcon(getIconFromAction(ax, propertyName));
             }
-            else if (propertyName == ActionX.LARGE_ICON_SELECTED_KEY) {
+            else if (ActionX.LARGE_ICON_SELECTED_KEY.equals(propertyName)) {
                 btn.setSelectedIcon(getIconFromAction(ax, propertyName));
             }
             else oldAct = true;

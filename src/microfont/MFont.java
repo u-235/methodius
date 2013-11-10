@@ -46,7 +46,7 @@ public class MFont extends Object implements MSymbolListener,
     private int           ascentCapital;
     private int           descent;
     private ListenerChain listeners = new ListenerChain();
-    private MFontUndo undo;
+    private MFontUndo     undo;
 
     public MFont(int width, int height, String charset) {
         this.charset = charset;
@@ -64,29 +64,26 @@ public class MFont extends Object implements MSymbolListener,
         this(8, 8);
     }
 
-    @Override
-    public MFont clone() {
-        MFont ret = new MFont();
-
-        ret.name = this.name;
-        ret.prototype = this.prototype;
-        ret.fixsed = this.fixsed;
-        ret.charset = this.charset;
-        ret.authorName = this.authorName;
-        ret.authorMail = this.authorMail;
-        ret.width = this.width;
-        ret.height = this.height;
-        ret.validWidth = this.validWidth;
-        ret.validHeight = this.validHeight;
-        ret.setSymbols(this.getSymbols());
-        ret.marginLeft = this.marginLeft;
-        ret.marginRight = this.marginRight;
-        ret.baseline = this.baseline;
-        ret.ascent = this.ascent;
-        ret.ascentCapital = this.ascentCapital;
-        ret.descent = this.descent;
-
-        return ret;
+    public MFont(MFont src) {
+        synchronized (src) {
+            name = src.name;
+            prototype = src.prototype;
+            fixsed = src.fixsed;
+            charset = src.charset;
+            authorName = src.authorName;
+            authorMail = src.authorMail;
+            width = src.width;
+            height = src.height;
+            validWidth = src.validWidth;
+            validHeight = src.validHeight;
+            setSymbols(src.getSymbols());
+            marginLeft = src.marginLeft;
+            marginRight = src.marginRight;
+            baseline = src.baseline;
+            ascent = src.ascent;
+            ascentCapital = src.ascentCapital;
+            descent = src.descent;
+        }
     }
 
     public void copy(MFont font) {
@@ -677,7 +674,7 @@ public class MFont extends Object implements MSymbolListener,
         int i = 0;
 
         while (turn != null) {
-            ret[i] = turn.clone();
+            ret[i] = new MSymbol(turn);
             i++;
             turn = turn.nextSymbol;
         }
@@ -712,7 +709,7 @@ public class MFont extends Object implements MSymbolListener,
     }
 
     protected void fireEvent(MFontEvent change) {
-        Object[] listenerArray = listeners.getListenerList();
+        Object[] listenerArray;
 
         if (listeners == null) return;
 
@@ -778,9 +775,9 @@ public class MFont extends Object implements MSymbolListener,
         System.out.println("MFont: fire undo event");
 
         listenerArray = listeners.getListenerList();
-        for (int i = 0; i < listenerArray.length; i+=2) {
-            if (listenerArray[i] ==UndoableEditListener.class)
-                ((UndoableEditListener) listenerArray[i+1])
+        for (int i = 0; i < listenerArray.length; i += 2) {
+            if (listenerArray[i] == UndoableEditListener.class)
+                ((UndoableEditListener) listenerArray[i + 1])
                                 .undoableEditHappened(change);
         }
     }

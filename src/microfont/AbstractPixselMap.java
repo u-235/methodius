@@ -62,7 +62,7 @@ import static microfont.AbstractPixselMap.PixselIterator.*;
  * сообщение.
  * </ol>
  */
-public abstract class AbstractPixselMap extends Object
+public class AbstractPixselMap
 {
     static final int  ITEM_SIZE  = 8;
     static final int  ITEM_SHIFT = 3;
@@ -480,6 +480,7 @@ public abstract class AbstractPixselMap extends Object
 
     /**
      * Метод проверяет предполагаемую высоту на допустимость.
+     * <code>AbstractPixselMap</code> всегда возвращает <code>false</code>.
      * 
      * @param h Проверяемая высота.
      * @return <code>true</code> если проверяемая высота является допустимой.
@@ -487,10 +488,13 @@ public abstract class AbstractPixselMap extends Object
      * @see #_setSize(int, int)
      * @see #_copy(AbstractPixselMap)
      */
-    protected abstract boolean isValidHeight(int h);
+    protected boolean isValidHeight(int h) {
+        return false;
+    }
 
     /**
      * Метод проверяет предполагаемую ширину на допустимость.
+     * <code>AbstractPixselMap</code> всегда возвращает <code>false</code>.
      * 
      * @param w Проверяемая ширина.
      * @return <code>true</code> если проверяемая ширина является допустимой.
@@ -498,7 +502,9 @@ public abstract class AbstractPixselMap extends Object
      * @see #_setSize(int, int)
      * @see #_copy(AbstractPixselMap)
      */
-    protected abstract boolean isValidWidth(int w);
+    protected boolean isValidWidth(int w) {
+        return false;
+    }
 
     /**
      * Возвращает <code>true</code> если после вызова {@link #cleanChange()} был
@@ -562,31 +568,18 @@ public abstract class AbstractPixselMap extends Object
      */
     @Override
     public boolean equals(Object s) {
+
         if (s == null) return false;
 
         if (!(s instanceof AbstractPixselMap)) return false;
+        AbstractPixselMap apm = (AbstractPixselMap) s;
 
-        return equals((AbstractPixselMap) s);
-    }
+        if ((width != apm.width) || (height != apm.height)) return false;
 
-    /**
-     * Сравнение карт. Карты считаются равными, если у них совпадают ширина,
-     * высота и содержимое массивов пикселей.
-     * 
-     * @param s Карта для сравнения.
-     * @return <code>true</code> если символы равны.
-     */
-    public boolean equals(AbstractPixselMap s) {
-        int i;
-
-        if (s == null) return false;
-
-        if ((width != s.width) || (height != s.height)) return false;
-
-        i = pixsels.length;
+        int i = pixsels.length;
         while (i > 0) {
             i--;
-            if (pixsels[i] != s.pixsels[i]) return false;
+            if (pixsels[i] != apm.pixsels[i]) return false;
         }
 
         return true;

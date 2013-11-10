@@ -30,7 +30,7 @@ import java.util.EventListener;
  *     protected void fireUndoEvent(UndoableEditEvent event) {
  *         Object[] listenerArray = listeners.getListenerList();
  * 
- *         for (int i = 0; i &lt; listenerArray.length; i++) {
+ *         for (int i = 0; i &lt; listenerArray.length; i += 2) {
  *             if (listenerArray[i] == UndoableEditListener.class)
  *                 ((UndoableEditListener) listenerArray[i + 1])
  *                                 .undoableEditHappened(event);

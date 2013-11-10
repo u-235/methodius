@@ -45,9 +45,9 @@ public class Saver
     private String checkString(String s) {
         if (s.isEmpty()) return null;
 
-        s.replace("\\", "\\\\");
-        s.replace("\n", "\\n");
-        s.replace("\r", "\\r");
+        s = s.replace("\\", "\\\\");
+        s = s.replace("\n", "\\n");
+        s = s.replace("\r", "\\r");
 
         if (Character.isWhitespace(s.charAt(0))) return "\\s" + s;
         return s;

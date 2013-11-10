@@ -13,6 +13,6 @@ public class MFontUndo extends AbstractUndo
 
     public void end() {
         // TODO Auto-generated method stub
-        
+
     }
 }

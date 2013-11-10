@@ -77,6 +77,11 @@ public class MSymbol extends PixselMap
         code = i;
     }
 
+    public MSymbol(MSymbol src) {
+        super(src);
+        code = src.code;
+    }
+
     @Override
     protected boolean isValidHeight(int h) {
         if (parent != null) return parent.isValidHeight(h);
@@ -114,19 +119,6 @@ public class MSymbol extends PixselMap
     }
 
     /**
-     * Создаёт и возвращает копию символа. <br>
-     * Важно знать, что <b>списки {@linkplain MSymbolListener получателей
-     * сообщений} не копируются</b>.
-     * 
-     * @return Новый символ.
-     * @see #copy(MSymbol)
-     */
-    @Override
-    public MSymbol clone() {
-        return new MSymbol(code, getWidth(), getHeight(), getByteArray());
-    }
-
-    /**
      * Сравнение символов. Символы считаются равными, если у них совпадают
      * индекс, ширина, высота и содержимое массивов пикселей.
      * 
@@ -148,13 +140,11 @@ public class MSymbol extends PixselMap
      * @param s Символ для сравнения.
      * @return <b>true</b> если символы равны.
      */
-    public boolean equals(MSymbol s) {
-
-        if (s == null) return false;
-
-        if ((code != s.code)) return false;
-
-        return super.equals(s);
+    @Override
+    public boolean equals(Object s) {
+        if (!(s instanceof MSymbol)) return false;
+        MSymbol sym = (MSymbol) s;
+        return super.equals(sym) && code == sym.code;
     }
 
     /**

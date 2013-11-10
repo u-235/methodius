@@ -2,17 +2,17 @@ package utils.ini;
 
 public abstract class INIElement
 {
-    public final static int INI_ROOT    = 1;
-    public final static int INI_KEY     = 2;
-    public final static int INI_SECTION = 3;
+    public final static int INI_ROOT     = 1;
+    public final static int INI_KEY      = 2;
+    public final static int INI_SECTION  = 3;
 
     private String          value;
     private String          name;
     private String          comment;
-    private INIElement      next;
-    private INIElement      prev;
-    private INIKey          firstKey;
-    private INISection      firstSection;
+    private INIElement      next         = null;
+    private INIElement      prev         = null;
+    private INIKey          firstKey     = null;
+    private INISection      firstSection = null;
 
     protected INIElement(String name, String value) {
         this.name = name;
@@ -66,7 +66,7 @@ public abstract class INIElement
 
         if (key != null) {
             while (ret != null) {
-                if (ret.getName() == key) break;
+                if (key.equals(ret.getName())) break;
                 ret = (INIKey) ret.getNext();
             }
         }
@@ -89,7 +89,7 @@ public abstract class INIElement
 
         if (section != null) {
             while (ret != null) {
-                if (ret.getName() == section) break;
+                if (section.equals(ret.getName())) break;
                 ret = (INISection) ret.getNext();
             }
         }

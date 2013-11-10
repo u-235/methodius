@@ -128,7 +128,7 @@ public class Setting extends Preferences
     @Override
     public String[] keys() throws BackingStoreException {
         // TODO Auto-generated method stub
-        return (String[]) store.keySet().toArray();
+        return store.keySet().toArray(new String[store.keySet().size()]);
     }
 
     @Override

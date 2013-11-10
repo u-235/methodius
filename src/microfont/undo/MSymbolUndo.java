@@ -5,16 +5,16 @@ import microfont.MSymbol;
 
 public class MSymbolUndo extends AbstractUndo
 {
-    MSymbol owner;    
-    MSymbol before;   
+    MSymbol owner;
+    MSymbol before;
     MSymbol after;
-    
+
     public MSymbolUndo(MSymbol mSymbol, String operation) {
         super(operation);
-        owner=mSymbol;
-        before=mSymbol.clone();
+        owner = mSymbol;
+        before = new MSymbol(mSymbol);
     }
-    
+
     @Override
     public void undo() {
         super.undo();
@@ -28,9 +28,9 @@ public class MSymbolUndo extends AbstractUndo
         catch (DisallowOperationException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        }        
+        }
     }
-    
+
     @Override
     public void redo() {
         super.redo();
@@ -44,7 +44,7 @@ public class MSymbolUndo extends AbstractUndo
         catch (DisallowOperationException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        }        
+        }
     }
 
     @Override
@@ -53,7 +53,7 @@ public class MSymbolUndo extends AbstractUndo
             die();
             return;
         }
-        
-        after=owner.clone();
+
+        after = new MSymbol(owner);
     }
 }

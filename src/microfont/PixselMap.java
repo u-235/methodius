@@ -126,30 +126,6 @@ public class PixselMap extends AbstractPixselMap
     }
 
     /**
-     * Создаёт и возвращает полную копию символа. Фактически метод является
-     * обёрткой для {@link #PixselMap(PixselMap)}.
-     * 
-     * @return Копия карты.
-     * @see #PixselMap(PixselMap)
-     * @see #copy(PixselMap)
-     */
-    @Override
-    public PixselMap clone() {
-        return new PixselMap(this);
-    }
-
-    /**
-     * Сравнение карт. Карты считаются равными, если у них совпадают ширина,
-     * высота и содержимое массивов пикселей.
-     * 
-     * @param s Карта для сравнения.
-     * @return <b>true</b> если символы равны.
-     */
-    public boolean equals(PixselMap s) {
-        return super.equals(s);
-    }
-
-    /**
      * Метод изменяет ширину и высоту символа. <br>
      * Если новая высота меньше текущей, то лишние строки символа обрезаются
      * снизу. Если новая высота больше текущей, то внизу добавляются пустые

@@ -71,7 +71,7 @@ public class MFontLoadSave
         writer.write("\r\n");
         writer.write(AUTHOR_CONTACT + " = ");
         str = mFont.getAuthorMail();
-        if (str != null && str != null) writer.write(str);
+        if (str != null) writer.write(str);
         writer.write("\r\n");
 
         writer.write("\r\n[" + INFO + "]\r\n");
