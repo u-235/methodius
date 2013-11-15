@@ -1,10 +1,10 @@
+
 package microfont.undo;
 
 import microfont.DisallowOperationException;
 import microfont.MSymbol;
 
-public class MSymbolUndo extends AbstractUndo
-{
+public class MSymbolUndo extends AbstractUndo {
     MSymbol owner;
     MSymbol before;
     MSymbol after;
@@ -20,12 +20,10 @@ public class MSymbolUndo extends AbstractUndo
         super.undo();
         try {
             owner.copy(before);
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        }
-        catch (DisallowOperationException e) {
+        } catch (DisallowOperationException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
@@ -36,12 +34,10 @@ public class MSymbolUndo extends AbstractUndo
         super.redo();
         try {
             owner.copy(after);
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        }
-        catch (DisallowOperationException e) {
+        } catch (DisallowOperationException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }

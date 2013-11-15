@@ -1,7 +1,7 @@
+
 package utils.ini;
 
-public class INIKey extends INIElement
-{
+public class INIKey extends INIElement {
     protected INIKey(String name, String value) {
         super(name, value);
     }

@@ -1,3 +1,4 @@
+
 package forms;
 
 import java.awt.BorderLayout;
@@ -10,7 +11,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -21,13 +21,10 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JTabbedPane;
 import javax.swing.JToolBar;
-
 import utils.resource.Resource;
-
 import microfont.MFont;
 
-public class FontProperties
-{
+public class FontProperties {
     public static final int ACTION_CANCEL = 0;
     public static final int ACTION_OK     = 1;
     private Resource        res;

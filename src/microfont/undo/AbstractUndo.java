@@ -1,11 +1,11 @@
+
 package microfont.undo;
 
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoableEdit;
 
-public abstract class AbstractUndo implements UndoableEdit
-{
+public abstract class AbstractUndo implements UndoableEdit {
     private static final String DEFAULT_UNDO_NAME = "Undo";
     private static final String DEFAULT_REDO_NAME = "Redo";
     private static String       undoName          = DEFAULT_UNDO_NAME;

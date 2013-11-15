@@ -1,8 +1,8 @@
+
 package forms;
 
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -10,16 +10,13 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
-
 import utils.resource.Resource;
-
 import microfont.MFont;
-import microfont.events.MFontEvent;
-import microfont.events.MFontListener;
+import microfont.events.NotifyEvent;
+import microfont.events.NotifyEventListener;
 
 @SuppressWarnings("serial")
-public class PFontAuthor extends JPanel implements MFontListener
-{
+public class PFontAuthor extends JPanel implements NotifyEventListener {
     Resource           res;
     MFont              mFont;
     boolean            readOnly;
@@ -90,9 +87,9 @@ public class PFontAuthor extends JPanel implements MFontListener
     }
 
     public void setMFont(MFont font) {
-        if (mFont != null) mFont.removeListener(this);
+        if (mFont != null) mFont.removeNotifyEventListener(this);
         mFont = font;
-        if (mFont != null) mFont.addListener(this);
+        if (mFont != null) mFont.addNotifyEventListener(this);
         else return;
         vName.setText(mFont.getAuthorName());
         vComtacts.setText(mFont.getAuthorMail());
@@ -113,6 +110,8 @@ public class PFontAuthor extends JPanel implements MFontListener
     }
 
     @Override
-    public void mFontEvent(MFontEvent change) {
+    public void notifyHappened(NotifyEvent event) {
+        // TODO Auto-generated method stub
+
     }
 }

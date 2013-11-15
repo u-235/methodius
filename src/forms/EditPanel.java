@@ -1,19 +1,17 @@
+
 package forms;
 
 import gui.IToggleButton;
-
 import java.awt.BorderLayout;
 import javax.swing.ActionMap;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
-
 import logic.Application;
 import microfont.MSymbol;
 import microfont.gui.MSymbolEditor;
 
-public class EditPanel extends JPanel
-{
+public class EditPanel extends JPanel {
     private MSymbolEditor edit;
 
     public EditPanel(ActionMap am) {

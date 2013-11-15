@@ -1,14 +1,13 @@
+
 package gui;
 
 import java.awt.Insets;
-
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.JToggleButton;
 
 @SuppressWarnings("serial")
-public class IToggleButton extends JToggleButton
-{
+public class IToggleButton extends JToggleButton {
     @Override
     protected void configurePropertiesFromAction(Action a) {
         AbstractButtonX.configurePropertiesFromAction(this, a);

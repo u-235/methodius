@@ -1,6 +1,6 @@
+
 package utils.ini;
 
-public class Parser
-{
+public class Parser {
 
 }

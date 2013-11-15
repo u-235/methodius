@@ -1,3 +1,4 @@
+
 package gui;
 
 import javax.swing.Action;
@@ -5,8 +6,7 @@ import javax.swing.Icon;
 import javax.swing.JMenuItem;
 
 @SuppressWarnings("serial")
-public class IMenuItem extends JMenuItem
-{
+public class IMenuItem extends JMenuItem {
     @Override
     protected void configurePropertiesFromAction(Action a) {
         AbstractButtonX.configurePropertiesFromAction(this, a);

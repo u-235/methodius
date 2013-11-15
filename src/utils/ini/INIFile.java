@@ -1,3 +1,4 @@
+
 package utils.ini;
 
 /**
@@ -14,8 +15,7 @@ package utils.ini;
  * @author Николай
  * 
  */
-public class INIFile extends INIElement
-{
+public class INIFile extends INIElement {
     protected INIFile() {
         super(null, null);
     }

@@ -1,17 +1,16 @@
+
 package gui;
 
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-
 import javax.swing.JComponent;
 
 /**
  * 
  */
-public class ScrollableWindow extends JComponent
-{
+public class ScrollableWindow extends JComponent {
     /**  */
     private static final long serialVersionUID = 1L;
     /**

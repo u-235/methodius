@@ -1,3 +1,4 @@
+
 package logic;
 
 import java.awt.event.ActionEvent;
@@ -5,7 +6,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
-
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
@@ -16,69 +16,66 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.undo.UndoManager;
-
-import utils.resource.Resource;
-
 import microfont.MFont;
 import microfont.MSymbol;
-import microfont.events.MFontEvent;
-import microfont.events.MFontListener;
+import microfont.events.NotifyEvent;
+import microfont.events.NotifyEventListener;
 import microfont.ls.MFontLoadSave;
+import utils.resource.Resource;
 import forms.EditPanel;
 import forms.FontPanel;
 import forms.FontProperties;
 import forms.WorkShop;
 import gui.ActionX;
 
-public class Application
-{
-    public static final String   NAME             = "Mifodius";
-    public static final int      VER_MAJOR        = 0;
-    public static final int      VER_MINOR        = 8;
+public class Application {
+    public static final String         NAME             = "Mifodius";
+    public static final int            VER_MAJOR        = 0;
+    public static final int            VER_MINOR        = 8;
 
-    public static final String   ON_NEW_FONT      = "font.new";
-    public static final String   ON_OPEN_FONT     = "font.open";
-    public static final String   ON_SAVE_FONT     = "font.save";
-    public static final String   ON_SAVE_AS       = "font.save.as";
-    public static final String   ON_UNDO          = "undo";
-    public static final String   ON_REDO          = "redo";
-    public static final String   ON_REFLECT_HOR   = "refl.hor";
-    public static final String   ON_REFLECT_VERT  = "refl.vert";
-    public static final String   ON_PROPERTIES    = "font.prop";
-    public static final String   ON_EXIT          = "exit";
-    public static final String   ON_SHIFT_LEFT    = "shift.left";
-    public static final String   ON_SHIFT_RIGHT   = "shift.right";
-    public static final String   ON_SHIFT_UP      = "shift.up";
-    public static final String   ON_SHIFT_DOWN    = "shift.down";
-    public static final String   ON_MODE_POINTER  = "mode.point";
-    public static final String   ON_MODE_XPENSIL  = "mode.x.pensil";
-    public static final String   ON_MODE_PENSIL   = "mode.pensil";
-    public static final String   ON_MODE_RUBER    = "mode.ruber";
-    public static final String   ON_SYMBOL_CHANGE = "symbol.change";
-    public static final String   ON_HEAP_SIZE     = "heap.size";
+    public static final String         ON_NEW_FONT      = "font.new";
+    public static final String         ON_OPEN_FONT     = "font.open";
+    public static final String         ON_SAVE_FONT     = "font.save";
+    public static final String         ON_SAVE_AS       = "font.save.as";
+    public static final String         ON_UNDO          = "undo";
+    public static final String         ON_REDO          = "redo";
+    public static final String         ON_REFLECT_HOR   = "refl.hor";
+    public static final String         ON_REFLECT_VERT  = "refl.vert";
+    public static final String         ON_PROPERTIES    = "font.prop";
+    public static final String         ON_EXIT          = "exit";
+    public static final String         ON_SHIFT_LEFT    = "shift.left";
+    public static final String         ON_SHIFT_RIGHT   = "shift.right";
+    public static final String         ON_SHIFT_UP      = "shift.up";
+    public static final String         ON_SHIFT_DOWN    = "shift.down";
+    public static final String         ON_MODE_POINTER  = "mode.point";
+    public static final String         ON_MODE_XPENSIL  = "mode.x.pensil";
+    public static final String         ON_MODE_PENSIL   = "mode.pensil";
+    public static final String         ON_MODE_RUBER    = "mode.ruber";
+    public static final String         ON_SYMBOL_CHANGE = "symbol.change";
+    public static final String         ON_HEAP_SIZE     = "heap.size";
 
-    public static Resource       res;
-    static File                  fontFile;
-    static String                fontName         = "new font";
-    static boolean               fontSaved;
-    public static boolean        exit;
+    public static Resource             res;
+    static File                        fontFile;
+    static String                      fontName         = "new font";
+    static boolean                     fontSaved;
+    public static boolean              exit;
 
-    static ActionMap             actions;
+    static ActionMap                   actions;
 
-    private static OnUndoRedo    atUndoRedo;
-    static UndoManager           uManager;
-    static int                   undoCount;
+    private static OnUndoRedo          atUndoRedo;
+    static UndoManager                 uManager;
+    static int                         undoCount;
 
-    static WorkShop              work;
-    static FontPanel             fontPanel;
-    static EditPanel             editPanel;
-    static JFileChooser          chooserSave;
-    static JFileChooser          chooserOpen;
-    static FontProperties        fpf;
+    static WorkShop                    work;
+    static FontPanel                   fontPanel;
+    static EditPanel                   editPanel;
+    static JFileChooser                chooserSave;
+    static JFileChooser                chooserOpen;
+    static FontProperties              fpf;
 
-    private static MFont         font;
-    private static MFontListener atFontChange;
-    private static int           mode;
+    private static MFont               font;
+    private static NotifyEventListener atFontChange;
+    private static int                 mode;
 
     public static void main(String[] args) {
         Runtime r;
@@ -103,8 +100,7 @@ public class Application
                                                 heaps));
             try {
                 java.lang.Thread.sleep(750);
-            }
-            catch (InterruptedException e) {
+            } catch (InterruptedException e) {
             }
         }/* */
     }
@@ -119,6 +115,7 @@ public class Application
 
         atUndoRedo = new OnUndoRedo();
         uManager = new UndoManager();
+        updateUndoRedo();
 
         work.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         work.addWindowListener(new WindowAdapter() {
@@ -202,7 +199,7 @@ public class Application
 
     static synchronized void setMFont(MFont newFont) {
         if (font != null) {
-            font.removeListener(atFontChange);
+            font.removeNotifyEventListener(atFontChange);
             font.removeUndoableEditListener(uManager);
             font.removeUndoableEditListener(atUndoRedo);
             uManager.discardAllEdits();
@@ -211,12 +208,14 @@ public class Application
         font = newFont;
 
         if (font != null) {
-            font.addListener(atFontChange);
+            font.addNotifyEventListener(atFontChange);
             font.addUndoableEditListener(uManager);
             font.addUndoableEditListener(atUndoRedo);
             fontName = font.getName();
+        } else {
+            fontName = null;
         }
-        else fontName = null;
+        actions.get(ON_SAVE_AS).setEnabled(font != null);
 
         fontPanel.setMFont(font);
         updateTitle();
@@ -240,13 +239,12 @@ public class Application
     }
 
     private static File getSaveFile() {
-        File ret = null;
+        File ret;
         doChooserSave();
         while (true) {
             int returnVal = chooserSave.showSaveDialog(work);
             ret = chooserSave.getSelectedFile();
             if (returnVal != JFileChooser.APPROVE_OPTION) return null;
-            ret = chooserSave.getSelectedFile();
             if (!ret.exists()) break;
             returnVal = JOptionPane.showConfirmDialog(null,
                             "Selected file already exsist.\nOwerride it?",
@@ -255,19 +253,23 @@ public class Application
         }
 
         // Check file extensions
-        String name = ret.getName();
-        int i = name.lastIndexOf('.');
-        if ((i > 0) && (i + 1 < name.length())
-                        && (name.substring(i + 1).equalsIgnoreCase("mfnt")))
-            name = name.substring(0, i);
-        name += ".mfnt";
-        ret = new File(ret.getParentFile(), name);
+        if (ret != null) {
+            String name = ret.getName();
+            int i = name.lastIndexOf('.');
+            if ((i > 0) && (i + 1 < name.length())
+                            && (name.substring(i + 1).equalsIgnoreCase("mfnt")))
+                name = name.substring(0, i);
+            name += ".mfnt";
+            ret = new File(ret.getParentFile(), name);
+        }
 
         return ret;
     }
 
     private static boolean saveFontFile(boolean saveAs) {
         File file;
+
+        if (font == null) return false;
 
         if (fontFile == null) saveAs = true;
         else if (fontFile.exists() && !fontFile.canWrite()) saveAs = true;
@@ -280,8 +282,7 @@ public class Application
 
         try {
             MFontLoadSave.save(font, fontFile);
-        }
-        catch (IOException e1) {
+        } catch (IOException e1) {
             JOptionPane.showMessageDialog(null, "Can't save file.", "Error",
                             JOptionPane.OK_OPTION);
             return false;
@@ -329,8 +330,7 @@ public class Application
         work.setTitle(title);
     }
 
-    private static class OnUndoRedo implements UndoableEditListener
-    {
+    private static class OnUndoRedo implements UndoableEditListener {
         @Override
         public void undoableEditHappened(UndoableEditEvent e) {
             if (undoCount < 0) undoCount = Integer.MIN_VALUE;
@@ -339,29 +339,24 @@ public class Application
         }
     }
 
-    private static class OnFontChange implements MFontListener
-    {
+    private static class OnFontChange implements NotifyEventListener {
         @Override
-        public void mFontEvent(MFontEvent change) {
-            System.out.println(change.toString() + " "
-                            + change.getReasonString() + " index="
-                            + change.getIndex());
+        public void notifyHappened(NotifyEvent change) {
+            System.out.println(change.getNotify());
             updateUndoRedo();
         }
     }
 
-    public static class OnSymbolChange extends AbstractAction
-    {
+    public static class OnSymbolChange extends AbstractAction {
         private static final long serialVersionUID = 1L;
 
         @Override
         public void actionPerformed(ActionEvent e) {
             editPanel.setMSymbol(fontPanel.getSelectedSymbol());
         }
-    };
+    }
 
-    public static class OnNew extends ActionX
-    {
+    public static class OnNew extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnNew() {
@@ -371,10 +366,9 @@ public class Application
         @Override
         public void actionPerformed(ActionEvent e) {
         }
-    };
+    }
 
-    public static class OnOpen extends ActionX
-    {
+    public static class OnOpen extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnOpen() {
@@ -399,8 +393,7 @@ public class Application
 
             try {
                 font = MFontLoadSave.load(file, null);
-            }
-            catch (IOException ex) {
+            } catch (IOException ex) {
                 JOptionPane.showMessageDialog(null, "Can't open file.",
                                 "Error", JOptionPane.OK_OPTION);
                 return;
@@ -432,8 +425,7 @@ public class Application
         setSaved(undoCount == 0);
     }
 
-    public static class OnSave extends ActionX
-    {
+    public static class OnSave extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnSave() {
@@ -446,8 +438,7 @@ public class Application
         }
     }
 
-    public static class OnSaveAs extends ActionX
-    {
+    public static class OnSaveAs extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnSaveAs() {
@@ -460,8 +451,7 @@ public class Application
         }
     }
 
-    public static class OnUndo extends ActionX
-    {
+    public static class OnUndo extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnUndo() {
@@ -478,8 +468,7 @@ public class Application
         }
     }
 
-    public static class OnRedo extends ActionX
-    {
+    public static class OnRedo extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnRedo() {
@@ -496,8 +485,7 @@ public class Application
         }
     }
 
-    public static class OnReflectHorz extends ActionX
-    {
+    public static class OnReflectHorz extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnReflectHorz() {
@@ -511,14 +499,12 @@ public class Application
                 symbol.beginChange("reflect horizontale");
                 symbol.reflectHorizontale();
                 symbol.endChange();
-            }
-            catch (NullPointerException ex) {
+            } catch (NullPointerException ex) {
             }
         }
     }
 
-    public static class OnReflectVert extends ActionX
-    {
+    public static class OnReflectVert extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnReflectVert() {
@@ -532,14 +518,12 @@ public class Application
                 symbol.beginChange("reflect verticale");
                 symbol.reflectVerticale();
                 symbol.endChange();
-            }
-            catch (NullPointerException ex) {
+            } catch (NullPointerException ex) {
             }
         }
     }
 
-    public static class OnShiftLeft extends ActionX
-    {
+    public static class OnShiftLeft extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnShiftLeft() {
@@ -553,14 +537,12 @@ public class Application
                 symbol.beginChange("shift left");
                 symbol.shiftLeft();
                 symbol.endChange();
-            }
-            catch (NullPointerException ex) {
+            } catch (NullPointerException ex) {
             }
         }
     }
 
-    public static class OnShiftRight extends ActionX
-    {
+    public static class OnShiftRight extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnShiftRight() {
@@ -574,14 +556,12 @@ public class Application
                 symbol.beginChange("shift right");
                 symbol.shiftRight();
                 symbol.endChange();
-            }
-            catch (NullPointerException ex) {
+            } catch (NullPointerException ex) {
             }
         }
     }
 
-    public static class OnShiftUp extends ActionX
-    {
+    public static class OnShiftUp extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnShiftUp() {
@@ -595,14 +575,12 @@ public class Application
                 symbol.beginChange("shift up");
                 symbol.shiftUp();
                 symbol.endChange();
-            }
-            catch (NullPointerException ex) {
+            } catch (NullPointerException ex) {
             }
         }
     }
 
-    public static class OnShiftDown extends ActionX
-    {
+    public static class OnShiftDown extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnShiftDown() {
@@ -616,14 +594,12 @@ public class Application
                 symbol.beginChange("shift down");
                 symbol.shiftDown();
                 symbol.endChange();
-            }
-            catch (NullPointerException ex) {
+            } catch (NullPointerException ex) {
             }
         }
     }
 
-    public static class OnExit extends ActionX
-    {
+    public static class OnExit extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnExit() {
@@ -637,8 +613,7 @@ public class Application
 
     }
 
-    public static class OnProperties extends ActionX
-    {
+    public static class OnProperties extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnProperties() {
@@ -658,8 +633,7 @@ public class Application
 
     }
 
-    public static class OnModeXPensil extends ActionX
-    {
+    public static class OnModeXPensil extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnModeXPensil() {
@@ -673,8 +647,7 @@ public class Application
         }
     }
 
-    public static class OnModePensil extends ActionX
-    {
+    public static class OnModePensil extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnModePensil() {
@@ -688,8 +661,7 @@ public class Application
         }
     }
 
-    public static class OnModeRuber extends ActionX
-    {
+    public static class OnModeRuber extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnModeRuber() {
@@ -703,8 +675,7 @@ public class Application
         }
     }
 
-    public static class OnModePointer extends ActionX
-    {
+    public static class OnModePointer extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnModePointer() {

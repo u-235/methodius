@@ -1,14 +1,13 @@
+
 package gui;
 
 import javax.swing.AbstractAction;
-
 import utils.resource.Resource;
 import utils.resource.ResourceEvent;
 import utils.resource.ResourceListener;
 
 public abstract class ActionX extends AbstractAction implements
-                ResourceListener
-{
+                ResourceListener {
     private static final long  serialVersionUID                 = 1L;
 
     private Resource           resource;

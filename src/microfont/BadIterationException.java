@@ -1,3 +1,4 @@
+
 package microfont;
 
 /**
@@ -6,8 +7,7 @@ package microfont;
  * конца итераций.
  * 
  */
-public class BadIterationException extends RuntimeException
-{
+public class BadIterationException extends RuntimeException {
     private static final long serialVersionUID = -254870756168468736L;
 
     /**

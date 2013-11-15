@@ -1,15 +1,14 @@
+
 package gui;
 
 import java.awt.Insets;
 import java.beans.ConstructorProperties;
-
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.JButton;
 
 @SuppressWarnings("serial")
-public class IButton extends JButton
-{
+public class IButton extends JButton {
     @Override
     protected void configurePropertiesFromAction(Action a) {
         AbstractButtonX.configurePropertiesFromAction(this, a);

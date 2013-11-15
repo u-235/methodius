@@ -1,7 +1,7 @@
+
 package microfont.gui;
 
 import gui.ScrollableWindow;
-
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Composite;
@@ -15,10 +15,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import microfont.MFont;
 import microfont.MSymbol;
-import microfont.events.MFontEvent;
-import microfont.events.MFontListener;
-import microfont.events.MSymbolEvent;
-import microfont.events.MSymbolListener;
+import microfont.events.NotifyEvent;
+import microfont.events.NotifyEventListener;
+import microfont.events.PixselMapEvent;
+import microfont.events.PixselMapListener;
 
 /**
  * Отрисовщик {@link MSymbol символа} на экране.<img
@@ -31,8 +31,9 @@ import microfont.events.MSymbolListener;
  * <p>
  * <b>Символ по умолчанию.</b><br>
  * Многие методы используют {@linkplain #symbol символ по умолчанию}. При
- * изменении этого символа вызывается метод {@link #mSymbolEvent(MSymbolEvent)},
- * что позволяет оперативно обновлять отображение символа.
+ * изменении этого символа вызывается метод
+ * {@link #pixselChanged(PixselMapEvent)}, что позволяет оперативно обновлять
+ * отображение символа.
  * <p>
  * <b>Отрисовка символа.</b><br>
  * <img src="../doc-files/source-elements.png"><br>
@@ -51,8 +52,7 @@ import microfont.events.MSymbolListener;
  * {@link #hit(MSymbolHit, int, int, microfont.MSymbol, int, int)}
  */
 public class MAbstractComponent extends ScrollableWindow implements
-                MSymbolListener, MFontListener
-{
+                PixselMapListener, NotifyEventListener {
     /**/
     private static final long serialVersionUID = 1L;
     /**
@@ -95,8 +95,7 @@ public class MAbstractComponent extends ScrollableWindow implements
     protected int             deadzone         = 40;
 
     @SuppressWarnings("serial")
-    public class RenderError extends Exception
-    {
+    public class RenderError extends Exception {
         public RenderError(String s) {
             super(s);
         }
@@ -146,9 +145,8 @@ public class MAbstractComponent extends ScrollableWindow implements
     /**
      * Метод устанавливает {@linkplain #symbol символ} по умолчанию. Если символ
      * принадлежит {@linkplain MFont шрифту}, то обновляются переменные
-     * {@link #marginLeft}, {@link #marginRight}, {@link #marginTop},
-     * {@link #marginBottom} и {@link #charset}. Вызывается метод
-     * {@link ScrollableWindow#revalidate() revalidate()}.
+     * {@link #marginLeft}, {@link #marginRight} и {@link #charset}. Вызывается
+     * метод {@link ScrollableWindow#revalidate() revalidate()}.
      * 
      * @param s Новый символ.
      * 
@@ -158,18 +156,18 @@ public class MAbstractComponent extends ScrollableWindow implements
         MFont parent;
 
         if (symbol != null) {
-            symbol.removeListener(this);
+            symbol.removePixselMapListener(this);
             parent = symbol.getParent();
-            if (parent != null) parent.removeListener(this);
+            if (parent != null) parent.removeNotifyEventListener(this);
         }
 
         this.symbol = s;
         if (symbol != null) {
-            symbol.addListener(this);
+            symbol.addPixselMapListener(this);
             parent = s.getParent();
 
             if (parent != null) {
-                parent.addListener(this);
+                parent.addNotifyEventListener(this);
                 updateMargins();
                 charset = parent.getCharset();
             }
@@ -190,7 +188,7 @@ public class MAbstractComponent extends ScrollableWindow implements
         marginRight = parent.getMarginRight();
         baseline = parent.getBaseline();
         ascent = parent.getAscent();
-        ascentCapital = parent.getAscentCapital();
+        ascentCapital = parent.getLine();
         descent = parent.getDescent();
     }
 
@@ -433,10 +431,7 @@ public class MAbstractComponent extends ScrollableWindow implements
      * @param pixselHeight Высота пикселя символа в экранных точках.
      * @param paper Цвет "бумаги".
      * @param ink Цвет "чернил".
-     * @see #drawSymbol(Graphics, MSymbol, int, int)
-     * @see #drawSymbol(Graphics, MSymbol)
      * @see #drawSymbol(Graphics, int, int)
-     * @see #drawSymbol(Graphics)
      */
     public static void drawSymbol(Graphics g, MSymbol symbol, boolean onlyInk,
                     int offsetX, int offsetY, int pixselWidth,
@@ -480,8 +475,7 @@ public class MAbstractComponent extends ScrollableWindow implements
 
                 try {
                     pixsel = symbol.getPixsel(r, l);
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     continue;
                 }
 
@@ -656,8 +650,7 @@ public class MAbstractComponent extends ScrollableWindow implements
 
         if (rv == null) {
             ret = new MSymbolHit();
-        }
-        else {
+        } else {
             ret = rv;
         }
 
@@ -679,8 +672,7 @@ public class MAbstractComponent extends ScrollableWindow implements
         if (x < 0) ret.column = -1;
         else if (x >= w) {
             ret.column = symbol.getWidth();
-        }
-        else {
+        } else {
             ret.flags |= ret.VALID_COLUMN;
             ret.column = x / pixselSize;
             x %= pixselSize;
@@ -690,8 +682,7 @@ public class MAbstractComponent extends ScrollableWindow implements
         if (y < 0) ret.row = -1;
         else if (y >= h) {
             ret.row = symbol.getHeight();
-        }
-        else {
+        } else {
             ret.flags |= ret.VALID_ROW;
 
             ret.row = y / pixselSize;
@@ -715,35 +706,31 @@ public class MAbstractComponent extends ScrollableWindow implements
      * 
      */
     @Override
-    public void mSymbolEvent(MSymbolEvent change) {
-        if (change.reason == MSymbolEvent.SIZE) {
-            revalidate();
-            validate();
-            repaint();
-        }
-        else repaint(change.x * pixselSize, change.y * pixselSize, change.width
-                        * pixselSize, change.height * pixselSize);
+    public void pixselChanged(PixselMapEvent change) {
+        repaint(change.x() * pixselSize, change.y() * pixselSize,
+                        change.width() * pixselSize, change.height()
+                                        * pixselSize);
+    }
+
+    @Override
+    public void notifyHappened(NotifyEvent event) {
+        // switch (change.getReason()) {
+        // case MFontEvent.FONT_ASCENT:
+        // case MFontEvent.FONT_ASCENT_CAPITAL:
+        // case MFontEvent.FONT_BASELINE:
+        // case MFontEvent.FONT_DESCENT:
+        // case MFontEvent.FONT_MARGIN_LEFT:
+        // case MFontEvent.FONT_MARGIN_RIGHT:
+        // updateMargins();
+        // repaint();
+        // break;
+        // case MFontEvent.FONT_CHARSET:
+        // }
     }
 
     @Override
     public Dimension calculatePrefSize(Dimension rv) {
         return getSymbolSize(rv);
-    }
-
-    @Override
-    public void mFontEvent(MFontEvent change) {
-        switch (change.getReason()) {
-        case MFontEvent.FONT_ASCENT:
-        case MFontEvent.FONT_ASCENT_CAPITAL:
-        case MFontEvent.FONT_BASELINE:
-        case MFontEvent.FONT_DESCENT:
-        case MFontEvent.FONT_MARGIN_LEFT:
-        case MFontEvent.FONT_MARGIN_RIGHT:
-            updateMargins();
-            repaint();
-            break;
-        case MFontEvent.FONT_CHARSET:
-        }
     }
 
     void ScallePlus() {
@@ -752,8 +739,7 @@ public class MAbstractComponent extends ScrollableWindow implements
         w += (w + 2) / 3;
         try {
             setPixselSize(w);
-        }
-        catch (RenderError e1) {
+        } catch (RenderError e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
         }
@@ -765,8 +751,7 @@ public class MAbstractComponent extends ScrollableWindow implements
         w -= (w + 1) / 3;
         try {
             setPixselSize(w);
-        }
-        catch (RenderError e1) {
+        } catch (RenderError e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
         }

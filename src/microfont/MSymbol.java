@@ -1,10 +1,8 @@
+
 package microfont;
 
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
-
-import microfont.events.MSymbolEvent;
-import microfont.events.MSymbolListener;
 import microfont.undo.MSymbolUndo;
 
 /**
@@ -13,44 +11,8 @@ import microfont.undo.MSymbolUndo;
  * шрифте. Ключевое свойство символа - массив пикселей.<br>
  * Важно знать, что хотя символ и является разделяемым ресурсом, но один и тот
  * же символ не может принадлежать различным шрифтам.
- * 
- * <p>
- * <img src="doc-files/symbol.png" align=right> <b>Массив пикселей и
- * координаты.</b><br>
- * Пиксели представлены массивом <b>boolean</b>, который имеет размер, равный
- * произведению ширины и высоты пикселя. Младшему элементу массива соответствует
- * левый верхний пиксель символа. Пиксели размещаются слева направо и сверху
- * вниз. Таким образом, последний элемент массива содержит правый нижний
- * пиксель. <br>
- * На рисунке изображён символ высотой 8 и шириной 8 пикселей. Закрашены пиксели
- * с индексами массива <b>0</b>, <b>1</b> и <b>10</b>. В то же время эти пиксели
- * соответствуют координатам <b>0</b>:<b>0</b>, <b>1</b>:<b>0</b> и
- * <b>2</b>:<b>1</b> в формате <b><i>колонка</i></b>:<b><i>строка</i></b>.<br>
- * Состоянию пикселя "закрашен" соответствует <b>true</b>, состоянию "пуст"
- * (другими словами - прозрачен, то есть видна бумага) - <b>false</b>. При
- * копировании с использованием других типов данных состоянию "закрашен"
- * соответствует бит, содержащий единицу. <br>
- * Так же важно знать, что вся область за границами символа считается
- * прозрачной. То есть такой код {@code}
- * 
- * <pre>
- *  MSymbol mysymbol;
- *  boolean   myvar;
- *  . . . . .
- *  myvar = mysymbol.getPixsel(-1, 2);
- * </pre>
- * 
- * вернёт <b>false</b>.
- * 
- * <p>
- * <b>Сообщения.</b> <br>
- * При изменении символа генерируются сообщения, к которым могут подключиться
- * {@linkplain MSymbolListener получатели сообщения}. Это полезно для
- * оперативного отображения изменений при визуальном редактировании.
- * 
  */
-public class MSymbol extends PixselMap
-{
+public class MSymbol extends PixselMap {
     /**  */
     protected MFont     parent;
     protected MSymbol   prevSymbol = null;
@@ -97,10 +59,7 @@ public class MSymbol extends PixselMap
     /**
      * Копирование массива точек из символа s. Так же изменяются переменные
      * {@link #code code}. <br>
-     * Генерируются сообщения {@link MSymbolEvent#SIZE SIZE} и
-     * {@link MSymbolEvent#COPY COPY}. <br>
-     * Важно знать, что <b>списки {@linkplain MSymbolListener получателей
-     * сообщений} не копируются</b>.
+     * Важно знать, что <b>списки получателей сообщений не копируются</b>.
      * 
      * @param s Источник копирования.
      * @throws DisallowOperationException
@@ -113,9 +72,6 @@ public class MSymbol extends PixselMap
 
         setCode(s.getCode());
         super.copy(s);
-
-        fireEvent(MSymbolEvent.SIZE);
-        fireEvent(MSymbolEvent.COPY);
     }
 
     /**
@@ -189,7 +145,6 @@ public class MSymbol extends PixselMap
         }
 
         super.copy(tMap);
-        fireEvent(MSymbolEvent.SIZE);
     }
 
     /**
@@ -234,7 +189,6 @@ public class MSymbol extends PixselMap
         }
 
         super.copy(tMap);
-        fireEvent(MSymbolEvent.SIZE);
     }
 
     /**
@@ -245,8 +199,7 @@ public class MSymbol extends PixselMap
     }
 
     /**
-     * Метод устанавливает индекс символа в шрифте. <br>
-     * Генерируются события {@link MSymbolEvent#INDEX INDEX}.
+     * Метод устанавливает индекс символа в шрифте..
      * 
      * @param i Новый индекс.
      * @throws DisallowOperationException
@@ -259,7 +212,6 @@ public class MSymbol extends PixselMap
             throw new DisallowOperationException("change code");
 
         code = i;
-        fireEvent(MSymbolEvent.INDEX);
     }
 
     /**

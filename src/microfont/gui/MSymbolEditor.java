@@ -1,3 +1,4 @@
+
 package microfont.gui;
 
 import java.awt.Graphics;
@@ -6,12 +7,10 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-
 import microfont.MSymbol;
 
 public class MSymbolEditor extends MAbstractComponent implements MouseListener,
-                MouseMotionListener, MouseWheelListener
-{
+                MouseMotionListener, MouseWheelListener {
     /**  */
     private static final long serialVersionUID = 1L;
     boolean                   changeEnable     = false;
@@ -60,10 +59,9 @@ public class MSymbolEditor extends MAbstractComponent implements MouseListener,
             symbolHit = hit(symbolHit, e.getX(), e.getY());
             if ((symbolHit.flags & symbolHit.PIXSEL) != 0)
                 try {
-                    symbol.changePixsel(symbolHit.column, symbolHit.row,
+                    symbol.setPixsel(symbolHit.column, symbolHit.row,
                                     changeSet);
-                }
-                catch (IllegalArgumentException e1) {
+                } catch (IllegalArgumentException e1) {
                     e1.printStackTrace();
                 }
         }
@@ -99,10 +97,9 @@ public class MSymbolEditor extends MAbstractComponent implements MouseListener,
                         && changeEnable) {
             if ((symbolHit.column != prevX) || (symbolHit.row != prevY))
                 try {
-                    symbol.changePixsel(symbolHit.column, symbolHit.row,
+                    symbol.setPixsel(symbolHit.column, symbolHit.row,
                                     changeSet);
-                }
-                catch (IllegalArgumentException e1) {
+                } catch (IllegalArgumentException e1) {
                     e1.printStackTrace();
                 }
             prevX = symbolHit.column;

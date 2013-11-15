@@ -1,3 +1,4 @@
+
 package microfont.ls;
 
 import java.io.BufferedReader;
@@ -9,33 +10,69 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-
 import microfont.MFont;
 import microfont.MSymbol;
 
-public class MFontLoadSave
-{
-    protected static final String AUTHOR              = "AUTHOR";
-    protected static final String AUTHOR_NAME         = "name";
-    protected static final String AUTHOR_CONTACT      = "mail";
-    protected static final String INFO                = "INFO";
-    protected static final String INFO_CHARSET        = "charset";
-    protected static final String INFO_NAME           = "name";
-    protected static final String INFO_PROTOTIPE      = "prototype";
-    protected static final String INFO_SIZE           = "size";
-    protected static final String INFO_FIXSED         = "fixsed";
-    protected static final String INFO_WIDTH          = "width";
-    protected static final String INFO_HEIGHT         = "height";
-    protected static final String INFO_BASELINE       = "baseline";
-    protected static final String INFO_ASCENT         = "ascent";
-    protected static final String INFO_ASCENT_CAPITAL = "ascentCapital";
-    protected static final String INFO_DESCENT        = "descent";
-    protected static final String INFO_LEFT_MARGIN    = "leftMargin";
-    protected static final String INFO_RIGHT_MARGIN   = "rightMargin";
-    protected static final String SYMBOLS             = "SYMBOLS";
-    protected static final String SYMBOLS_INDEX       = "index";
-    protected static final String SYMBOLS_WIDTH       = "width";
-    protected static final String SYMBOLS_BYTES       = "bytes";
+public class MFontLoadSave {
+    protected static final String AUTHOR            = "AUTHOR";
+    protected static final String AUTHOR_NAME       = "name";
+    protected static final String AUTHOR_CONTACT    = "mail";
+    protected static final String INFO              = "INFO";
+    protected static final String INFO_CHARSET      = "charset";
+    protected static final String INFO_NAME         = "name";
+    protected static final String INFO_PROTOTIPE    = "prototype";
+    protected static final String INFO_SIZE         = "size";
+    protected static final String INFO_FIXSED       = "fixsed";
+    protected static final String INFO_WIDTH        = "width";
+    protected static final String INFO_HEIGHT       = "height";
+    protected static final String INFO_BASELINE     = "baseline";
+    protected static final String INFO_ASCENT       = "ascent";
+    protected static final String INFO_LINE         = "line";
+    protected static final String INFO_DESCENT      = "descent";
+    protected static final String INFO_LEFT_MARGIN  = "leftMargin";
+    protected static final String INFO_RIGHT_MARGIN = "rightMargin";
+    protected static final String SYMBOLS           = "SYMBOLS";
+    protected static final String SYMBOLS_CODE      = "code";
+    protected static final String SYMBOLS_WIDTH     = "width";
+    protected static final String SYMBOLS_BYTES     = "bytes";
+
+    private static void writeNewLine(BufferedWriter writer) throws IOException {
+        writer.write("\r\n");
+    }
+
+    private static void writeComment(BufferedWriter writer, String comment)
+                    throws IOException {
+        writer.write(";");
+        writer.write(comment);
+        writer.write("\r\n");
+    }
+
+    private static void writeSection(BufferedWriter writer, String section)
+                    throws IOException {
+        writer.write("[");
+        writer.write(section);
+        writer.write("]");
+        writer.write("\r\n");
+    }
+
+    private static void writeKey(BufferedWriter writer, String key)
+                    throws IOException {
+        writer.write(key);
+        writer.write(" = ");
+    }
+
+    private static void writeKey(BufferedWriter writer, String key, String value)
+                    throws IOException {
+        if (value == null) return;
+        writeKey(writer, key);
+        writer.write(value);
+        writer.write("\r\n");
+    }
+
+    private static void writeKey(BufferedWriter writer, String key, int value)
+                    throws IOException {
+        writeKey(writer, key, Integer.toString(value));
+    }
 
     /**
      * Сохраняет шрифт в заданном файле.
@@ -54,95 +91,70 @@ public class MFontLoadSave
         MSymbol sym;
         int w, last;
         byte[] arr;
-        String str;
 
         if (f == null) throw (new IllegalArgumentException("file is null"));
 
         writer = new BufferedWriter(new OutputStreamWriter(
                         new FileOutputStream(f), "utf-8"));
 
-        writer.write("; This is MFont file. Version 0.8\r\n");
-        writer.write("; If yuor want edit thus use \"Mithodius\". \r\n");
+        writeComment(writer, "   This is MFont file. Version 0.8");
+        writeComment(writer,
+                        "   If yuor need edit this file use \"Methodius\".");
+        writeNewLine(writer);
 
-        writer.write("\r\n[" + AUTHOR + "]\r\n");
-        writer.write(AUTHOR_NAME + " = ");
-        str = mFont.getAuthorName();
-        if (str != null) writer.write(str);
-        writer.write("\r\n");
-        writer.write(AUTHOR_CONTACT + " = ");
-        str = mFont.getAuthorMail();
-        if (str != null) writer.write(str);
-        writer.write("\r\n");
+        writeSection(writer, AUTHOR);
+        writeKey(writer, AUTHOR_NAME, mFont.getAuthorName());
+        writeKey(writer, AUTHOR_CONTACT, mFont.getAuthorMail());
+        writeNewLine(writer);
 
-        writer.write("\r\n[" + INFO + "]\r\n");
+        writeSection(writer, INFO);
+        writeKey(writer, INFO_CHARSET, mFont.getCharset());
+        writeKey(writer, INFO_NAME, mFont.getName());
+        writeKey(writer, INFO_PROTOTIPE, mFont.getPrototype());
+        writeKey(writer, INFO_SIZE, mFont.getSize());
 
-        writer.write(INFO_CHARSET + " = ");
-        str = mFont.getCharset();
-        if (str != null) writer.write(str);
-        writer.write("\r\n");
-
-        writer.write(INFO_NAME + " = ");
-        str = mFont.getName();
-        if (str != null) writer.write(str);
-        writer.write("\r\n");
-
-        writer.write(INFO_PROTOTIPE + " = ");
-        str = mFont.getPrototype();
-        if (str != null) writer.write(str);
-        writer.write("\r\n");
-
-        writer.write(INFO_SIZE + " = ");
-        writer.write(Integer.toString(mFont.getSize()));
-        writer.write("\r\n");
-
-        writer.write(INFO_FIXSED + " = ");
+        writeKey(writer, INFO_FIXSED);
         if (mFont.isFixsed()) {
-            writer.write("true\r\n");
-        }
-        else writer.write("false\r\n");
+            writer.write("true");
+        } else writer.write("false");
+        writeNewLine(writer);
 
-        writer.write(INFO_WIDTH + " = " + mFont.getWidth() + "\r\n");
+        writeKey(writer, INFO_WIDTH, mFont.getWidth());
+        writeKey(writer, INFO_HEIGHT, mFont.getHeight());
+        writeKey(writer, INFO_BASELINE, mFont.getBaseline());
+        writeKey(writer, INFO_ASCENT, mFont.getAscent());
+        writeKey(writer, INFO_LINE, mFont.getLine());
+        writeKey(writer, INFO_DESCENT, mFont.getDescent());
+        writeKey(writer, INFO_LEFT_MARGIN, mFont.getMarginLeft());
+        writeKey(writer, INFO_RIGHT_MARGIN, mFont.getMarginRight());
+        writeNewLine(writer);
 
-        writer.write(INFO_HEIGHT + " = " + mFont.getHeight() + "\r\n");
-
-        writer.write(INFO_BASELINE + " = " + mFont.getBaseline() + "\r\n");
-
-        writer.write(INFO_ASCENT + " = " + mFont.getAscent() + "\r\n");
-
-        writer.write(INFO_ASCENT_CAPITAL + " = " + mFont.getAscentCapital()
-                        + "\r\n");
-
-        writer.write(INFO_DESCENT + " = " + mFont.getDescent() + "\r\n");
-
-        writer.write(INFO_LEFT_MARGIN + " = " + mFont.getMarginLeft() + "\r\n");
-
-        writer.write(INFO_RIGHT_MARGIN + " = " + mFont.getMarginRight()
-                        + "\r\n");
-
-        writer.write("\n;Byte arrays of synbol in hex radix.\r\n");
-        writer.write("[" + SYMBOLS + "]\r\n");
+        writeComment(writer, "Byte arrays of synbol in hex radix.");
+        writeSection(writer, SYMBOLS);
         last = -1;
         for (int i = 0; i < mFont.getSize(); i++) {
             sym = mFont.symbolAtNumber(i);
             last++;
-            if (last != sym.getCode())
-                writer.write(SYMBOLS_INDEX + " = " + sym.getCode() + "\r\n");
-            last = i;
+            if (last != sym.getCode()) {
+                writeKey(writer, SYMBOLS_CODE, sym.getCode());
+            }
+            last = sym.getCode();
 
             w = sym.getWidth();
-            if (!mFont.isFixsed())
-                writer.write(SYMBOLS_WIDTH + " = " + w + "\r\n");
+            if (!mFont.isFixsed()) {
+                writeKey(writer, SYMBOLS_WIDTH, w);
+            }
 
             arr = sym.getByteArray();
-            writer.write(SYMBOLS_BYTES + " =");
+            writeKey(writer, SYMBOLS_BYTES);
             for (byte bt : arr) {
                 writer.write(" " + Integer.toHexString(bt & 0x00ff));
             }
 
-            writer.write("\r\n");
+            writeNewLine(writer);
         }
 
-        writer.write("\r\n");
+        writeNewLine(writer);
         writer.close();
     }
 
@@ -200,16 +212,11 @@ public class MFontLoadSave
         reader = new BufferedReader(new InputStreamReader(inpStream, "utf-8"));
         ret = new MFont();
 
+        int line = 0;
         while ((str = reader.readLine()) != null) {
-            if (progress != null) {
-                int st = (index) * 90 / size;
-                if (st <= 0) {
-                    st = sectCount * 2;
-                }
-                else st += 11;
+            line++;
+            if (progress != null && progress.parseString(line)) break;
 
-                if (progress.parseString(st)) break;
-            }
             str = str.trim();
             if (str.length() == 0) continue;
 
@@ -230,6 +237,7 @@ public class MFontLoadSave
 
             key = getKey(str);
             value = getKeyValue(str);
+            if (key.isEmpty() || value.isEmpty()) continue;
 
             if (section.compareToIgnoreCase(AUTHOR) == 0) {
                 if (key.compareToIgnoreCase(AUTHOR_CONTACT) == 0)
@@ -244,45 +252,35 @@ public class MFontLoadSave
                                 .setCharset(value);
                 else if (key.compareToIgnoreCase(INFO_NAME) == 0) {
                     ret.setName(value);
-                }
-                else if (key.compareToIgnoreCase(INFO_PROTOTIPE) == 0) {
+                } else if (key.compareToIgnoreCase(INFO_PROTOTIPE) == 0) {
                     ret.setPrototype(value);
-                }
-                else if (key.compareToIgnoreCase(INFO_FIXSED) == 0) {
+                } else if (key.compareToIgnoreCase(INFO_FIXSED) == 0) {
                     if (value.compareToIgnoreCase("true") == 0) {
                         ret.setFixsed(true);
-                    }
-                    else ret.setFixsed(false);
-                }
-                else if (key.compareToIgnoreCase(INFO_WIDTH) == 0) {
+                    } else ret.setFixsed(false);
+                } else if (key.compareToIgnoreCase(INFO_WIDTH) == 0) {
                     if (value.length() != 0) width = Integer.parseInt(value);
                     ret.setWidth(width);
-                }
-                else if (key.compareToIgnoreCase(INFO_HEIGHT) == 0) {
+                } else if (key.compareToIgnoreCase(INFO_HEIGHT) == 0) {
                     if (value.length() != 0) height = Integer.parseInt(value);
                     ret.setHeight(height);
-                }
-                else if (key.compareToIgnoreCase(INFO_BASELINE) == 0) {
+                } else if (key.compareToIgnoreCase(INFO_BASELINE) == 0) {
                     if (value.length() != 0)
                         ret.setBaseline(Integer.parseInt(value));
-                }
-                else if (key.compareToIgnoreCase(INFO_ASCENT) == 0) {
+                } else if (key.compareToIgnoreCase(INFO_ASCENT) == 0) {
                     if (value.length() != 0)
                         ret.setAscent(Integer.parseInt(value));
-                }
-                else if (key.compareToIgnoreCase(INFO_ASCENT_CAPITAL) == 0) {
+                } else if (key.compareToIgnoreCase(INFO_LINE) == 0
+                                || key.compareToIgnoreCase("ascentCapital") == 0) {
                     if (value.length() != 0)
-                        ret.setAscentCapital(Integer.parseInt(value));
-                }
-                else if (key.compareToIgnoreCase(INFO_DESCENT) == 0) {
+                        ret.setLine(Integer.parseInt(value));
+                } else if (key.compareToIgnoreCase(INFO_DESCENT) == 0) {
                     if (value.length() != 0)
                         ret.setDescent(Integer.parseInt(value));
-                }
-                else if (key.compareToIgnoreCase(INFO_LEFT_MARGIN) == 0) {
+                } else if (key.compareToIgnoreCase(INFO_LEFT_MARGIN) == 0) {
                     if (value.length() != 0)
                         ret.setMarginLeft(Integer.parseInt(value));
-                }
-                else if (key.compareToIgnoreCase(INFO_RIGHT_MARGIN) == 0) {
+                } else if (key.compareToIgnoreCase(INFO_RIGHT_MARGIN) == 0) {
                     if (value.length() != 0)
                         ret.setMarginRight(Integer.parseInt(value));
                 }
@@ -290,13 +288,12 @@ public class MFontLoadSave
             }
 
             if (section.compareToIgnoreCase(SYMBOLS) == 0) {
-                if (key.compareToIgnoreCase(SYMBOLS_INDEX) == 0) {
+                if (key.compareToIgnoreCase(SYMBOLS_CODE) == 0
+                                || key.compareToIgnoreCase("index") == 0) {
                     index = Integer.parseInt(value);
-                }
-                else if (key.compareToIgnoreCase(SYMBOLS_WIDTH) == 0) {
+                } else if (key.compareToIgnoreCase(SYMBOLS_WIDTH) == 0) {
                     width = Integer.parseInt(value);
-                }
-                else if (key.compareToIgnoreCase(SYMBOLS_BYTES) == 0) {
+                } else if (key.compareToIgnoreCase(SYMBOLS_BYTES) == 0) {
                     bytes = new byte[(width * height + 7) / 8];
 
                     start = 0;
@@ -308,7 +305,6 @@ public class MFontLoadSave
                         bytes[i] = (byte) (Integer.parseInt(
                                         value.substring(start, end), 16) & 0xff);
                         start = end + 1;
-                        // if (start >= value.length()) break;
                     }
 
                     ret.add(new MSymbol(index, width, height, bytes));

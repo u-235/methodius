@@ -1,7 +1,7 @@
+
 package utils.ini;
 
-public abstract class INIElement
-{
+public abstract class INIElement {
     public final static int INI_ROOT     = 1;
     public final static int INI_KEY      = 2;
     public final static int INI_SECTION  = 3;

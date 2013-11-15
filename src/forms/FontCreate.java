@@ -1,6 +1,6 @@
+
 package forms;
 
-public class FontCreate
-{
+public class FontCreate {
 
 }

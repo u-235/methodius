@@ -1,9 +1,9 @@
+
 package microfont.undo;
 
 import microfont.MFont;
 
-public class MFontUndo extends AbstractUndo
-{
+public class MFontUndo extends AbstractUndo {
     private static final long serialVersionUID = 1L;
 
     public MFontUndo(MFont mFont, String operation) {

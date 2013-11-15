@@ -1,3 +1,4 @@
+
 package utils.resource;
 
 import java.awt.Image;
@@ -6,13 +7,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
-
 import javax.swing.ImageIcon;
-
 import utils.event.ListenerChain;
 
-public class Resource implements Cloneable
-{
+public class Resource implements Cloneable {
     ResourceBundle                  rBundle;
     Class<? extends Resource>       imgClass;
     private String                  prefix;
@@ -100,8 +98,7 @@ public class Resource implements Cloneable
 
         try {
             return rBundle.getString(name + "." + type);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return null;
         }
     }
@@ -180,8 +177,7 @@ public class Resource implements Cloneable
     protected void fireEvent(int reason, String oldValue, String newValue) {
         if (oldValue == null) {
             if (newValue == null) return;
-        }
-        else {
+        } else {
             if (newValue != null && oldValue.equals(newValue)) return;
         }
 

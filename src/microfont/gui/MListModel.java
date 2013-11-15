@@ -1,23 +1,21 @@
+
 package microfont.gui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.AbstractListModel;
 import javax.swing.Timer;
-
 import microfont.MFont;
 import microfont.MSymbol;
-import microfont.events.MFontEvent;
-import microfont.events.MFontListener;
+import microfont.events.NotifyEvent;
+import microfont.events.NotifyEventListener;
 
 /**
  * Класс для представления {@linkplain MFont шрифта} в JList.
  * 
  */
 public class MListModel extends AbstractListModel<MSymbol> implements
-                MFontListener
-{
+                NotifyEventListener {
     private static final long serialVersionUID = 1L;
     /** */
     private MFont             font;
@@ -64,7 +62,7 @@ public class MListModel extends AbstractListModel<MSymbol> implements
 
         if (this.font != null) {
             oldInd = this.font.getSize() - 1;
-            this.font.removeListener(this);
+            this.font.removeNotifyEventListener(this);
         }
 
         this.font = font;
@@ -72,7 +70,7 @@ public class MListModel extends AbstractListModel<MSymbol> implements
         fireIntervalRemoved(this, 0, oldInd);
 
         if (font != null) {
-            font.addListener(this);
+            font.addNotifyEventListener(this);
             fireIntervalAdded(this, 0, font.getSize() - 1);
         }
     }
@@ -93,25 +91,11 @@ public class MListModel extends AbstractListModel<MSymbol> implements
     }
 
     @Override
-    public void mFontEvent(MFontEvent change) {
+    public void notifyHappened(NotifyEvent event) {
         MFont font;
-        int first, last;
 
-        font = (MFont) change.getSource();
-        switch (change.getReason()) {
-        case MFontEvent.FONT_SYMBOL_ADDED:
-        case MFontEvent.FONT_SYMBOL_REMOVE:
-        case MFontEvent.FONT_CHARSET:
-            first = 0;
-            last = font.getSize() - 1;
-            break;
-        case MFontEvent.FONT_SYMBOL_CHANGED:
-            delayUpdate(change.getIndex());
-            return;
-        default:
-            first = 0;
-            last = font.getSize() - 1;
-        }
-        fireContentsChanged(this, first, last);
+        font = (MFont) event.getSource();
+
+        fireContentsChanged(this, 0, font.getSize() - 1);
     }
 }

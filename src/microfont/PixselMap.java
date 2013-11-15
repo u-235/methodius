@@ -1,22 +1,70 @@
+
 package microfont;
 
 import java.awt.Dimension;
+import microfont.events.NotifyEvent;
+import microfont.events.NotifyEventListener;
+import microfont.events.PixselMapEvent;
+import microfont.events.PixselMapListener;
 import utils.event.ListenerChain;
 
-import microfont.events.MSymbolEvent;
-import microfont.events.MSymbolListener;
-
 /**
- * Класс для представления карты пикселей.
+ * Расширение карты пикселей. Этот класс добавляет функциональность карты.
+ * 
+ * <h3>Сообщения.</h3>
+ * <p>
+ * При изменениях, вызванных публичными методами, генерируются сообщения. Есть
+ * два типа сообщений и получателей сообщений.
+ * <ul>
+ * <li>Сообщение {@link PixselMapEvent} и получатель {@link PixselMapListener}.
+ * Выпуск этого сообщения тесно связан с <i>фиксацией изменений</i>,
+ * функционирование которого описано в {@link AbstractPixselMap}. Всякое
+ * изменение пикселей публичными методами приводит к генерации сообщения
+ * <code>PixselMapEvent</code>.
+ * <li>Сообщение {@link NotifyEvent} и получатель {@link NotifyEventListener}.
+ * Это сообщение генерируется при изменении размеров карты.
+ * </ul>
+ * 
+ * <h3>Операции с картой.</h3>
+ * <p>
+ * Кроме получения и изменения состояния одного пикселя класс предоставляет
+ * возможность операций со всей картой или её фрагментом.
+ * <ul>
+ * <li>Операции с одной картой.
+ * <ul>
+ * <li><b>Сдвиг карты</b>. Универсальный метод {@link #shift(int, int)}
+ * позволяет сдвигать пиксели в любую сторону на произвольный шаг. Обёртки этого
+ * метода ({@link #shiftDown()}, {@link #shiftUp()}, {@link #shiftLeft()} и
+ * {@link #shiftRight()}) сдвигают карту на один пиксель.
+ * <li><b>Отражение карты</b>. Зеркальное отражение можно получить при помощи
+ * {@link #reflectHorizontale()} и {@link #reflectVerticale()}.
+ * <li><b>Вращение карты</b>. Метод {@link #rotate(int)} вращает карту на 90,
+ * 180 или 270 градусов по часовой стрелке.
+ * <li><b>Изменение фрагмента</b>.
+ * {@link #setRectangle(int, int, int, int, boolean)} изменяет все пиксели
+ * указанного фрагмента. {@link #negRectangle(int, int, int, int)} производит
+ * инверсию пикселей фрагмента.
+ * </ul>
+ * <li>Операции с двумя картами. {@link #getRectangle(int, int, int, int)}
+ * <ul>
+ * <li><b></b> {@link #place(int, int, AbstractPixselMap)}
+ * <li><b></b> {@link #or(int, int, AbstractPixselMap)}
+ * <li><b></b> {@link #and(int, int, AbstractPixselMap)}
+ * <li><b></b> {@link #hor(int, int, AbstractPixselMap)}
+ * </ul>
+ * </ul>
  */
-public class PixselMap extends AbstractPixselMap
-{
+public class PixselMap extends AbstractPixselMap {
+    /** Сдвиг влево. */
     public static final int SHIFT_LEFT  = 0;
+    /** Сдвиг вправо. */
     public static final int SHIFT_RIGHT = 1;
+    /** Сдвиг вверх. */
     public static final int SHIFT_UP    = 2;
+    /** Сдвиг вниз. */
     public static final int SHIFT_DOWN  = 3;
 
-    /** Список получателей события после изменения символа. */
+    /** Хранилище получателей сообщений. */
     protected ListenerChain listeners   = new ListenerChain();
 
     /**
@@ -27,7 +75,7 @@ public class PixselMap extends AbstractPixselMap
      * @param height Высота карты.
      */
     public PixselMap(int width, int height) {
-        super(width, height);
+        this(width, height, null);
     }
 
     /**
@@ -46,70 +94,113 @@ public class PixselMap extends AbstractPixselMap
      * Конструктор для получения копии карты.
      * 
      * @param src Копируемая карта.
-     * @see #clone()
      * @see #copy(PixselMap)
      */
     public PixselMap(PixselMap src) {
-        super(src);
+        this();
+        try {
+            this.copy(src);
+        } catch (DisallowOperationException e) {
+            /*
+             * Поскольку PixselMap не ограничивает изменение размеров, то
+             * исключение невозможно.
+             */
+        }
     }
 
     /**
      * Пустой конструктор. Символ имеет нулевую ширину и высоту.
      */
     public PixselMap() {
-        super();
+        this(0, 0);
     }
 
+    /**
+     * Проверка высоты. Метод всегда возвращает <code>true</code>.
+     */
     @Override
     protected boolean isValidHeight(int h) {
         return true;
     }
 
+    /**
+     * Проверка ширины. Метод всегда возвращает <code>true</code>.
+     */
     @Override
     protected boolean isValidWidth(int w) {
         return true;
     }
 
     /**
-     * Добавление получателя события.
+     * Добавление получателя события изменения свойств карты.
      * 
-     * @param toAdd Добавляемый получатель события.
+     * @param listener Добавляемый получатель события.
      */
-    public void addListener(MSymbolListener toAdd) {
-        listeners.add(MSymbolListener.class, toAdd);
+    public void addNotifyEventListener(NotifyEventListener listener) {
+        listeners.add(NotifyEventListener.class, listener);
     }
 
     /**
-     * Удаление получателя события.
+     * Удаление получателя события изменения свойств карты.
      * 
-     * @param toRemove Удаляемый получатель события.
+     * @param listener Удаляемый получатель события.
      */
-    public void removeListener(MSymbolListener toRemove) {
-        listeners.remove(MSymbolListener.class, toRemove);
+    public void removeNotifyEventListener(NotifyEventListener listener) {
+        listeners.remove(NotifyEventListener.class, listener);
     }
 
     /**
-     * Генерация события изменения символа. Получатели добавляются функцией
-     * {@link #addListener(MSymbolListener)}.
-     * 
-     * @param reason Причина изменения символа.
-     * @see MSymbolListener
+     * Генерация события изменения свойств карты. Получатели добавляются
+     * функцией {@link #addNotifyEventListener(NotifyEventListener)}.
      */
-    protected void fireEvent(int reason) {
-        MSymbolEvent change;
+    protected void fireNotifyEvent(NotifyEvent event) {
         Object[] listenerArray;
-
-        if (listeners == null) return;
-
-        if (!hasChange()) return;
-
-        change = new MSymbolEvent(this, reason, left, top, right - left + 1,
-                        bottom - top + 1);
 
         listenerArray = listeners.getListenerList();
         for (int i = 0; i < listenerArray.length; i += 2) {
-            if (listenerArray[i] == MSymbolListener.class)
-                ((MSymbolListener) listenerArray[i + 1]).mSymbolEvent(change);
+            if (listenerArray[i] == NotifyEventListener.class) {
+                ((NotifyEventListener) listenerArray[i + 1])
+                                .notifyHappened(event);
+            }
+        }
+    }
+
+    /**
+     * Добавление получателя события при измении пикселей.
+     * 
+     * @param listener Добавляемый получатель события.
+     */
+    public void addPixselMapListener(PixselMapListener listener) {
+        listeners.add(PixselMapListener.class, listener);
+    }
+
+    /**
+     * Удаление получателя события при измении пикселей.
+     * 
+     * @param listener Удаляемый получатель события.
+     */
+    public void removePixselMapListener(PixselMapListener listener) {
+        listeners.remove(PixselMapListener.class, listener);
+    }
+
+    /**
+     * Генерация события при измении пикселей карты. Получатели добавляются
+     * функцией {@link #addPixselMapListener(PixselMapListener)}.
+     */
+    protected void firePixselEvent() {
+        PixselMapEvent change;
+        Object[] listenerArray;
+
+        if (!hasChange()) return;
+
+        change = new PixselMapEvent(this, left, top, right - left + 1, bottom
+                        - top + 1);
+
+        listenerArray = listeners.getListenerList();
+        for (int i = 0; i < listenerArray.length; i += 2) {
+            if (listenerArray[i] == PixselMapListener.class)
+                ((PixselMapListener) listenerArray[i + 1])
+                                .pixselChanged(change);
         }
     }
 
@@ -119,53 +210,91 @@ public class PixselMap extends AbstractPixselMap
      * 
      * @param src Источник копирования.
      * @throws DisallowOperationException
-     * @see #clone()
      */
     public void copy(PixselMap src) throws DisallowOperationException {
-        super._copy(src);
+        int oldW, oldH, w, h;
+
+        oldW = getWidth();
+        oldH = getHeight();
+
+        cleanChange();
+        super.copy(src);
+
+        w = getWidth();
+        h = getHeight();
+        if (oldW != w || oldH != h) {
+            fireNotifyEvent(new NotifyEvent(this, "size"));
+        }
+
+        firePixselEvent();
     }
 
     /**
-     * Метод изменяет ширину и высоту символа. <br>
-     * Если новая высота меньше текущей, то лишние строки символа обрезаются
+     * Метод изменяет ширину и высоту карты. <br>
+     * Если новая высота меньше текущей, то лишние строки карты обрезаются
      * снизу. Если новая высота больше текущей, то внизу добавляются пустые
      * строки. <br>
-     * Если новая ширина меньше текущей, то лишние столбцы символа обрезаются
+     * Если новая ширина меньше текущей, то лишние столбцы карты обрезаются
      * справа. Если новая ширина больше текущей, то справа добавляются пустые
-     * столбцы. <br>
-     * Генерируется сообщение {@link MSymbolEvent#SIZE SIZE}.
+     * столбцы.
      * 
      * @param w Новая ширина символа.
      * @param h Новая высота символа.
      * @throws DisallowOperationException
      */
     public void setSize(int w, int h) throws DisallowOperationException {
+        int oldW, oldH;
+
+        oldW = getWidth();
+        oldH = getHeight();
+
         cleanChange();
-        super._setSize(w, h);
-        fireEvent(MSymbolEvent.SIZE);
+        super.changeSize(w, h);
+
+        if (oldW != w || oldH != h) {
+            fireNotifyEvent(new NotifyEvent(this, "size"));
+        }
+        firePixselEvent();
     }
 
     /**
-     * Метод изменяет ширину и высоту символа. <br>
-     * Если новая высота меньше текущей, то лишние строки символа обрезаются
+     * Метод изменяет ширину и высоту карты. <br>
+     * Если новая высота меньше текущей, то лишние строки карты обрезаются
      * снизу. Если новая высота больше текущей, то внизу добавляются пустые
      * строки. <br>
-     * Если новая ширина меньше текущей, то лишние столбцы символа обрезаются
+     * Если новая ширина меньше текущей, то лишние столбцы карты обрезаются
      * справа. Если новая ширина больше текущей, то справа добавляются пустые
-     * столбцы. <br>
-     * Генерируется сообщение {@link MSymbolEvent#SIZE SIZE}.
+     * столбцы.
      * 
-     * @param sz .
+     * @param sz Новые размеры карты.
      * @throws DisallowOperationException
      */
     public void setSize(Dimension sz) throws DisallowOperationException {
         setSize(sz.width, sz.height);
     }
 
+    /**
+     * Метод изменяет ширину карты. <br>
+     * Если новая ширина меньше текущей, то лишние столбцы карты обрезаются
+     * справа. Если новая ширина больше текущей, то справа добавляются пустые
+     * столбцы.
+     * 
+     * @param w Новая ширина карты.
+     * @throws DisallowOperationException
+     */
     public void setWidth(int w) throws DisallowOperationException {
         setSize(w, getHeight());
     }
 
+    /**
+     * Метод изменяет высоту карты. <br>
+     * Если новая высота меньше текущей, то лишние строки карты обрезаются
+     * снизу. Если новая высота больше текущей, то внизу добавляются пустые
+     * строки.
+     * 
+     * @param h Новая высота карты.
+     * @throws DisallowOperationException
+     */
     public void setHeight(int h) throws DisallowOperationException {
         setSize(getWidth(), h);
     }
@@ -179,10 +308,10 @@ public class PixselMap extends AbstractPixselMap
      *            если нужно сбросить.
      * @throws IllegalArgumentException если позиция выходит за рамки символа.
      */
-    public void changePixsel(int x, int y, boolean set) {
+    public void setPixsel(int x, int y, boolean set) {
         cleanChange();
-        _changePixsel(x, y, set);
-        fireEvent(MSymbolEvent.PIXSEL);
+        changePixsel(x, y, set);
+        firePixselEvent();
     }
 
     /**
@@ -194,8 +323,8 @@ public class PixselMap extends AbstractPixselMap
      */
     public void setArray(boolean[] a) throws IllegalArgumentException {
         cleanChange();
-        _setArray(a);
-        fireEvent(MSymbolEvent.COPY);
+        setBooleans(a);
+        firePixselEvent();
     }
 
     /**
@@ -208,8 +337,8 @@ public class PixselMap extends AbstractPixselMap
      */
     public void setArray(byte[] a) throws IllegalArgumentException {
         cleanChange();
-        _setArray(a);
-        fireEvent(MSymbolEvent.COPY);
+        setBytes(a);
+        firePixselEvent();
     }
 
     public void shift(int dir, int step) {
@@ -258,36 +387,32 @@ public class PixselMap extends AbstractPixselMap
             dst.changeNext(false);
         }
 
-        fireEvent(MSymbolEvent.SHIFT);
+        firePixselEvent();
     }
 
     /**
-     * Сдвиг символа вправо. После сдвига левый столбец становится пустым. <br>
-     * Генерируется сообщение {@link MSymbolEvent#SHIFT SHIFT}.
+     * Сдвиг символа вправо. После сдвига левый столбец становится пустым.
      */
     public void shiftRight() {
         shift(SHIFT_RIGHT, 1);
     }
 
     /**
-     * Сдвиг символа влево. После сдвига правый столбец становится пустым. <br>
-     * Генерируется сообщение {@link MSymbolEvent#SHIFT SHIFT}.
+     * Сдвиг символа влево. После сдвига правый столбец становится пустым.
      */
     public void shiftLeft() {
         shift(SHIFT_LEFT, 1);
     }
 
     /**
-     * Сдвиг символа вверх. После сдвига нижняя строка становится пустой. <br>
-     * Генерируется сообщение {@link MSymbolEvent#SHIFT SHIFT}.
+     * Сдвиг символа вверх. После сдвига нижняя строка становится пустой.
      */
     public void shiftUp() {
         shift(SHIFT_UP, 1);
     }
 
     /**
-     * Сдвиг символа вниз. После сдвига верхняя строка становится пустой. <br>
-     * Генерируется сообщение {@link MSymbolEvent#SHIFT SHIFT}.
+     * Сдвиг символа вниз. После сдвига верхняя строка становится пустой.
      */
     public void shiftDown() {
         shift(SHIFT_DOWN, 1);
@@ -305,12 +430,12 @@ public class PixselMap extends AbstractPixselMap
                 start = getPixsel(x, y);
                 end = getPixsel(w - 1 - x, y);
 
-                changePixsel(x, y, end);
-                changePixsel(w - 1 - x, y, start);
+                setPixsel(x, y, end);
+                setPixsel(w - 1 - x, y, start);
             }
         }
 
-        fireEvent(MSymbolEvent.COPY);
+        firePixselEvent();
     }
 
     public void reflectHorizontale() {
@@ -325,11 +450,44 @@ public class PixselMap extends AbstractPixselMap
                 start = getPixsel(x, y);
                 end = getPixsel(x, h - 1 - y);
 
-                changePixsel(x, y, end);
-                changePixsel(x, h - 1 - y, start);
+                setPixsel(x, y, end);
+                setPixsel(x, h - 1 - y, start);
             }
         }
 
-        fireEvent(MSymbolEvent.COPY);
+        firePixselEvent();
+    }
+
+    public void rotate(int step) {
+        /* FIXME */
+    }
+
+    public void setRectangle(int x, int y, int w, int h, boolean state) {
+        /* FIXME */
+    }
+
+    public void negRectangle(int x, int y, int w, int h) {
+        /* FIXME */
+    }
+
+    public AbstractPixselMap getRectangle(int x, int y, int w, int h) {
+        /* FIXME */
+        return null;
+    }
+
+    public void place(int x, int y, AbstractPixselMap apm) {
+        /* FIXME */
+    }
+
+    public void or(int x, int y, AbstractPixselMap apm) {
+        /* FIXME */
+    }
+
+    public void and(int x, int y, AbstractPixselMap apm) {
+        /* FIXME */
+    }
+
+    public void hor(int x, int y, AbstractPixselMap apm) {
+        /* FIXME */
     }
 }

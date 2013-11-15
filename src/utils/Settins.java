@@ -1,3 +1,4 @@
+
 package utils;
 
 //http://www.javaportal.ru/java/articles/javaconfigprograms.html
@@ -5,8 +6,7 @@ package utils;
 import java.io.*;
 import java.util.*;
 
-public class Settins
-{
+public class Settins {
     Properties iniProperty = new Properties();
 
     public Settins(File f) {
@@ -16,8 +16,7 @@ public class Settins
     public Settins(String fname) {
         try {
             loadFile(fname);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
@@ -39,8 +38,7 @@ public class Settins
                 }
                 addProperty(section, line);
             }
-        }
-        finally {
+        } finally {
             br.close();
         }
     }

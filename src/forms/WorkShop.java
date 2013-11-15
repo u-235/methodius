@@ -1,3 +1,4 @@
+
 package forms;
 
 import gui.IButton;
@@ -7,7 +8,6 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.JFrame;
@@ -17,13 +17,10 @@ import javax.swing.JMenuBar;
 import javax.swing.JRootPane;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
-
 import utils.resource.Resource;
-
 import logic.Application;
 
-public class WorkShop extends JFrame
-{
+public class WorkShop extends JFrame {
     private static final long serialVersionUID = 1L;
     JSplitPane                split;
     JRootPane                 root;

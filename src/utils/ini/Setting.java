@@ -1,16 +1,20 @@
+
 package utils.ini;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.prefs.BackingStoreException;
+import java.util.prefs.NodeChangeEvent;
 import java.util.prefs.NodeChangeListener;
+import java.util.prefs.PreferenceChangeEvent;
 import java.util.prefs.PreferenceChangeListener;
 import java.util.prefs.Preferences;
+import utils.event.ListenerChain;
 
-public class Setting extends Preferences
-{
-    HashMap<String, String> store = new HashMap<String, String>();
+public class Setting extends Preferences {
+    HashMap<String, String> store     = new HashMap<String, String>();
+    protected ListenerChain listeners = new ListenerChain();
 
     @Override
     public void put(String key, String value) {
@@ -51,8 +55,7 @@ public class Setting extends Preferences
         // TODO Auto-generated method stub
         try {
             rv = Integer.getInteger(store.get(key));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             rv = def;
         }
         return rv;
@@ -70,8 +73,7 @@ public class Setting extends Preferences
         // TODO Auto-generated method stub
         try {
             rv = Long.parseLong(store.get(key));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             rv = def;
         }
         return rv;
@@ -176,13 +178,13 @@ public class Setting extends Preferences
     @Override
     public boolean isUserNode() {
         // TODO Auto-generated method stub
-        return false;
+        return true;
     }
 
     @Override
     public String toString() {
-        // TODO Auto-generated method stub
-        return null;
+        return (isUserNode() ? "User" : "System") + " Preference Node: "
+                        + absolutePath();
     }
 
     @Override
@@ -199,26 +201,53 @@ public class Setting extends Preferences
 
     @Override
     public void addPreferenceChangeListener(PreferenceChangeListener pcl) {
-        // TODO Auto-generated method stub
-
+        listeners.add(PreferenceChangeListener.class, pcl);
     }
 
     @Override
     public void removePreferenceChangeListener(PreferenceChangeListener pcl) {
-        // TODO Auto-generated method stub
+        listeners.remove(PreferenceChangeListener.class, pcl);
+    }
 
+    protected void firePreferenceChange(PreferenceChangeEvent event) {
+        Object[] listenerArray;
+
+        listenerArray = listeners.getListenerList();
+        for (int i = 0; i < listenerArray.length; i += 2) {
+            if (listenerArray[i] == PreferenceChangeListener.class) {
+                ((PreferenceChangeListener) listenerArray[i + 1])
+                                .preferenceChange(event);
+            }
+        }
     }
 
     @Override
     public void addNodeChangeListener(NodeChangeListener ncl) {
-        // TODO Auto-generated method stub
-
+        listeners.add(NodeChangeListener.class, ncl);
     }
 
     @Override
     public void removeNodeChangeListener(NodeChangeListener ncl) {
-        // TODO Auto-generated method stub
+        listeners.remove(NodeChangeListener.class, ncl);
+    }
 
+    protected void fireNodeChange(NodeChangeEvent event) {
+        Object[] listenerArray;
+
+        listenerArray = listeners.getListenerList();
+        for (int i = 0; i < listenerArray.length; i += 2) {
+            if (listenerArray[i] == NodeChangeListener.class) {
+                ((NodeChangeListener) listenerArray[i + 1]).childAdded(event);
+            }
+        }
+    }
+
+    protected void fireNodeAdded(Preferences child) {
+        fireNodeChange(new NodeChangeEvent(this, child));
+    }
+
+    protected void fireNodeRemoved(Preferences child) {
+        fireNodeChange(new NodeChangeEvent(this, child));
     }
 
     @Override

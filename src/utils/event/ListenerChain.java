@@ -1,3 +1,4 @@
+
 package utils.event;
 
 import java.util.EventListener;
@@ -12,8 +13,7 @@ import java.util.EventListener;
  * 
  * <pre>
  * // Пример использования ListenerChain для обслуживания UndoableEditEvent.
- * public class Example
- * {
+ * public class Example {
  *     protected ListenerChain listeners = new ListenerChain();
  * 
  *     // Добавление получателя сообщений.
@@ -39,8 +39,7 @@ import java.util.EventListener;
  * }
  * </pre>
  */
-public class ListenerChain
-{
+public class ListenerChain {
     /**
      * Шаг изменения размера массива {@link #items}. ВАЖНО! Шаг должен быть
      * кратен двум.
@@ -119,13 +118,17 @@ public class ListenerChain
      * массива содержат класс получателя; нечётные - самого получателя
      * сообщений.
      * 
-     * @see {@linkplain ListenerChain Общее описание}
+     * Подробнее в {@linkplain ListenerChain общем описание}
      */
     public Object[] getListenerList() {
         return items;
     }
 
     /**
+     * Добавляет получателя сообщений. Если пара <code>класс:получатель</code>
+     * уже зарегистрирована, то она сначала удаляется, а затем добавляется в
+     * конец массива получателей. Таким образом, в массиве возможно только одно
+     * сочетание <code>класс:получатель</code>.
      * 
      * @param <С> Тип получателя сообщений.
      * @param lClass Класс получателя сообщений.

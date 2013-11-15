@@ -1,9 +1,9 @@
+
 package forms;
 
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -11,16 +11,14 @@ import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-
 import microfont.MFont;
-import microfont.events.MFontEvent;
-import microfont.events.MFontListener;
+import microfont.events.NotifyEvent;
+import microfont.events.NotifyEventListener;
 import microfont.gui.MSymbolEditor;
 import utils.resource.Resource;
 
 @SuppressWarnings("serial")
-public class PFontSize extends JPanel implements MFontListener
-{
+public class PFontSize extends JPanel implements NotifyEventListener {
     Resource              res;
     MFont                 mFont;
     boolean               readOnly;
@@ -167,7 +165,7 @@ public class PFontSize extends JPanel implements MFontListener
 
                 check = mFont.checkAscentCapital(value);
                 if (value != check) sp.setValue(check);
-                else mFont.setAscentCapital(value);
+                else mFont.setLine(value);
             }
         });
 
@@ -273,9 +271,9 @@ public class PFontSize extends JPanel implements MFontListener
     }
 
     public void setMFont(MFont font) {
-        if (mFont != null) mFont.removeListener(this);
+        if (mFont != null) mFont.removeNotifyEventListener(this);
         mFont = font;
-        if (mFont != null) mFont.addListener(this);
+        if (mFont != null) mFont.addNotifyEventListener(this);
         else return;
 
         vFixsed.setSelected(mFont.isFixsed());
@@ -285,7 +283,7 @@ public class PFontSize extends JPanel implements MFontListener
         vRight.setValue(mFont.getMarginRight());
         vBase.setValue(mFont.getBaseline());
         vAscent.setValue(mFont.getAscent());
-        vCapital.setValue(mFont.getAscentCapital());
+        vCapital.setValue(mFont.getLine());
         vDescent.setValue(mFont.getDescent());
         vMinSize.setText(((Integer) mFont.getMinWidth()).toString());
         vMaxSize.setText(((Integer) mFont.getMaxWidth()).toString());
@@ -314,16 +312,12 @@ public class PFontSize extends JPanel implements MFontListener
     }
 
     @Override
-    public void mFontEvent(MFontEvent change) {
-        /*
-         * vWidth.setValue(mFont.getWidth());
-         * vHeight.setValue(mFont.getHeight());
-         */
+    public void notifyHappened(NotifyEvent event) {
         vLeft.setValue(mFont.getMarginLeft());
         vRight.setValue(mFont.getMarginRight());
         vBase.setValue(mFont.getBaseline());
         vAscent.setValue(mFont.getAscent());
-        vCapital.setValue(mFont.getAscentCapital());
+        vCapital.setValue(mFont.getLine());
         vDescent.setValue(mFont.getDescent());
         vMinSize.setText(((Integer) mFont.getMinWidth()).toString());
         vMaxSize.setText(((Integer) mFont.getMaxWidth()).toString());

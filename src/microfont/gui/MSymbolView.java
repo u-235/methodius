@@ -1,3 +1,4 @@
+
 package microfont.gui;
 
 import java.awt.Color;
@@ -10,16 +11,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.String;
 import java.nio.charset.Charset;
-
 import javax.swing.Timer;
-
 import microfont.MSymbol;
-import microfont.events.MSymbolEvent;
+import microfont.events.PixselMapEvent;
 
 /**
  */
-public class MSymbolView extends MAbstractComponent
-{
+public class MSymbolView extends MAbstractComponent {
     private static final long serialVersionUID = 1L;
     /**  */
     protected Charset         lang;
@@ -130,8 +128,7 @@ public class MSymbolView extends MAbstractComponent
 
         try {
             lang = Charset.forName(charset);
-        }
-        catch (java.lang.IllegalArgumentException ex) {
+        } catch (java.lang.IllegalArgumentException ex) {
             lang = Charset.defaultCharset();
         }
 
@@ -233,12 +230,10 @@ public class MSymbolView extends MAbstractComponent
     }
 
     @Override
-    public void mSymbolEvent(MSymbolEvent change) {
-        if (change.reason == MSymbolEvent.SIZE) revalidate();
-        else {
-            delayUpdate(symbolPos.x + change.x * pixselSize, symbolPos.y
-                            + change.y * pixselSize, change.width * pixselSize,
-                            change.height * pixselSize);
-        }
+    public void pixselChanged(PixselMapEvent change) {
+        delayUpdate(symbolPos.x + change.x() * pixselSize,
+                        symbolPos.y + change.y() * pixselSize, change.width()
+                                        * pixselSize, change.height()
+                                        * pixselSize);
     }
 }

@@ -1,7 +1,7 @@
+
 package utils.ini;
 
-public class INISection extends INIElement
-{
+public class INISection extends INIElement {
     protected INISection(String name) {
         super(name, null);
     }

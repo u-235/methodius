@@ -1,6 +1,6 @@
+
 package microfont.ls;
 
-public interface MFontSaveProgress
-{
+public interface MFontSaveProgress {
 
 }

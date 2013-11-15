@@ -1,12 +1,12 @@
+
 package microfont;
 
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
-
-import microfont.events.MFontEvent;
-import microfont.events.MFontListener;
-import microfont.events.MSymbolEvent;
-import microfont.events.MSymbolListener;
+import microfont.events.NotifyEvent;
+import microfont.events.NotifyEventListener;
+import microfont.events.PixselMapEvent;
+import microfont.events.PixselMapListener;
 import microfont.undo.MFontUndo;
 import utils.event.ListenerChain;
 
@@ -15,53 +15,62 @@ import utils.event.ListenerChain;
  * @author Николай
  * 
  */
-public class MFont extends Object implements MSymbolListener,
-                UndoableEditListener
-{
-    class Lock
-    {
-    }
+public class MFont extends Object implements PixselMapListener,
+                NotifyEventListener, UndoableEditListener {
+    public static final String FONT_ASCENT         = "mf.ascent";
+    public static final String FONT_ASCENT_CAPITAL = "mf.line";
+    public static final String FONT_AUTHOR_MAIL    = "mf.author.mail";
+    public static final String FONT_AUTHOR_NAME    = "mf.author.name";
+    public static final String FONT_BASELINE       = "mf.baseline";
+    public static final String FONT_CHARSET        = "mf.charset";
+    public static final String FONT_DESCENT        = "mf.descent";
+    public static final String FONT_FIXSED         = "mf.fixsed";
+    public static final String FONT_HEIGHT         = "mf.height";
+    public static final String FONT_MARGIN_LEFT    = "mf.magrin.left";
+    public static final String FONT_MARGIN_RIGHT   = "mf.margin.right";
+    public static final String FONT_NAME           = "mf.name";
+    public static final String FONT_PROTOTYPE      = "mf.prototype";
+    public static final String FONT_REMOVE_ALL     = "mf.remove.all";
+    public static final String FONT_SIZE           = "mf.size";
+    public static final String FONT_SYMBOL_ADDED   = "mf.symbol.added";
+    public static final String FONT_SYMBOL_CHANGED = "mf.symbol.changed";
+    public static final String FONT_SYMBOL_REMOVE  = "mf.symbol.removed";
+    public static final String FONT_SYMBOL_REPLACE = "mf.symbol.replaced";
+    public static final String FONT_WIDTH          = "mf.width";
+    public static final String FONT_WIDTH_MAX      = "mf.width.max";
+    public static final String FONT_WIDTH_MIN      = "mf.width.min";
+    public static final String FONT_DESCRIPTION    = "mf.description";
 
-    Lock                  lockFont  = new Lock() {
-                                    };
-    private MSymbol       firstSymbol;
-    private int           size;
-    private String        name;
-    private String        prototype;
-    private String        description;
-    private boolean       fixsed;
-    private String        charset;
-    private String        authorName;
-    private String        authorMail;
-    private int           width;
-    private int           validWidth;
-    private int           minWidth;
-    private int           maxWidth;
-    private int           height;
-    private int           validHeight;
-    private int           marginLeft;
-    private int           marginRight;
-    private int           baseline;
-    private int           ascent;
-    private int           ascentCapital;
-    private int           descent;
-    private ListenerChain listeners = new ListenerChain();
-    private MFontUndo     undo;
-
-    public MFont(int width, int height, String charset) {
-        this.charset = charset;
-        this.width = width;
-        this.height = height;
-        this.validWidth = width;
-        this.validHeight = height;
-    }
-
-    public MFont(int width, int height) {
-        this(width, height, null);
-    }
+    private MSymbol            firstSymbol;
+    private int                size;
+    private String             name;
+    private String             prototype;
+    private String             description;
+    private boolean            fixsed;
+    private String             charset;
+    private String             authorName;
+    private String             authorMail;
+    private int                width;
+    private int                validWidth;
+    private int                minWidth;
+    private int                maxWidth;
+    private int                height;
+    private int                validHeight;
+    private int                marginLeft;
+    private int                marginRight;
+    private int                baseline;
+    private int                ascent;
+    private int                line;
+    private int                descent;
+    private ListenerChain      listeners           = new ListenerChain();
+    private MFontUndo          undo;
 
     public MFont() {
-        this(8, 8);
+        charset = null;
+        width = 0;
+        height = 0;
+        validWidth = 0;
+        validHeight = 0;
     }
 
     public MFont(MFont src) {
@@ -81,46 +90,9 @@ public class MFont extends Object implements MSymbolListener,
             marginRight = src.marginRight;
             baseline = src.baseline;
             ascent = src.ascent;
-            ascentCapital = src.ascentCapital;
+            line = src.line;
             descent = src.descent;
         }
-    }
-
-    public void copy(MFont font) {
-        boolean oldFix;
-        int oldWidth, oldHeight;
-        if (font == null) return;
-
-        /* Уловка для замены символов. */
-        oldFix = fixsed;
-        oldWidth = width;
-        oldHeight = height;
-        fixsed = font.fixsed;
-        width = font.width;
-        height = font.height;
-        validWidth = font.validWidth;
-        validHeight = font.validHeight;
-
-        setName(font.name);
-        setPrototype(font.prototype);
-        setCharset(font.charset);
-        setAuthorName(font.authorName);
-        setAuthorMail(font.authorMail);
-        setMarginLeft(font.marginLeft);
-        setMarginRight(font.marginRight);
-        setBaseline(font.baseline);
-        setAscent(font.ascent);
-        setAscentCapital(font.ascentCapital);
-        setDescent(font.descent);
-
-        setSymbols(font.getSymbols());
-
-        width = oldWidth;
-        height = oldHeight;
-        setWidth(font.width);
-        setHeight(font.height);
-        fixsed = oldFix;
-        setFixsed(font.fixsed);
     }
 
     /**
@@ -148,7 +120,216 @@ public class MFont extends Object implements MSymbolListener,
      * @return
      */
     protected boolean isValidIndex(int index) {
-        return symbolAtIndex(index) == null;
+        return symbolByCode(index) == null;
+    }
+
+    /**
+     * Добавление получателя события изменения свойств символов.
+     * 
+     * @param listener Добавляемый получатель события.
+     */
+    public void addNotifyEventListener(NotifyEventListener listener) {
+        listeners.add(NotifyEventListener.class, listener);
+    }
+
+    /**
+     * Удаление получателя события изменения свойств символов.
+     * 
+     * @param listener Удаляемый получатель события.
+     */
+    public void removeNotifyEventListener(NotifyEventListener listener) {
+        listeners.remove(NotifyEventListener.class, listener);
+    }
+
+    /**
+     * Генерация события изменения свойств символов. Получатели добавляются
+     * функцией {@link #addNotifyEventListener(NotifyEventListener)}.
+     */
+    protected void fireNotifyEvent(NotifyEvent event) {
+        Object[] listenerArray;
+
+        listenerArray = listeners.getListenerList();
+        for (int i = 0; i < listenerArray.length; i += 2) {
+            if (listenerArray[i] == NotifyEventListener.class)
+                ((NotifyEventListener) listenerArray[i + 1])
+                                .notifyHappened(event);
+        }
+    }
+
+    protected void fireNotifyEvent(String message) {
+        fireNotifyEvent(new NotifyEvent(this, message));
+    }
+
+    protected void fireNotifyEvent(MSymbol oldValue, MSymbol newValue) {
+        String reason;
+
+        if (oldValue == null) {
+            if (newValue == null) return;
+            reason = FONT_SYMBOL_ADDED;
+        } else {
+            if (newValue == null) reason = FONT_SYMBOL_REMOVE;
+            else if (oldValue.equals(newValue)) return;
+            else reason = FONT_SYMBOL_REPLACE;
+        }
+
+        fireNotifyEvent(reason);
+    }
+
+    protected void fireNotifyEvent(String oldValue, String newValue,
+                    String message) {
+        if (oldValue == null) {
+            if (newValue == null) return;
+        } else {
+            if (newValue != null && oldValue.equals(newValue)) return;
+        }
+
+        fireNotifyEvent(message);
+    }
+
+    protected void fireNotifyEvent(int oldValue, int newValue, String message) {
+        if (oldValue == newValue) return;
+
+        fireNotifyEvent(message);
+    }
+
+    protected void fireNotifyEvent(boolean oldValue, boolean newValue,
+                    String message) {
+        if (oldValue == newValue) return;
+
+        fireNotifyEvent(message);
+    }
+
+    /**
+     * Добавление получателя события при измении пикселей одного из символов
+     * шрифта.
+     * 
+     * @param listener Добавляемый получатель события.
+     */
+    public void addPixselMapListener(PixselMapListener listener) {
+        listeners.add(PixselMapListener.class, listener);
+    }
+
+    /**
+     * Удаление получателя события при измении пикселей одного из символов
+     * шрифта.
+     * 
+     * @param listener Удаляемый получатель события.
+     */
+    public void removePixselMapListener(PixselMapListener listener) {
+        listeners.remove(PixselMapListener.class, listener);
+    }
+
+    /**
+     * Генерация события при измении пикселей одного из символов шрифта.
+     * Получатели добавляются функцией
+     * {@link #addPixselMapListener(PixselMapListener)}.
+     */
+    protected void firePixselEvent(PixselMapEvent event) {
+        Object[] listenerArray;
+
+        listenerArray = listeners.getListenerList();
+        for (int i = 0; i < listenerArray.length; i += 2) {
+            if (listenerArray[i] == PixselMapListener.class)
+                ((PixselMapListener) listenerArray[i + 1]).pixselChanged(event);
+        }
+    }
+
+    /**
+     * Получение события при изменении одного из символов. Это событие
+     * транслируется получателям шрифта.
+     */
+    @Override
+    public void pixselChanged(PixselMapEvent change) {
+        firePixselEvent(change);
+    }
+
+    /**
+     * Получение уведомляющего события от одного из символов. Это событие
+     * транслируется получателям шрифта.
+     */
+    @Override
+    public void notifyHappened(NotifyEvent event) {
+        fireNotifyEvent(event);
+    }
+
+    public void addUndoableEditListener(UndoableEditListener listener) {
+        listeners.add(UndoableEditListener.class, listener);
+    }
+
+    public void removeUndoableEditListener(UndoableEditListener listener) {
+        listeners.remove(UndoableEditListener.class, listener);
+    }
+
+    protected void fireUndoEvent(UndoableEditEvent change) {
+        Object[] listenerArray;
+
+        if (listeners == null) return;
+        System.out.println("MFont: fire undo event");
+
+        listenerArray = listeners.getListenerList();
+        for (int i = 0; i < listenerArray.length; i += 2) {
+            if (listenerArray[i] == UndoableEditListener.class)
+                ((UndoableEditListener) listenerArray[i + 1])
+                                .undoableEditHappened(change);
+        }
+    }
+
+    public synchronized void beginChange(String operation) {
+        if (undo != null) return;
+
+        undo = new MFontUndo(this, operation);
+    }
+
+    public synchronized void endChange() {
+        if (undo == null) return;
+
+        undo.end();
+
+        if (undo.canUndo()) fireUndoEvent(new UndoableEditEvent(this, undo));
+        undo = null;
+    }
+
+    @Override
+    public void undoableEditHappened(UndoableEditEvent event) {
+        // TODO Здесь надо проверить, нужно ли добавить event к MFontUndo
+        fireUndoEvent(event);
+    }
+
+    public void copy(MFont font) {
+        boolean oldFix;
+        int oldWidth, oldHeight;
+        if (font == null) return;
+
+        /* Уловка для замены символов. */
+        oldFix = fixsed;
+        oldWidth = width;
+        oldHeight = height;
+        fixsed = font.fixsed;
+        width = font.width;
+        height = font.height;
+        validWidth = font.validWidth;
+        validHeight = font.validHeight;
+
+        setName(font.name);
+        setPrototype(font.prototype);
+        setCharset(font.charset);
+        setAuthorName(font.authorName);
+        setAuthorMail(font.authorMail);
+        setMarginLeft(font.marginLeft);
+        setMarginRight(font.marginRight);
+        setBaseline(font.baseline);
+        setAscent(font.ascent);
+        setLine(font.line);
+        setDescent(font.descent);
+
+        setSymbols(font.getSymbols());
+
+        width = oldWidth;
+        height = oldHeight;
+        setWidth(font.width);
+        setHeight(font.height);
+        fixsed = oldFix;
+        setFixsed(font.fixsed);
     }
 
     String convertName(String name) {
@@ -176,7 +357,7 @@ public class MFont extends Object implements MSymbolListener,
     public void setName(String name) {
         String old = this.name;
         this.name = convertName(name);
-        fireEvent(old, this.name, MFontEvent.FONT_NAME);
+        fireNotifyEvent(old, this.name, FONT_NAME);
     }
 
     public String getPrototype() {
@@ -186,7 +367,7 @@ public class MFont extends Object implements MSymbolListener,
     public void setPrototype(String prototipe) {
         String old = this.prototype;
         this.prototype = convertName(prototipe);
-        fireEvent(old, this.prototype, MFontEvent.FONT_PROTOTYPE);
+        fireNotifyEvent(old, this.prototype, FONT_PROTOTYPE);
     }
 
     public String getDescriptin() {
@@ -196,7 +377,7 @@ public class MFont extends Object implements MSymbolListener,
     public void setDescriptin(String description) {
         String old = this.description;
         this.description = description;
-        fireEvent(old, this.description, MFontEvent.FONT_DESCRIPTION);
+        fireNotifyEvent(old, this.description, FONT_DESCRIPTION);
     }
 
     public boolean isFixsed() {
@@ -212,15 +393,14 @@ public class MFont extends Object implements MSymbolListener,
             while (turn != null) {
                 try {
                     turn.setWidth(this.maxWidth);
-                }
-                catch (DisallowOperationException e) {
+                } catch (DisallowOperationException e) {
                 }
                 turn = turn.nextSymbol;
             }
             updateWidth();
         }
 
-        fireEvent(old, this.fixsed, MFontEvent.FONT_FIXSED);
+        fireNotifyEvent(old, this.fixsed, FONT_FIXSED);
     }
 
     public String getCharset() {
@@ -231,7 +411,7 @@ public class MFont extends Object implements MSymbolListener,
         String old = this.charset;
         this.charset = charset;
 
-        fireEvent(old, this.charset, MFontEvent.FONT_CHARSET);
+        fireNotifyEvent(old, this.charset, FONT_CHARSET);
     }
 
     public String getAuthorName() {
@@ -242,7 +422,7 @@ public class MFont extends Object implements MSymbolListener,
         String old = this.authorName;
         this.authorName = authorName;
 
-        fireEvent(old, this.authorName, MFontEvent.FONT_AUTHOR_NAME);
+        fireNotifyEvent(old, this.authorName, FONT_AUTHOR_NAME);
     }
 
     public String getAuthorMail() {
@@ -253,7 +433,7 @@ public class MFont extends Object implements MSymbolListener,
         String old = this.authorMail;
         this.authorMail = authorMail;
 
-        fireEvent(old, this.authorMail, MFontEvent.FONT_AUTHOR_MAIL);
+        fireNotifyEvent(old, this.authorMail, FONT_AUTHOR_MAIL);
     }
 
     public int getWidth() {
@@ -273,8 +453,7 @@ public class MFont extends Object implements MSymbolListener,
             while (turn != null) {
                 try {
                     turn.setWidth(width);
-                }
-                catch (DisallowOperationException e) {
+                } catch (DisallowOperationException e) {
                     System.out.println("bad width");
                 }
                 turn = turn.nextSymbol;
@@ -283,8 +462,7 @@ public class MFont extends Object implements MSymbolListener,
             this.width = width;
             this.maxWidth = width;
             this.minWidth = width;
-        }
-        else {
+        } else {
             w = 0;
             max = 0;
             min = Integer.MAX_VALUE;
@@ -301,8 +479,7 @@ public class MFont extends Object implements MSymbolListener,
                     w = 0;
                     min = 0;
                     max = 0;
-                }
-                else w /= i;
+                } else w /= i;
                 this.width = w;
                 this.minWidth = min;
                 this.maxWidth = max;
@@ -310,9 +487,9 @@ public class MFont extends Object implements MSymbolListener,
 
         }
 
-        fireEvent(oldWidth, this.width, MFontEvent.FONT_WIDTH);
-        fireEvent(oldMin, this.minWidth, MFontEvent.FONT_WIDTH_MIN);
-        fireEvent(oldMax, this.maxWidth, MFontEvent.FONT_WIDTH_MAX);
+        fireNotifyEvent(oldWidth, this.width, FONT_WIDTH);
+        fireNotifyEvent(oldMin, this.minWidth, FONT_WIDTH_MIN);
+        fireNotifyEvent(oldMax, this.maxWidth, FONT_WIDTH_MAX);
 
         setMarginLeft(marginLeft);
         setMarginRight(marginRight);
@@ -347,15 +524,14 @@ public class MFont extends Object implements MSymbolListener,
             while (turn != null) {
                 try {
                     turn.setHeight(this.height);
-                }
-                catch (DisallowOperationException e) {
+                } catch (DisallowOperationException e) {
                     System.out.println("bad height");
                 }
                 turn = turn.nextSymbol;
             }
         }
 
-        fireEvent(old, this.height, MFontEvent.FONT_HEIGHT);
+        fireNotifyEvent(old, this.height, FONT_HEIGHT);
 
         setBaseline(baseline);
     }
@@ -378,7 +554,7 @@ public class MFont extends Object implements MSymbolListener,
         // IllegalArgumentException("invalid margin"));
         this.marginLeft = checkMarginLeft(margin);
 
-        fireEvent(old, this.marginLeft, MFontEvent.FONT_MARGIN_LEFT);
+        fireNotifyEvent(old, this.marginLeft, FONT_MARGIN_LEFT);
     }
 
     public int getMarginRight() {
@@ -399,7 +575,7 @@ public class MFont extends Object implements MSymbolListener,
         // IllegalArgumentException("invalid margin"));
         this.marginRight = checkMarginRight(margin);
 
-        fireEvent(old, this.marginRight, MFontEvent.FONT_MARGIN_RIGHT);
+        fireNotifyEvent(old, this.marginRight, FONT_MARGIN_RIGHT);
     }
 
     public int getBaseline() {
@@ -420,7 +596,7 @@ public class MFont extends Object implements MSymbolListener,
             throw (new IllegalArgumentException("invalid baseline"));
         this.baseline = checkBaseline(baseline);
 
-        fireEvent(old, this.baseline, MFontEvent.FONT_BASELINE);
+        fireNotifyEvent(old, this.baseline, FONT_BASELINE);
 
         setAscent(ascent);
         setDescent(descent);
@@ -443,13 +619,13 @@ public class MFont extends Object implements MSymbolListener,
         if (ascent < 0) throw (new IllegalArgumentException("invalid ascent"));
         this.ascent = checkAscent(ascent);
 
-        fireEvent(old, this.ascent, MFontEvent.FONT_ASCENT);
+        fireNotifyEvent(old, this.ascent, FONT_ASCENT);
 
-        setAscentCapital(ascentCapital);
+        setLine(line);
     }
 
-    public int getAscentCapital() {
-        return this.ascentCapital;
+    public int getLine() {
+        return this.line;
     }
 
     public int checkAscentCapital(int value) {
@@ -459,14 +635,14 @@ public class MFont extends Object implements MSymbolListener,
         else return value;
     }
 
-    public void setAscentCapital(int ascentCapital) {
-        int old = this.ascentCapital;
+    public void setLine(int ascentCapital) {
+        int old = this.line;
 
         if (ascentCapital < 0)
-            throw (new IllegalArgumentException("invalid ascent"));
-        this.ascentCapital = checkAscentCapital(ascentCapital);
+            throw (new IllegalArgumentException("invalid line"));
+        this.line = checkAscentCapital(ascentCapital);
 
-        fireEvent(old, this.ascentCapital, MFontEvent.FONT_ASCENT_CAPITAL);
+        fireNotifyEvent(old, this.line, FONT_ASCENT_CAPITAL);
     }
 
     public int getDescent() {
@@ -487,7 +663,7 @@ public class MFont extends Object implements MSymbolListener,
             throw (new IllegalArgumentException("invalid descent"));
         this.descent = checkDescent(descent);
 
-        fireEvent(old, this.descent, MFontEvent.FONT_DESCENT);
+        fireNotifyEvent(old, this.descent, FONT_DESCENT);
     }
 
     /**
@@ -520,24 +696,20 @@ public class MFont extends Object implements MSymbolListener,
         MSymbol ret = firstSymbol;
         int i = 0;
 
-        synchronized (lockFont) {
-            while (ret != null) {
-                if (i == index) break;
-                i++;
-                ret = ret.nextSymbol;
-            }
+        while (ret != null) {
+            if (i == index) break;
+            i++;
+            ret = ret.nextSymbol;
         }
         return ret;
     }
 
-    public MSymbol symbolAtIndex(int index) {
+    public MSymbol symbolByCode(int code) {
         MSymbol ret = firstSymbol;
 
-        synchronized (lockFont) {
-            while (ret != null) {
-                if (ret.getCode() == index) break;
-                ret = ret.nextSymbol;
-            }
+        while (ret != null) {
+            if (ret.getCode() == code) break;
+            ret = ret.nextSymbol;
         }
         return ret;
     }
@@ -550,53 +722,49 @@ public class MFont extends Object implements MSymbolListener,
         if (symbol == null) return;
         if (isBelong(symbol)) return;
 
-        symbol.removeListener(symbol.parent);
+        symbol.removePixselMapListener(symbol.parent);
         symbol.removeUndoableEditListener(symbol.parent);
         symbol.parent = this;
         try {
             symbol.setHeight(height);
-        }
-        catch (DisallowOperationException e) {
+        } catch (DisallowOperationException e) {
         }
         if (fixsed) try {
             symbol.setWidth(width);
-        }
-        catch (DisallowOperationException e) {
+        } catch (DisallowOperationException e) {
         }
 
-        synchronized (lockFont) {
-            curr = firstSymbol;
+        curr = firstSymbol;
 
-            while (curr != null) {
-                next = curr.nextSymbol;
-                prev = curr.prevSymbol;
-                if (curr.getCode() == symbol.getCode()) break;
-                if (curr.getCode() > symbol.getCode()) {
-                    next = curr;
-                    curr = null;
-                    break;
-                }
-                prev = curr;
-                curr = next;
-                next = null;
+        while (curr != null) {
+            next = curr.nextSymbol;
+            prev = curr.prevSymbol;
+            if (curr.getCode() == symbol.getCode()) break;
+            if (curr.getCode() > symbol.getCode()) {
+                next = curr;
+                curr = null;
+                break;
             }
-
-            symbol.prevSymbol = prev;
-            symbol.nextSymbol = next;
-            symbol.addListener(this);
-            symbol.addUndoableEditListener(this);
-
-            if (prev == null) firstSymbol = symbol;
-            else prev.nextSymbol = symbol;
-
-            if (next != null) next.prevSymbol = symbol;
-
-            if (curr == null) size++;
+            prev = curr;
+            curr = next;
+            next = null;
         }
+
+        symbol.prevSymbol = prev;
+        symbol.nextSymbol = next;
+        symbol.addPixselMapListener(this);
+        symbol.addUndoableEditListener(this);
+
+        if (prev == null) firstSymbol = symbol;
+        else prev.nextSymbol = symbol;
+
+        if (next != null) next.prevSymbol = symbol;
+
+        if (curr == null) size++;
 
         if (fire) {
-            fireEvent(curr, symbol);
-            if (curr == null) fireEvent(size - 1, size, MFontEvent.FONT_SIZE);
+            fireNotifyEvent(curr, symbol);
+            if (curr == null) fireNotifyEvent(size - 1, size, FONT_SIZE);
             updateWidth();
         }
     }
@@ -606,48 +774,41 @@ public class MFont extends Object implements MSymbolListener,
 
         if (!isBelong(symbol)) return;
 
-        synchronized (lockFont) {
-            prev = symbol.prevSymbol;
-            next = symbol.nextSymbol;
-            symbol.removeListener(this);
-            symbol.prevSymbol = null;
-            symbol.nextSymbol = null;
-            symbol.parent = null;
-            if (prev != null) prev.nextSymbol = next;
-            if (next != null) next.prevSymbol = prev;
-            size--;
-        }
+        prev = symbol.prevSymbol;
+        next = symbol.nextSymbol;
+        symbol.removePixselMapListener(this);
+        symbol.prevSymbol = null;
+        symbol.nextSymbol = null;
+        symbol.parent = null;
+        if (prev != null) prev.nextSymbol = next;
+        if (next != null) next.prevSymbol = prev;
+        size--;
 
         if (fire) {
-            fireEvent(symbol, null, MFontEvent.FONT_SYMBOL_REMOVE);
-            fireEvent(size + 1, size, MFontEvent.FONT_SIZE);
+            fireNotifyEvent(symbol, null);
+            fireNotifyEvent(size + 1, size, FONT_SIZE);
             updateWidth();
         }
     }
 
     private void removeAll(boolean fire) {
         MSymbol turn;
-        MSymbol oldSym;
         int oldSize;
 
-        synchronized (lockFont) {
-            turn = firstSymbol;
-            oldSym = firstSymbol;
-            oldSize = size;
+        turn = firstSymbol;
+        oldSize = size;
 
-            firstSymbol = null;
-            size = 0;
+        firstSymbol = null;
+        size = 0;
 
-            while (turn != null) {
-                turn.removeListener(this);
-                turn.parent = null;
-                turn = turn.nextSymbol;
-            }
+        while (turn != null) {
+            turn.removePixselMapListener(this);
+            turn.parent = null;
+            turn = turn.nextSymbol;
         }
 
         if (fire) {
-            fireEvent(oldSym, null, MFontEvent.FONT_REMOVE_ALL);
-            fireEvent(oldSize, size, MFontEvent.FONT_SIZE);
+            fireNotifyEvent(oldSize, size, FONT_SIZE);
             updateWidth();
         }
     }
@@ -661,7 +822,7 @@ public class MFont extends Object implements MSymbolListener,
     }
 
     public void removeAtIndex(int index) {
-        remove(symbolAtIndex(index));
+        remove(symbolByCode(index));
     }
 
     public void removeAll() {
@@ -686,128 +847,7 @@ public class MFont extends Object implements MSymbolListener,
         for (MSymbol sym : symbols) {
             add(sym, false);
         }
-        fireEvent(0, size, MFontEvent.FONT_SIZE);
+        fireNotifyEvent(FONT_SIZE);
         updateWidth();
-    }
-
-    /**
-     * Добавление получателя события.
-     * 
-     * @param toAdd Добавляемый получатель события.
-     */
-    public void addListener(MFontListener toAdd) {
-        listeners.add(MFontListener.class, toAdd);
-    }
-
-    /**
-     * Удаление получателя события.
-     * 
-     * @param toRemove Удаляемый получатель события.
-     */
-    public void removeListener(MFontListener toRemove) {
-        listeners.remove(MFontListener.class, toRemove);
-    }
-
-    protected void fireEvent(MFontEvent change) {
-        Object[] listenerArray;
-
-        if (listeners == null) return;
-
-        listenerArray = listeners.getListenerList();
-        for (int i = 0; i < listenerArray.length; i += 2) {
-            if (listenerArray[i] == MFontListener.class)
-                ((MFontListener) listenerArray[i + 1]).mFontEvent(change);
-        }
-    }
-
-    protected void fireEvent(MSymbol oldValue, MSymbol newValue) {
-        int reason;
-
-        if (oldValue == null) {
-            if (newValue == null) return;
-            reason = MFontEvent.FONT_SYMBOL_ADDED;
-        }
-        else {
-            if (newValue == null) reason = MFontEvent.FONT_SYMBOL_REMOVE;
-            else if (oldValue.equals(newValue)) return;
-            else reason = MFontEvent.FONT_SYMBOL_REPLACE;
-        }
-
-        fireEvent(new MFontEvent(this, reason, oldValue, newValue));
-    }
-
-    protected void fireEvent(MSymbol oldValue, MSymbol newValue, int reason) {
-        fireEvent(new MFontEvent(this, reason, oldValue, newValue));
-    }
-
-    protected void fireEvent(String oldValue, String newValue, int reason) {
-        if (oldValue == null) {
-            if (newValue == null) return;
-        }
-        else {
-            if (newValue != null && oldValue.equals(newValue)) return;
-        }
-
-        fireEvent(new MFontEvent(this, reason, oldValue, newValue));
-    }
-
-    protected void fireEvent(int oldValue, int newValue, int reason) {
-        if (oldValue == newValue) return;
-
-        fireEvent(new MFontEvent(this, reason, oldValue, newValue));
-    }
-
-    protected void fireEvent(boolean oldValue, boolean newValue, int reason) {
-        if (oldValue == newValue) return;
-
-        fireEvent(new MFontEvent(this, reason, oldValue, newValue));
-    }
-
-    @Override
-    public void mSymbolEvent(MSymbolEvent change) {
-        fireEvent(new MFontEvent(this, change));
-    }
-
-    protected void fireUndoEvent(UndoableEditEvent change) {
-        Object[] listenerArray;
-
-        if (listeners == null) return;
-        System.out.println("MFont: fire undo event");
-
-        listenerArray = listeners.getListenerList();
-        for (int i = 0; i < listenerArray.length; i += 2) {
-            if (listenerArray[i] == UndoableEditListener.class)
-                ((UndoableEditListener) listenerArray[i + 1])
-                                .undoableEditHappened(change);
-        }
-    }
-
-    public void addUndoableEditListener(UndoableEditListener listener) {
-        listeners.add(UndoableEditListener.class, listener);
-    }
-
-    public void removeUndoableEditListener(UndoableEditListener listener) {
-        listeners.remove(UndoableEditListener.class, listener);
-    }
-
-    public synchronized void beginChange(String operation) {
-        if (undo != null) return;
-
-        undo = new MFontUndo(this, operation);
-    }
-
-    public synchronized void endChange() {
-        if (undo == null) return;
-
-        undo.end();
-
-        if (undo.canUndo()) fireUndoEvent(new UndoableEditEvent(this, undo));
-        undo = null;
-    }
-
-    @Override
-    public void undoableEditHappened(UndoableEditEvent event) {
-        // TODO Здесь надо проверить, нужно ли добавить event к MFontUndo
-        fireUndoEvent(event);
     }
 }

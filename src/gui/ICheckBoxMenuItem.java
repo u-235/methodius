@@ -1,3 +1,4 @@
+
 package gui;
 
 import javax.swing.Action;
@@ -5,8 +6,7 @@ import javax.swing.Icon;
 import javax.swing.JCheckBoxMenuItem;
 
 @SuppressWarnings("serial")
-public class ICheckBoxMenuItem extends JCheckBoxMenuItem
-{
+public class ICheckBoxMenuItem extends JCheckBoxMenuItem {
     @Override
     protected void configurePropertiesFromAction(Action a) {
         AbstractButtonX.configurePropertiesFromAction(this, a);

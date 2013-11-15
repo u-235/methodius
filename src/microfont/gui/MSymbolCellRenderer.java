@@ -1,10 +1,9 @@
+
 package microfont.gui;
 
 import java.awt.Component;
-
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
-
 import microfont.MSymbol;
 
 /**
@@ -12,8 +11,7 @@ import microfont.MSymbol;
  *
  */
 public class MSymbolCellRenderer extends MSymbolView implements
-                ListCellRenderer<MSymbol>
-{
+                ListCellRenderer<MSymbol> {
     private static final long serialVersionUID = 1L;
 
     /**
@@ -28,8 +26,7 @@ public class MSymbolCellRenderer extends MSymbolView implements
         if (isSelected) {
             setBackground(list.getSelectionBackground());
             setForeground(list.getSelectionForeground());
-        }
-        else {
+        } else {
             setBackground(list.getBackground());
             setForeground(list.getForeground());
         }

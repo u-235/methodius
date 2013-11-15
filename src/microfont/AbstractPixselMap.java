@@ -1,8 +1,9 @@
+
 package microfont;
 
 import java.awt.Dimension;
 import java.awt.Rectangle;
-
+import java.util.Arrays;
 import static microfont.AbstractPixselMap.PixselIterator.*;
 
 /**
@@ -62,8 +63,7 @@ import static microfont.AbstractPixselMap.PixselIterator.*;
  * сообщение.
  * </ol>
  */
-public class AbstractPixselMap
-{
+public class AbstractPixselMap {
     static final int  ITEM_SIZE  = 8;
     static final int  ITEM_SHIFT = 3;
     static final byte ITEM_MASK  = 0x07;
@@ -113,8 +113,7 @@ public class AbstractPixselMap
      * <code>changeNext()</code> изменяют текущую позицию <b>после</b> действий
      * с пикселем.
      */
-    public class PixselIterator
-    {
+    public class PixselIterator {
         /** Направление слева направо, сверху вниз . */
         public final static int   DIR_LEFT_TOP     = 0;
         /** Направление справа налево, сверху вниз. */
@@ -135,7 +134,7 @@ public class AbstractPixselMap
         /** Сканируемая карта. */
         private AbstractPixselMap parent;
         /** Направление сканирования. */
-        private int               dir;
+        private int               direction;
         /** Координаты области сканирования. */
         private int               startX, startY, endX, endY;
         /** Текущая позиция сканирования. */
@@ -164,7 +163,7 @@ public class AbstractPixselMap
         protected PixselIterator(AbstractPixselMap src, int x, int y,
                         int width, int height, int dir) {
             parent = src;
-            this.dir = dir;
+            direction = dir;
             startX = x;
             startY = y;
             endX = x + width - 1;
@@ -183,7 +182,7 @@ public class AbstractPixselMap
             if (endX >= src.width) endX = src.width - 1;
             if (endY >= src.height) endY = src.height - 1;
 
-            switch (this.dir) {
+            switch (direction) {
             case DIR_BOTTOM_LEFT:
             case DIR_LEFT_BOTTOM:
                 posX = startX;
@@ -195,7 +194,7 @@ public class AbstractPixselMap
                 posY = endY;
                 break;
             default:// i.e. DIR_TOP_LEFT
-                this.dir = DIR_TOP_LEFT;
+                direction = DIR_TOP_LEFT;
             case DIR_LEFT_TOP:
                 posX = startX;
                 posY = startY;
@@ -209,7 +208,7 @@ public class AbstractPixselMap
         }
 
         private void updatePosition() {
-            switch (dir) {
+            switch (direction) {
             case DIR_BOTTOM_LEFT:
                 posY--;
                 if (posY < startY) {
@@ -352,7 +351,7 @@ public class AbstractPixselMap
          */
         protected void changeNext(boolean set) {
             if (!hasNext()) throw new BadIterationException();
-            parent._changePixsel(posX, posY, set);
+            parent.changePixsel(posX, posY, set);
             updatePosition();
             return;
         }
@@ -379,7 +378,7 @@ public class AbstractPixselMap
      */
     public AbstractPixselMap(int width, int height, byte[] src) {
         init(width, height);
-        if (src != null) _setArray(src);
+        if (src != null) setBytes(src);
     }
 
     /**
@@ -387,7 +386,7 @@ public class AbstractPixselMap
      * 
      * @param src Копируемая карта.
      * @see #clone()
-     * @see #_copy(AbstractPixselMap)
+     * @see #copy(AbstractPixselMap)
      */
     public AbstractPixselMap(AbstractPixselMap src) {
         init(src.width, src.height);
@@ -440,7 +439,7 @@ public class AbstractPixselMap
      * @param x Горизонтальная позиция пикселя.
      * @param y Вертикальная позиция пикселя.
      */
-    private final int index(int w, int x, int y) {
+    private int index(int w, int x, int y) {
         return ((w + ITEM_SIZE - 1) >> ITEM_SHIFT) * y + (x >> ITEM_SHIFT);
     }
 
@@ -475,7 +474,18 @@ public class AbstractPixselMap
      * мере один из размеров карты равен нулю.
      */
     public boolean isEmpty() {
-        return pixsels == null;
+        return width == 0 && height == 0;
+    }
+
+    /**
+     * Сравнение размеров карт.
+     * 
+     * @param apm карта для сравнения.
+     * @return <code>true</code> если высота и ширина этой карты и
+     *         <code>apm</code> совпадают.
+     */
+    public boolean isSameSize(AbstractPixselMap apm) {
+        return width == apm.width && height == apm.height;
     }
 
     /**
@@ -485,8 +495,8 @@ public class AbstractPixselMap
      * @param h Проверяемая высота.
      * @return <code>true</code> если проверяемая высота является допустимой.
      * @see #isValidWidth(int)
-     * @see #_setSize(int, int)
-     * @see #_copy(AbstractPixselMap)
+     * @see #changeSize(int, int)
+     * @see #copy(AbstractPixselMap)
      */
     protected boolean isValidHeight(int h) {
         return false;
@@ -499,8 +509,8 @@ public class AbstractPixselMap
      * @param w Проверяемая ширина.
      * @return <code>true</code> если проверяемая ширина является допустимой.
      * @see #isValidHeight(int)
-     * @see #_setSize(int, int)
-     * @see #_copy(AbstractPixselMap)
+     * @see #changeSize(int, int)
+     * @see #copy(AbstractPixselMap)
      */
     protected boolean isValidWidth(int w) {
         return false;
@@ -559,29 +569,32 @@ public class AbstractPixselMap
         return new Rectangle(left, top, right - left + 1, bottom - top + 1);
     }
 
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + width;
+        result = prime * result + height;
+        result = prime * result + Arrays.hashCode(pixsels);
+        return result;
+    }
+
     /**
      * Сравнение карт. Карты считаются равными, если у них совпадают ширина,
      * высота и содержимое массивов пикселей.
      * 
-     * @param s Карта для сравнения.
-     * @return <code>true</code> если символы равны.
+     * @param obj Карта для сравнения.
+     * @return <code>true</code> если карты равны.
      */
     @Override
-    public boolean equals(Object s) {
-
-        if (s == null) return false;
-
-        if (!(s instanceof AbstractPixselMap)) return false;
-        AbstractPixselMap apm = (AbstractPixselMap) s;
-
-        if ((width != apm.width) || (height != apm.height)) return false;
-
-        int i = pixsels.length;
-        while (i > 0) {
-            i--;
-            if (pixsels[i] != apm.pixsels[i]) return false;
-        }
-
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (!(obj instanceof AbstractPixselMap)) return false;
+        AbstractPixselMap other = (AbstractPixselMap) obj;
+        if (height != other.height) return false;
+        if (!Arrays.equals(pixsels, other.pixsels)) return false;
+        if (width != other.width) return false;
         return true;
     }
 
@@ -623,7 +636,7 @@ public class AbstractPixselMap
      * @see #isValidWidth(int)
      * @see #isValidHeight(int)
      */
-    protected final void _setSize(int w, int h)
+    protected final void changeSize(int w, int h)
                     throws DisallowOperationException {
         int nw, nh;
 
@@ -661,14 +674,14 @@ public class AbstractPixselMap
 
                 for (int x = 0; x < cw; x++) {
                     for (int y = 0; y < ch; y++) {
-                        _changePixsel(x, y, _getPixsel(temp, oldW, x, y));
+                        changePixsel(x, y, get(temp, oldW, x, y));
                     }
                 }
             }
         }
 
         /* Фиксируем изменения. */
-        fixChange(0, 0);
+        // fixChange(0, 0);
         fixChange(nw - 1, nh - 1);
 
         width = nw;
@@ -676,7 +689,16 @@ public class AbstractPixselMap
         return;
     }
 
-    protected final boolean _getPixsel(byte[] pixsels, int w, int x, int y) {
+    /**
+     * Получение пикселя из массива.
+     * 
+     * @param pixsels массив пикселей.
+     * @param w ширина карты массива <code>pixsels</code>.
+     * @param x горизонтальная позиция пикселя.
+     * @param y вертикальная позиция пикселя.
+     * @return состояние пикселя.
+     */
+    protected final boolean get(byte[] pixsels, int w, int x, int y) {
         int i;
         if (x < 0 || x >= w) return false;
         i = index(w, x, y);
@@ -695,7 +717,7 @@ public class AbstractPixselMap
      *         <code>x</code> и <code>y</code> выходят за границы символа.
      */
     public boolean getPixsel(int x, int y) {
-        return _getPixsel(pixsels, width, x, y);
+        return get(pixsels, width, x, y);
     }
 
     /**
@@ -705,25 +727,22 @@ public class AbstractPixselMap
      * @param y номер строки. Отсчёт с нуля.
      * @param set <code>true</code> если пиксель должен быть установлен,
      *            <code>false</code> если нужно сбросить.
-     * @throws IllegalArgumentException если позиция выходит за рамки символа.
      */
-    protected final void _changePixsel(int x, int y, boolean set) {
+    protected final void changePixsel(int x, int y, boolean set) {
         int index;
         byte mask;
-        if (x < 0 || x >= width)
-            throw (new IllegalArgumentException(" : posX"));
 
-        if (y < 0 || y >= height)
-            throw (new IllegalArgumentException(" : posY"));
+        if (x < 0 || x >= width) return;
+        if (y < 0 || y >= height) return;
 
         index = index(width, x, y);
         mask = (byte) (1 << (x & ITEM_MASK));
 
+        // Изменения происходят если состояние пикселя не совпадает с требуемым.
         if (((pixsels[index] & mask) != 0) != set) {
             if (set) {
                 pixsels[index] |= mask;
-            }
-            else {
+            } else {
                 pixsels[index] &= (byte) ~mask;
             }
             fixChange(x, y);
@@ -741,9 +760,8 @@ public class AbstractPixselMap
      *             <code>null</code>
      * @see #isValidWidth(int)
      * @see #isValidHeight(int)
-     * @see #clone()
      */
-    protected final void _copy(AbstractPixselMap src)
+    public final void copy(AbstractPixselMap src)
                     throws DisallowOperationException {
         if (src == null) throw (new NullPointerException());
 
@@ -752,13 +770,24 @@ public class AbstractPixselMap
         if (!isValidHeight(src.height))
             throw new DisallowOperationException("change width");
 
-        pixsels = doPixselArray(src.width, src.height);
+        if (isSameSize(src)) {
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    changePixsel(x, y, src.getPixsel(x, y));
+                }
+            }
+        } else {
 
-        if (pixsels != null)
-            System.arraycopy(src.pixsels, 0, pixsels, 0, pixsels.length);
+            pixsels = doPixselArray(src.width, src.height);
 
-        width = src.width;
-        height = src.height;
+            if (pixsels != null) {
+                System.arraycopy(src.pixsels, 0, pixsels, 0, pixsels.length);
+                fixChange(0, 0);
+                fixChange(width - 1, height - 1);
+            }
+            width = src.width;
+            height = src.height;
+        }
     }
 
     /**
@@ -815,7 +844,7 @@ public class AbstractPixselMap
      * @throws NullPointerException если <code>src</code> равен
      *             <code>null</code>
      */
-    protected final void _setArray(boolean[] src) throws NullPointerException {
+    protected final void setBooleans(boolean[] src) throws NullPointerException {
         if (src == null) throw (new NullPointerException());
 
         PixselIterator pi = new PixselIterator(this, 0, 0, width, height,
@@ -837,7 +866,7 @@ public class AbstractPixselMap
      * @throws NullPointerException если <code>src</code> равен
      *             <code>null</code>
      */
-    protected final void _setArray(byte[] src) throws NullPointerException {
+    protected final void setBytes(byte[] src) throws NullPointerException {
         if (src == null) throw (new NullPointerException());
 
         PixselIterator pi = new PixselIterator(this, 0, 0, width, height,

@@ -1,9 +1,9 @@
+
 package forms;
 
 import java.awt.BorderLayout;
 import java.awt.LayoutManager2;
 import java.awt.event.ActionEvent;
-
 import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.JList;
@@ -12,7 +12,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-
 import logic.Application;
 import microfont.MFont;
 import microfont.MSymbol;
@@ -20,8 +19,7 @@ import microfont.gui.MListModel;
 import microfont.gui.MSymbolCellRenderer;
 import microfont.gui.MSymbolView;
 
-public class FontPanel extends JPanel
-{
+public class FontPanel extends JPanel {
     MFont                       font;
     MSymbol                     symbol;
     protected int               listIndex;

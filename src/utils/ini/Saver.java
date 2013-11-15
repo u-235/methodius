@@ -1,11 +1,11 @@
+
 package utils.ini;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Writer;
 
-public class Saver
-{
+public class Saver {
     private BufferedWriter out;
 
     public Saver(Writer out) {
@@ -16,8 +16,7 @@ public class Saver
     protected void finalize() {
         try {
             close();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
         }
     }
 

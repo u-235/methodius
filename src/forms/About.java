@@ -1,6 +1,6 @@
+
 package forms;
 
-public class About
-{
+public class About {
 
 }

@@ -1,3 +1,4 @@
+
 package microfont.gui;
 
 /**
@@ -5,8 +6,7 @@ package microfont.gui;
  * {@linkplain MAbstractComponent} использует этот класс для определения места,
  * на которое указывает мышка.
  */
-public class MSymbolHit
-{
+public class MSymbolHit {
     /**
      * Точка находится вне отображаемого символа. Этот флаг устанавливается,
      * если и горизонтальная и вертикальная позиции точки находятся вне символа.

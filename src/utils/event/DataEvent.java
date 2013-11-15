@@ -1,3 +1,4 @@
+
 package utils.event;
 
 import java.util.EventObject;
@@ -16,8 +17,7 @@ import java.util.EventObject;
  * типов и для задания констант причин изменений.
  * 
  * <pre>
- * public class MyEvent extends DataEvent
- * {
+ * public class MyEvent extends DataEvent {
  *     // Причины изменений.
  *     public static final int DELETE = 1;
  *     public static final int CREATE = 2;
@@ -32,8 +32,7 @@ import java.util.EventObject;
  * @author Николай Егоров
  * 
  */
-public class DataEvent extends EventObject
-{
+public class DataEvent extends EventObject {
     private static final long serialVersionUID = -4684310850435480580L;
     private int               reason;
     private Object            oldValue;
