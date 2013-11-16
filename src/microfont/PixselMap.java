@@ -45,27 +45,44 @@ import utils.event.ListenerChain;
  * указанного фрагмента. {@link #negRectangle(int, int, int, int)} производит
  * инверсию пикселей фрагмента.
  * </ul>
- * <li>Операции с двумя картами. {@link #getRectangle(int, int, int, int)}
+ * <li>Операции с двумя картами. Эти операции используют вторую карту в качестве
+ * штампа. Что бы получить фрагмент карты используйте
+ * {@link #getRectangle(int, int, int, int)}. Универсальный метод
+ * {@link #overlay(int, int, AbstractPixselMap, int)} может выполнять четыре
+ * операции, для которых есть соответсвующие обёртки:
  * <ul>
- * <li><b></b> {@link #place(int, int, AbstractPixselMap)}
- * <li><b></b> {@link #or(int, int, AbstractPixselMap)}
- * <li><b></b> {@link #and(int, int, AbstractPixselMap)}
- * <li><b></b> {@link #hor(int, int, AbstractPixselMap)}
+ * <li><b>Вставка</b> {@link #place(int, int, AbstractPixselMap)}
+ * <li><b>Объединение</b> {@link #or(int, int, AbstractPixselMap)}
+ * <li><b>Умножение</b> {@link #and(int, int, AbstractPixselMap)}
+ * <li><b>Исключение</b> {@link #hor(int, int, AbstractPixselMap)}
  * </ul>
  * </ul>
  */
 public class PixselMap extends AbstractPixselMap {
-    /** Сдвиг влево. */
-    public static final int SHIFT_LEFT  = 0;
-    /** Сдвиг вправо. */
-    public static final int SHIFT_RIGHT = 1;
-    /** Сдвиг вверх. */
-    public static final int SHIFT_UP    = 2;
-    /** Сдвиг вниз. */
-    public static final int SHIFT_DOWN  = 3;
+    /** Сдвиг влево в {@link #shift(int, int)}. */
+    public static final int SHIFT_LEFT    = 0;
+    /** Сдвиг вправо в {@link #shift(int, int)}. */
+    public static final int SHIFT_RIGHT   = 1;
+    /** Сдвиг вверх в {@link #shift(int, int)}. */
+    public static final int SHIFT_UP      = 2;
+    /** Сдвиг вниз в {@link #shift(int, int)}. */
+    public static final int SHIFT_DOWN    = 3;
+
+    /** Операция вставки в {@link #overlay(int, int, AbstractPixselMap, int)}. */
+    public static final int OVERLAY_PLACE = 0;
+    /** Операция сложения в {@link #overlay(int, int, AbstractPixselMap, int)}. */
+    public static final int OVERLAY_OR    = 1;
+    /** Операция умножения в {@link #overlay(int, int, AbstractPixselMap, int)}. */
+    public static final int OVERLAY_AND   = 2;
+    /**
+     * Операция исключения в {@link #overlay(int, int, AbstractPixselMap, int)}.
+     */
+    public static final int OVERLAY_HOR   = 3;
+
+    public static String    NOTIFY_SIZE   = "PixselMapSize";
 
     /** Хранилище получателей сообщений. */
-    protected ListenerChain listeners   = new ListenerChain();
+    protected ListenerChain listeners     = new ListenerChain();
 
     /**
      * Конструктор для создания карты с заданными размерами. Все пиксели
@@ -80,7 +97,9 @@ public class PixselMap extends AbstractPixselMap {
 
     /**
      * Конструктор для создания карты с заданными размерами и копированием
-     * пикселей из массива <code>src</code>.
+     * пикселей из массива <code>src</code>. Пиксели в копируемом массиве
+     * располагаются с младшего байта самого первого элемента и следуют без
+     * пропусков.
      * 
      * @param width Ширина карты.
      * @param height Высота карты.
@@ -209,9 +228,12 @@ public class PixselMap extends AbstractPixselMap {
      * переменные {@link #width}, {@link #height}.
      * 
      * @param src Источник копирования.
-     * @throws DisallowOperationException
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков, а размер копируемой
+     *             карта не совпадает с размером текущей карты.
      */
-    public void copy(PixselMap src) throws DisallowOperationException {
+    @Override
+    public void copy(AbstractPixselMap src) throws DisallowOperationException {
         int oldW, oldH, w, h;
 
         oldW = getWidth();
@@ -223,7 +245,7 @@ public class PixselMap extends AbstractPixselMap {
         w = getWidth();
         h = getHeight();
         if (oldW != w || oldH != h) {
-            fireNotifyEvent(new NotifyEvent(this, "size"));
+            fireNotifyEvent(new NotifyEvent(this, NOTIFY_SIZE));
         }
 
         firePixselEvent();
@@ -240,7 +262,8 @@ public class PixselMap extends AbstractPixselMap {
      * 
      * @param w Новая ширина символа.
      * @param h Новая высота символа.
-     * @throws DisallowOperationException
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
      */
     public void setSize(int w, int h) throws DisallowOperationException {
         int oldW, oldH;
@@ -252,7 +275,7 @@ public class PixselMap extends AbstractPixselMap {
         super.changeSize(w, h);
 
         if (oldW != w || oldH != h) {
-            fireNotifyEvent(new NotifyEvent(this, "size"));
+            fireNotifyEvent(new NotifyEvent(this, NOTIFY_SIZE));
         }
         firePixselEvent();
     }
@@ -267,7 +290,8 @@ public class PixselMap extends AbstractPixselMap {
      * столбцы.
      * 
      * @param sz Новые размеры карты.
-     * @throws DisallowOperationException
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
      */
     public void setSize(Dimension sz) throws DisallowOperationException {
         setSize(sz.width, sz.height);
@@ -280,7 +304,8 @@ public class PixselMap extends AbstractPixselMap {
      * столбцы.
      * 
      * @param w Новая ширина карты.
-     * @throws DisallowOperationException
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
      */
     public void setWidth(int w) throws DisallowOperationException {
         setSize(w, getHeight());
@@ -293,7 +318,8 @@ public class PixselMap extends AbstractPixselMap {
      * строки.
      * 
      * @param h Новая высота карты.
-     * @throws DisallowOperationException
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
      */
     public void setHeight(int h) throws DisallowOperationException {
         setSize(getWidth(), h);
@@ -306,7 +332,6 @@ public class PixselMap extends AbstractPixselMap {
      * @param y номер строки. Отсчёт с нуля.
      * @param set <b>true</b> если пиксель должен быть установлен, <b>false</b>
      *            если нужно сбросить.
-     * @throws IllegalArgumentException если позиция выходит за рамки символа.
      */
     public void setPixsel(int x, int y, boolean set) {
         cleanChange();
@@ -319,7 +344,6 @@ public class PixselMap extends AbstractPixselMap {
      * символа не меняются.
      * 
      * @param a Копируемый массив пикселей.
-     * @throws IllegalArgumentException
      */
     public void setArray(boolean[] a) throws IllegalArgumentException {
         cleanChange();
@@ -330,10 +354,9 @@ public class PixselMap extends AbstractPixselMap {
     /**
      * Метод копирует массив пикселей, упакованных в <b>byte</b>, во внутренний
      * масссив. Пиксели в копируемом массиве располагаются с младшего байта
-     * самого первого элемента. <br>
+     * самого первого элемента и следуют без пропусков.
      * 
      * @param a Копируемый массив пикселей.
-     * @throws IllegalArgumentException
      */
     public void setArray(byte[] a) throws IllegalArgumentException {
         cleanChange();
@@ -341,12 +364,23 @@ public class PixselMap extends AbstractPixselMap {
         firePixselEvent();
     }
 
+    /**
+     * Сдвигает пиксели карты к указанном направлении. Регион, противоположный
+     * направлению сдвига, становится пустым.
+     * 
+     * @param dir направление сдвига. Может быть {@link #SHIFT_DOWN},
+     *            {@link #SHIFT_LEFT}, {@link #SHIFT_RIGHT} или
+     *            {@link #SHIFT_UP}.
+     * @param step на сколько пикселей надо сдвинуть.
+     */
     public void shift(int dir, int step) {
         int x, y, w, h;
         int iterDir;
         PixselIterator dst, src;
 
         if (this.isEmpty()) return;
+
+        cleanChange();
 
         x = 0;
         y = 0;
@@ -380,11 +414,11 @@ public class PixselMap extends AbstractPixselMap {
         src = getIterator(x, y, w, h, iterDir);
 
         while (src.hasNext()) {
-            dst.changeNext(src.getNext());
+            dst.setNext(src.getNext());
         }
 
         while (dst.hasNext()) {
-            dst.changeNext(false);
+            dst.setNext(false);
         }
 
         firePixselEvent();
@@ -418,9 +452,14 @@ public class PixselMap extends AbstractPixselMap {
         shift(SHIFT_DOWN, 1);
     }
 
+    /**
+     * Отражение карты по вертикали.
+     */
     public void reflectVerticale() {
         int w, h;
         boolean end, start;
+
+        cleanChange();
 
         w = getWidth();
         h = getHeight();
@@ -438,9 +477,14 @@ public class PixselMap extends AbstractPixselMap {
         firePixselEvent();
     }
 
+    /**
+     * Отражение карты по горизонтали.
+     */
     public void reflectHorizontale() {
         int w, h;
         boolean end, start;
+
+        cleanChange();
 
         w = getWidth();
         h = getHeight();
@@ -458,36 +502,278 @@ public class PixselMap extends AbstractPixselMap {
         firePixselEvent();
     }
 
+    /**
+     * Поворот карты. Поворот возможен на 90, 180 или 270 градусов.
+     * 
+     * @param step количество четвертей круга, на которое надо повернуть карту.
+     */
     public void rotate(int step) {
-        /* FIXME */
+        AbstractPixselMap apm;
+        boolean resized, reqResize;
+        int w, h;
+        PixselIterator spi, dpi;
+
+        step %= 4;
+        if (step == 0) return;
+        if (isEmpty()) return;
+
+        w = getWidth();
+        h = getHeight();
+        resized = isValidHeight(w) && isValidWidth(h);
+        reqResize = step != 2;
+
+        if (reqResize) apm = new AbstractPixselMap(h, w);
+        else apm = new AbstractPixselMap(w, h);
+
+        spi = getIterator(0, 0, w, h, PixselIterator.DIR_LEFT_TOP);
+        switch (step) {
+        case 1:
+            dpi = apm.getIterator(0, 0, apm.getWidth(), apm.getHeight(),
+                            PixselIterator.DIR_TOP_RIGHT);
+            break;
+        case 2:
+            dpi = apm.getIterator(0, 0, apm.getWidth(), apm.getHeight(),
+                            PixselIterator.DIR_RIGHT_BOTTOM);
+            break;
+        default: // i.e step == 3
+            dpi = apm.getIterator(0, 0, apm.getWidth(), apm.getHeight(),
+                            PixselIterator.DIR_BOTTOM_LEFT);
+        }
+
+        while (spi.hasNext()) {
+            dpi.setNext(spi.getNext());
+        }
+
+        // Изменения размера разрешены или не требуются.
+        if (resized || !reqResize) {
+            try {
+                copy(apm);
+                return;
+            } catch (DisallowOperationException e) {
+                // Исключение никогда не может возникнуть исходя из условий
+                // блока.
+            }
+        }
+
+        // FIXME Поворот на 90 или 270 гр при запрещённых изменениях размера.
+        cleanChange();
+
+        firePixselEvent();
     }
 
+    /**
+     * Устанавливает пиксели заданного фрагмента в указанное состояние
+     * <code>state</code>.
+     * 
+     * @param x Начальная позиция фрагмента по горизонтали.
+     * @param y Начальная позиция фрагмента по вертикали.
+     * @param w Ширина фрагмента.
+     * @param h Высота фрагмента.
+     * @param state Устанавливаемое состояние пикселей.
+     */
     public void setRectangle(int x, int y, int w, int h, boolean state) {
-        /* FIXME */
+        PixselIterator pi = getIterator(x, y, w, h,
+                        PixselIterator.DIR_LEFT_BOTTOM);
+
+        cleanChange();
+
+        while (pi.hasNext()) {
+            pi.setNext(state);
+        }
+
+        firePixselEvent();
     }
 
+    /**
+     * Инвертирует пиксели заданного фрагмента.
+     * 
+     * @param x Начальная позиция фрагмента по горизонтали.
+     * @param y Начальная позиция фрагмента по вертикали.
+     * @param w Ширина фрагмента.
+     * @param h Высота фрагмента.
+     */
     public void negRectangle(int x, int y, int w, int h) {
-        /* FIXME */
+        PixselIterator spi = getIterator(x, y, w, h,
+                        PixselIterator.DIR_LEFT_BOTTOM);
+        PixselIterator dpi = getIterator(x, y, w, h,
+                        PixselIterator.DIR_LEFT_BOTTOM);
+
+        cleanChange();
+
+        while (spi.hasNext()) {
+            dpi.setNext(!spi.getNext());
+        }
+
+        firePixselEvent();
     }
 
+    /**
+     * Создаёт карту для заданного фрагмента. Метод корректирует позицию и
+     * размер фрагмента так, что бы он не выходил за пределы исходной карты.
+     * 
+     * @param x Начальная позиция фрагмента по горизонтали.
+     * @param y Начальная позиция фрагмента по вертикали.
+     * @param w Ширина фрагмента.
+     * @param h Высота фрагмента.
+     * @return Карта с копией пикселей заданного фрагмента.
+     */
     public AbstractPixselMap getRectangle(int x, int y, int w, int h) {
-        /* FIXME */
-        return null;
+        if (x < 0) {
+            w += x;
+            x = 0;
+        }
+
+        if (w >= getWidth()) w = getWidth() - 1;
+        if (w < 0) w = 0;
+
+        if (y < 0) {
+            h += y;
+            y = 0;
+        }
+
+        if (h >= getHeight()) h = getHeight() - 1;
+        if (h < 0) h = 0;
+
+        AbstractPixselMap apm = new AbstractPixselMap(w, h);
+        PixselIterator spi = getIterator(x, y, w, h,
+                        PixselIterator.DIR_LEFT_BOTTOM);
+        PixselIterator dpi = apm.getIterator(x, y, w, h,
+                        PixselIterator.DIR_LEFT_BOTTOM);
+
+        cleanChange();
+
+        while (spi.hasNext() && dpi.hasNext()) {
+            dpi.setNext(spi.getNext());
+        }
+
+        return apm;
     }
 
+    /**
+     * Наложение карты <code>apm</code>. Тип наложения зависит от параметра
+     * <code>op</code>.
+     * 
+     * @param x начальная позиция по горизонтали.
+     * @param y начальная позиция по вертикали.
+     * @param apm карта, выступающая в роли штампа.
+     * @param op выполняемая операция. Может быть
+     *            <ul>
+     *            <li>{@link #OVERLAY_PLACE} пиксели карты замещаются пикселями
+     *            штампа.
+     *            <li>{@link #OVERLAY_OR} результат попиксельного ЛОГИЧЕСКОГО
+     *            ИЛИ карты и штампа сохраняется в карте.
+     *            <li>{@link #OVERLAY_AND} результат попиксельного ЛОГИЧЕСКОГО И
+     *            карты и штампа сохраняется в карте.
+     *            <li>{@link #OVERLAY_HOR} результат попиксельного ИСКЛЮЧАЮЩЕГО
+     *            ИЛИ карты и штампа сохраняется в карте.
+     *            </ul>
+     */
+    public void overlay(int x, int y, AbstractPixselMap apm, int op) {
+        int srcX, srcY, w, h;
+
+        w = apm.getWidth();
+        h = apm.getHeight();
+        srcX = 0;
+        srcY = 0;
+
+        if (x >= getWidth() || y >= getHeight()) return;
+
+        if (x < 0) {
+            srcX = -x;
+            w += x;
+            x = 0;
+        }
+
+        if (w >= getWidth()) w = getWidth() - 1;
+        if (w < 0) return;
+
+        if (y < 0) {
+            srcY = -y;
+            h += y;
+            y = 0;
+        }
+
+        if (h >= getHeight()) h = getHeight() - 1;
+        if (h < 0) return;
+
+        cleanChange();
+
+        PixselIterator spi = getIterator(srcX, srcY, w, h,
+                        PixselIterator.DIR_LEFT_BOTTOM);
+        PixselIterator tpi = apm.getIterator(x, y, w, h,
+                        PixselIterator.DIR_LEFT_BOTTOM);
+        PixselIterator dpi = apm.getIterator(x, y, w, h,
+                        PixselIterator.DIR_LEFT_BOTTOM);
+
+        switch (op) {
+        case OVERLAY_OR:
+            while (spi.hasNext() && dpi.hasNext()) {
+                dpi.setNext(tpi.getNext() | spi.getNext());
+            }
+            break;
+        case OVERLAY_AND:
+            while (spi.hasNext() && dpi.hasNext()) {
+                dpi.setNext(tpi.getNext() & spi.getNext());
+            }
+            break;
+        case OVERLAY_HOR:
+            while (spi.hasNext() && dpi.hasNext()) {
+                dpi.setNext(tpi.getNext() ^ spi.getNext());
+            }
+            break;
+        default:
+            while (spi.hasNext() && dpi.hasNext()) {
+                dpi.setNext(spi.getNext());
+            }
+        }
+
+        firePixselEvent();
+    }
+
+    /**
+     * Замещение пикселей из карты <code>apm</code>.
+     * 
+     * @param x начальная позиция по горизонтали.
+     * @param y начальная позиция по вертикали.
+     * @param apm карта, выступающая в роли штампа.
+     */
     public void place(int x, int y, AbstractPixselMap apm) {
-        /* FIXME */
+        overlay(x, y, apm, OVERLAY_PLACE);
     }
 
+    /**
+     * ЛОГИЧЕСКОЕ ИЛИ с <code>apm</code>.
+     * 
+     * @param x начальная позиция по горизонтали.
+     * @param y начальная позиция по вертикали.
+     * @param apm карта, выступающая в роли штампа. Результат попиксельного
+     *            ЛОГИЧЕСКОГО ИЛИ карты и штампа сохраняется в карте.
+     */
     public void or(int x, int y, AbstractPixselMap apm) {
-        /* FIXME */
+        overlay(x, y, apm, OVERLAY_OR);
     }
 
+    /**
+     * ЛОГИЧЕСКОЕ И с <code>apm</code>.
+     * 
+     * @param x начальная позиция по горизонтали.
+     * @param y начальная позиция по вертикали.
+     * @param apm карта, выступающая в роли штампа. Результат попиксельного
+     *            ЛОГИЧЕСКОГО И карты и штампа сохраняется в карте.
+     */
     public void and(int x, int y, AbstractPixselMap apm) {
-        /* FIXME */
+        overlay(x, y, apm, OVERLAY_AND);
     }
 
+    /**
+     * ИСКЛЮЧАЮЩЕЕ ИЛИ с <code>apm</code>.
+     * 
+     * @param x начальная позиция по горизонтали.
+     * @param y начальная позиция по вертикали.
+     * @param apm карта, выступающая в роли штампа. Результат попиксельного
+     *            ИСКЛЮЧАЮЩЕГО ИЛИ карты и штампа сохраняется в карте.
+     */
     public void hor(int x, int y, AbstractPixselMap apm) {
-        /* FIXME */
+        overlay(x, y, apm, OVERLAY_HOR);
     }
 }

@@ -133,14 +133,14 @@ public class MSymbol extends PixselMap {
             src = getIterator(0, 0, pos, h, PixselIterator.DIR_LEFT_TOP);
 
             while (src.hasNext()) {
-                dst.changeNext(src.getNext());
+                dst.setNext(src.getNext());
             }
 
             src = getIterator(pos + 1, 0, w - pos, h,
                             PixselIterator.DIR_LEFT_TOP);
 
             while (src.hasNext()) {
-                dst.changeNext(src.getNext());
+                dst.setNext(src.getNext());
             }
         }
 
@@ -177,14 +177,14 @@ public class MSymbol extends PixselMap {
             src = getIterator(0, 0, w, pos, PixselIterator.DIR_TOP_LEFT);
 
             while (src.hasNext()) {
-                dst.changeNext(src.getNext());
+                dst.setNext(src.getNext());
             }
 
             src = getIterator(0, pos + 1, w, h - pos,
                             PixselIterator.DIR_TOP_LEFT);
 
             while (src.hasNext()) {
-                dst.changeNext(src.getNext());
+                dst.setNext(src.getNext());
             }
         }
 

@@ -58,7 +58,7 @@ import static microfont.AbstractPixselMap.PixselIterator.*;
  * Публичные методы потомков класса должны придерживаться следующего правила
  * <ol>
  * <li>Вызвать <code>cleanChange</code> для сброса флага изменений.
- * <li>Выполнить требуемую работу при помощи защищённых методов этого класса.
+ * <li>Выполнить требуемую работу при помощи методов <b>этого класса</b>.
  * <li>Проверить <code>hasChange</code> и при необходимости сгенерировать
  * сообщение.
  * </ol>
@@ -103,7 +103,7 @@ public class AbstractPixselMap {
      * Для проверки окончания сканирования есть два способа.
      * <ol>
      * <li>Вызывать метод {@link #hasNext()} перед вызовом {@link #getNext()}
-     * или {@link #changeNext(boolean)}.
+     * или {@link #setNext(boolean)}.
      * <li>Поместить <code>getNext</code> <code>changeNext</code> в блок
      * <code>try</code> и отлавливать исключение {@link BadIterationException}.
      * </ol>
@@ -311,9 +311,8 @@ public class AbstractPixselMap {
 
         /**
          * Возвращает <code>false</code> если отсканирована вся область. В этом
-         * случае вызов метода {@link #getNext()} или
-         * {@link #changeNext(boolean)} вызовет исключение
-         * {@link BadIterationException}
+         * случае вызов метода {@link #getNext()} или {@link #setNext(boolean)}
+         * вызовет исключение {@link BadIterationException}
          * <p>
          * Если сканирование ещё не завершено, то метод возвращает
          * <code>true</code>.
@@ -349,7 +348,7 @@ public class AbstractPixselMap {
          *             завершения сканирования.
          * @see #hasNext()
          */
-        protected void changeNext(boolean set) {
+        protected void setNext(boolean set) {
             if (!hasNext()) throw new BadIterationException();
             parent.changePixsel(posX, posY, set);
             updatePosition();
@@ -370,7 +369,9 @@ public class AbstractPixselMap {
 
     /**
      * Конструктор для создания карты с заданными размерами и копированием
-     * пикселей из массива <code>src</code>.
+     * пикселей из массива <code>src</code>. Пиксели в копируемом массиве
+     * располагаются с младшего байта самого первого элемента и следуют без
+     * пропусков.
      * 
      * @param width Ширина карты.
      * @param height Высота карты.
@@ -761,7 +762,7 @@ public class AbstractPixselMap {
      * @see #isValidWidth(int)
      * @see #isValidHeight(int)
      */
-    public final void copy(AbstractPixselMap src)
+    public void copy(AbstractPixselMap src)
                     throws DisallowOperationException {
         if (src == null) throw (new NullPointerException());
 
@@ -852,7 +853,7 @@ public class AbstractPixselMap {
 
         int i = 0;
         while (pi.hasNext() && i < src.length) {
-            pi.changeNext(src[i]);
+            pi.setNext(src[i]);
             i++;
         }
     }
@@ -860,7 +861,7 @@ public class AbstractPixselMap {
     /**
      * Метод копирует массив пикселей, упакованных в <code>byte</code>, во
      * внутренний масссив. Пиксели в копируемом массиве располагаются с младшего
-     * байта самого первого элемента.
+     * байта самого первого элемента и следуют без пропусков.
      * 
      * @param src Копируемый массив пикселей.
      * @throws NullPointerException если <code>src</code> равен
@@ -875,9 +876,83 @@ public class AbstractPixselMap {
         for (int i = 0; pi.hasNext() && i < src.length; i++) {
             byte m = 1;
             for (int c = 0; pi.hasNext() && c < 8; c++) {
-                pi.changeNext((src[i] & m) != 0);
+                pi.setNext((src[i] & m) != 0);
                 m = (byte) (m << 1);
             }
         }
+    }
+
+    /**
+     * Возвращает количество пустых колонок слева.
+     * 
+     * @see #emptyTop()
+     * @see #emptyBottom()
+     * @see #emptyRight()
+     */
+    public int emptyLeft() {
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                if (getPixsel(x, y)) return x;
+            }
+        }
+
+        return width;
+    }
+
+    /**
+     * Возвращает количество пустых колонок справа.
+     * 
+     * @see #emptyTop()
+     * @see #emptyBottom()
+     * @see #emptyLeft()
+     */
+    public int emptyRight() {
+        if (isEmpty()) return 0;
+
+        for (int x = width - 1; x >= 0; x--) {
+            for (int y = 0; y < height; y++) {
+                if (getPixsel(x, y)) return width - 1 - x;
+            }
+        }
+
+        return width;
+    }
+
+    /**
+     * Возвращает количество пустых строк сверху.
+     * 
+     * @see #emptyBottom()
+     * @see #emptyLeft()
+     * @see #emptyRight()
+     */
+    public int emptyTop() {
+        if (isEmpty()) return 0;
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (getPixsel(x, y)) return y;
+            }
+        }
+
+        return height;
+    }
+
+    /**
+     * Возвращает количество пустых строк снизу.
+     * 
+     * @see #emptyTop()
+     * @see #emptyLeft()
+     * @see #emptyRight()
+     */
+    public int emptyBottom() {
+        if (isEmpty()) return 0;
+
+        for (int y = height - 1; y >= 0; y--) {
+            for (int x = 0; x < width; x++) {
+                if (getPixsel(x, y)) return height - 1 - y;
+            }
+        }
+
+        return height;
     }
 }
