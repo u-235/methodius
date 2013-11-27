@@ -224,13 +224,13 @@ public class PixselMap extends AbstractPixselMap {
     }
 
     /**
-     * Копирование из карты <code>map</code>. Кроме массива пикселей изменяются
+     * Копирование из карты <code>src</code>. Кроме массива пикселей изменяются
      * переменные {@link #width}, {@link #height}.
      * 
      * @param src Источник копирования.
      * @throws DisallowOperationException Если изменение размеров запрещено
-     *             конфигурацией класса или его потомков, а размер копируемой
-     *             карта не совпадает с размером текущей карты.
+     *             конфигурацией класса или его потомков и размер копируемой
+     *             карты не совпадает с размером текущей карты.
      */
     @Override
     public void copy(AbstractPixselMap src) throws DisallowOperationException {
@@ -503,6 +503,88 @@ public class PixselMap extends AbstractPixselMap {
     }
 
     /**
+     * Удаляет заданный столбец.
+     * 
+     * @param pos Позиция удаляемого столбца.
+     * @param num
+     * @throws DisallowOperationException
+     */
+    public void removeColumn(int pos, int num)
+                    throws DisallowOperationException {
+        PixselMap tMap;
+        int w, h;
+
+        if (isEmpty()) return;
+
+        w = getWidth();
+        h = getHeight();
+
+        if (isValidWidth(w - num))
+            throw new DisallowOperationException("change width");
+
+        tMap = new PixselMap(w - 1, h);
+
+        if (w > 1) {
+            PixselIterator dst, src;
+            dst = tMap.getIterator(0, 0, w - 1, h, PixselIterator.DIR_LEFT_TOP);
+            src = getIterator(0, 0, pos, h, PixselIterator.DIR_LEFT_TOP);
+
+            while (src.hasNext()) {
+                dst.setNext(src.getNext());
+            }
+
+            src = getIterator(pos + 1, 0, w - pos, h,
+                            PixselIterator.DIR_LEFT_TOP);
+
+            while (src.hasNext()) {
+                dst.setNext(src.getNext());
+            }
+        }
+
+        super.copy(tMap);
+    }
+
+    /**
+     * Удаляет заданную строчку.
+     * 
+     * @param pos Позиция удаляемой строки.
+     * @param num
+     * @throws DisallowOperationException
+     */
+    public void removeRow(int pos, int num) throws DisallowOperationException {
+        PixselMap tMap;
+        int w, h;
+
+        if (isEmpty()) return;
+
+        w = getWidth();
+        h = getHeight();
+        if (isValidHeight(h - num))
+            throw new DisallowOperationException("change height");
+
+        tMap = new PixselMap(w, h - 1);
+
+        if (h > 1) {
+            PixselIterator dst, src;
+            dst = tMap.getIterator(0, 0, w, h - 1, PixselIterator.DIR_TOP_LEFT);
+            src = getIterator(0, 0, w, pos, PixselIterator.DIR_TOP_LEFT);
+
+            while (src.hasNext()) {
+                dst.setNext(src.getNext());
+            }
+
+            src = getIterator(0, pos + 1, w, h - pos,
+                            PixselIterator.DIR_TOP_LEFT);
+
+            while (src.hasNext()) {
+                dst.setNext(src.getNext());
+            }
+        }
+
+        super.copy(tMap);
+    }
+
+    /**
      * Поворот карты. Поворот возможен на 90, 180 или 270 градусов.
      * 
      * @param step количество четвертей круга, на которое надо повернуть карту.
@@ -513,9 +595,9 @@ public class PixselMap extends AbstractPixselMap {
         int w, h;
         PixselIterator spi, dpi;
 
+        if (isEmpty()) return;
         step %= 4;
         if (step == 0) return;
-        if (isEmpty()) return;
 
         w = getWidth();
         h = getHeight();
@@ -525,6 +607,7 @@ public class PixselMap extends AbstractPixselMap {
         if (reqResize) apm = new AbstractPixselMap(h, w);
         else apm = new AbstractPixselMap(w, h);
 
+        // Подготовка итераторов в зависимости от поворота.
         spi = getIterator(0, 0, w, h, PixselIterator.DIR_LEFT_TOP);
         switch (step) {
         case 1:
@@ -540,6 +623,7 @@ public class PixselMap extends AbstractPixselMap {
                             PixselIterator.DIR_BOTTOM_LEFT);
         }
 
+        // Заполнение вспомогательной карты.
         while (spi.hasNext()) {
             dpi.setNext(spi.getNext());
         }
@@ -555,10 +639,55 @@ public class PixselMap extends AbstractPixselMap {
             }
         }
 
-        // FIXME Поворот на 90 или 270 гр при запрещённых изменениях размера.
+        /*
+         * Поворот на 90 или 270 градусов при запрещённых изменениях размера.
+         * Ось поворота находится посередине карты. XXX это место можно
+         * улучшить, попробовав подгонять координаты вставки так, что бы
+         * пропадало наименьшее число закрашенных пикселей.
+         */
+        place((w - h) / 2, (h - w) / 2, apm);
+    }
+
+    /**
+     * Создаёт карту для заданного фрагмента. Метод корректирует позицию и
+     * размер фрагмента так, что бы он не выходил за пределы исходной карты.
+     * 
+     * @param x Начальная позиция фрагмента по горизонтали.
+     * @param y Начальная позиция фрагмента по вертикали.
+     * @param w Ширина фрагмента.
+     * @param h Высота фрагмента.
+     * @return Карта с копией пикселей заданного фрагмента.
+     */
+    public AbstractPixselMap getRectangle(int x, int y, int w, int h) {
+        if (x < 0) {
+            w += x;
+            x = 0;
+        }
+
+        if (w >= getWidth()) w = getWidth() - 1;
+        if (w < 0) w = 0;
+
+        if (y < 0) {
+            h += y;
+            y = 0;
+        }
+
+        if (h >= getHeight()) h = getHeight() - 1;
+        if (h < 0) h = 0;
+
+        AbstractPixselMap apm = new AbstractPixselMap(w, h);
+        PixselIterator spi = getIterator(x, y, w, h,
+                        PixselIterator.DIR_LEFT_BOTTOM);
+        PixselIterator dpi = apm.getIterator(x, y, w, h,
+                        PixselIterator.DIR_LEFT_BOTTOM);
+
         cleanChange();
 
-        firePixselEvent();
+        while (spi.hasNext() && dpi.hasNext()) {
+            dpi.setNext(spi.getNext());
+        }
+
+        return apm;
     }
 
     /**
@@ -605,48 +734,6 @@ public class PixselMap extends AbstractPixselMap {
         }
 
         firePixselEvent();
-    }
-
-    /**
-     * Создаёт карту для заданного фрагмента. Метод корректирует позицию и
-     * размер фрагмента так, что бы он не выходил за пределы исходной карты.
-     * 
-     * @param x Начальная позиция фрагмента по горизонтали.
-     * @param y Начальная позиция фрагмента по вертикали.
-     * @param w Ширина фрагмента.
-     * @param h Высота фрагмента.
-     * @return Карта с копией пикселей заданного фрагмента.
-     */
-    public AbstractPixselMap getRectangle(int x, int y, int w, int h) {
-        if (x < 0) {
-            w += x;
-            x = 0;
-        }
-
-        if (w >= getWidth()) w = getWidth() - 1;
-        if (w < 0) w = 0;
-
-        if (y < 0) {
-            h += y;
-            y = 0;
-        }
-
-        if (h >= getHeight()) h = getHeight() - 1;
-        if (h < 0) h = 0;
-
-        AbstractPixselMap apm = new AbstractPixselMap(w, h);
-        PixselIterator spi = getIterator(x, y, w, h,
-                        PixselIterator.DIR_LEFT_BOTTOM);
-        PixselIterator dpi = apm.getIterator(x, y, w, h,
-                        PixselIterator.DIR_LEFT_BOTTOM);
-
-        cleanChange();
-
-        while (spi.hasNext() && dpi.hasNext()) {
-            dpi.setNext(spi.getNext());
-        }
-
-        return apm;
     }
 
     /**

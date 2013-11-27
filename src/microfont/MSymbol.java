@@ -55,6 +55,11 @@ public class MSymbol extends PixselMap {
         if (parent != null) return parent.isValidWidth(w);
         return super.isValidWidth(w);
     }
+    
+    protected boolean isValidCode(int code) {
+        if (parent != null) return parent.isValidCode(code);
+        return true;
+    }
 
     /**
      * Копирование массива точек из символа s. Так же изменяются переменные
@@ -104,94 +109,6 @@ public class MSymbol extends PixselMap {
     }
 
     /**
-     * Удаляет заданный столбец.
-     * 
-     * @param pos Позиция удаляемого столбца.
-     * @throws IllegalArgumentException
-     * @throws DisallowOperationException
-     */
-    public void removeColumn(int pos) throws IllegalArgumentException,
-                    DisallowOperationException {
-        PixselMap tMap;
-        int w, h;
-
-        if (isEmpty()) return;
-
-        w = getWidth();
-        h = getHeight();
-
-        if (pos < 0 || pos >= w) throw (new IllegalArgumentException());
-
-        if (parent != null && !parent.isValidWidth(w - 1))
-            throw new DisallowOperationException("change width");
-
-        tMap = new PixselMap(w - 1, h);
-
-        if (w > 1) {
-            PixselIterator dst, src;
-            dst = tMap.getIterator(0, 0, w - 1, h, PixselIterator.DIR_LEFT_TOP);
-            src = getIterator(0, 0, pos, h, PixselIterator.DIR_LEFT_TOP);
-
-            while (src.hasNext()) {
-                dst.setNext(src.getNext());
-            }
-
-            src = getIterator(pos + 1, 0, w - pos, h,
-                            PixselIterator.DIR_LEFT_TOP);
-
-            while (src.hasNext()) {
-                dst.setNext(src.getNext());
-            }
-        }
-
-        super.copy(tMap);
-    }
-
-    /**
-     * Удаляет заданную строчку.
-     * 
-     * @param pos Позиция удаляемой строки.
-     * @throws IllegalArgumentException
-     * @throws DisallowOperationException
-     */
-    public void removeRow(int pos) throws IllegalArgumentException,
-                    DisallowOperationException {
-        PixselMap tMap;
-        int w, h;
-
-        if (isEmpty()) return;
-
-        w = getWidth();
-        h = getHeight();
-
-        if (pos < 0 || pos >= h) throw (new IllegalArgumentException());
-
-        if (parent != null && !parent.isValidHeight(h))
-            throw new DisallowOperationException("change height");
-
-        tMap = new PixselMap(w, h - 1);
-
-        if (h > 1) {
-            PixselIterator dst, src;
-            dst = tMap.getIterator(0, 0, w, h - 1, PixselIterator.DIR_TOP_LEFT);
-            src = getIterator(0, 0, w, pos, PixselIterator.DIR_TOP_LEFT);
-
-            while (src.hasNext()) {
-                dst.setNext(src.getNext());
-            }
-
-            src = getIterator(0, pos + 1, w, h - pos,
-                            PixselIterator.DIR_TOP_LEFT);
-
-            while (src.hasNext()) {
-                dst.setNext(src.getNext());
-            }
-        }
-
-        super.copy(tMap);
-    }
-
-    /**
      * Метод возвращает индекс символа в шрифте.
      */
     public int getCode() {
@@ -208,7 +125,7 @@ public class MSymbol extends PixselMap {
                     DisallowOperationException {
         if (code == i) return;
 
-        if (parent != null && !parent.isValidIndex(i))
+        if (!isValidCode(i))
             throw new DisallowOperationException("change code");
 
         code = i;

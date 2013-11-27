@@ -119,7 +119,7 @@ public class MFont extends Object implements PixselMapListener,
      * @param index
      * @return
      */
-    protected boolean isValidIndex(int index) {
+    protected boolean isValidCode(int index) {
         return symbolByCode(index) == null;
     }
 
