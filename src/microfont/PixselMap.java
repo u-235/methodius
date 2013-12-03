@@ -39,7 +39,7 @@ import utils.event.ListenerChain;
  * <li><b>Отражение карты</b>. Зеркальное отражение можно получить при помощи
  * {@link #reflectHorizontale()} и {@link #reflectVerticale()}.
  * <li><b>Вращение карты</b>. Метод {@link #rotate(int)} вращает карту на 90,
- * 180 или 270 градусов по часовой стрелке.
+ * 180 или 270 градусов.
  * <li><b>Изменение фрагмента</b>.
  * {@link #setRectangle(int, int, int, int, boolean)} изменяет все пиксели
  * указанного фрагмента. {@link #negRectangle(int, int, int, int)} производит
@@ -113,7 +113,7 @@ public class PixselMap extends AbstractPixselMap {
      * Конструктор для получения копии карты.
      * 
      * @param src Копируемая карта.
-     * @see #copy(PixselMap)
+     * @see #copy(AbstractPixselMap)
      */
     public PixselMap(PixselMap src) {
         this();
@@ -372,6 +372,10 @@ public class PixselMap extends AbstractPixselMap {
      *            {@link #SHIFT_LEFT}, {@link #SHIFT_RIGHT} или
      *            {@link #SHIFT_UP}.
      * @param step на сколько пикселей надо сдвинуть.
+     * @see #shiftDown()
+     * @see #shiftLeft()
+     * @see #shiftRight()
+     * @see #shiftUp()
      */
     public void shift(int dir, int step) {
         int x, y, w, h;
@@ -426,6 +430,9 @@ public class PixselMap extends AbstractPixselMap {
 
     /**
      * Сдвиг символа вправо. После сдвига левый столбец становится пустым.
+     * 
+     * @see #shift(int, int)
+     * @see #shiftLeft()
      */
     public void shiftRight() {
         shift(SHIFT_RIGHT, 1);
@@ -433,6 +440,9 @@ public class PixselMap extends AbstractPixselMap {
 
     /**
      * Сдвиг символа влево. После сдвига правый столбец становится пустым.
+     * 
+     * @see #shift(int, int)
+     * @see #shiftRight()
      */
     public void shiftLeft() {
         shift(SHIFT_LEFT, 1);
@@ -440,6 +450,9 @@ public class PixselMap extends AbstractPixselMap {
 
     /**
      * Сдвиг символа вверх. После сдвига нижняя строка становится пустой.
+     * 
+     * @see #shift(int, int)
+     * @see #shiftDown()
      */
     public void shiftUp() {
         shift(SHIFT_UP, 1);
@@ -447,6 +460,9 @@ public class PixselMap extends AbstractPixselMap {
 
     /**
      * Сдвиг символа вниз. После сдвига верхняя строка становится пустой.
+     * 
+     * @see #shift(int, int)
+     * @see #shiftUp()
      */
     public void shiftDown() {
         shift(SHIFT_DOWN, 1);
@@ -454,6 +470,8 @@ public class PixselMap extends AbstractPixselMap {
 
     /**
      * Отражение карты по вертикали.
+     * 
+     * @see #reflectHorizontale()
      */
     public void reflectVerticale() {
         int w, h;
@@ -479,6 +497,8 @@ public class PixselMap extends AbstractPixselMap {
 
     /**
      * Отражение карты по горизонтали.
+     * 
+     * @see #reflectVerticale()
      */
     public void reflectHorizontale() {
         int w, h;
@@ -505,75 +525,47 @@ public class PixselMap extends AbstractPixselMap {
     /**
      * Удаляет заданный столбец.
      * 
-     * @param pos Позиция удаляемого столбца.
-     * @param num
-     * @throws DisallowOperationException
+     * @param pos Позиция первого удаляемого столбца.
+     * @param num Количество удаляемых столбцов.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #removeLeft(int)
+     * @see #removeRight(int)
+     * @see #removeRow(int, int)
      */
     public void removeColumn(int pos, int num)
                     throws DisallowOperationException {
         PixselMap tMap;
         int w, h;
 
-        if (isEmpty()) return;
+        if (pos < 0) {
+            num += pos;
+            pos = 0;
+        }
+
+        if (num < 0) return;
 
         w = getWidth();
         h = getHeight();
+
+        if (pos + num > w) num = w - pos;
 
         if (isValidWidth(w - num))
             throw new DisallowOperationException("change width");
 
-        tMap = new PixselMap(w - 1, h);
+        tMap = new PixselMap(w - num, h);
 
-        if (w > 1) {
+        if (w > num) {
             PixselIterator dst, src;
-            dst = tMap.getIterator(0, 0, w - 1, h, PixselIterator.DIR_LEFT_TOP);
-            src = getIterator(0, 0, pos, h, PixselIterator.DIR_LEFT_TOP);
+            dst = tMap.getIterator(0, 0, w - num, h,
+                            PixselIterator.DIR_TOP_LEFT);
+            src = getIterator(0, 0, pos, h, PixselIterator.DIR_TOP_LEFT);
 
             while (src.hasNext()) {
                 dst.setNext(src.getNext());
             }
 
-            src = getIterator(pos + 1, 0, w - pos, h,
-                            PixselIterator.DIR_LEFT_TOP);
-
-            while (src.hasNext()) {
-                dst.setNext(src.getNext());
-            }
-        }
-
-        super.copy(tMap);
-    }
-
-    /**
-     * Удаляет заданную строчку.
-     * 
-     * @param pos Позиция удаляемой строки.
-     * @param num
-     * @throws DisallowOperationException
-     */
-    public void removeRow(int pos, int num) throws DisallowOperationException {
-        PixselMap tMap;
-        int w, h;
-
-        if (isEmpty()) return;
-
-        w = getWidth();
-        h = getHeight();
-        if (isValidHeight(h - num))
-            throw new DisallowOperationException("change height");
-
-        tMap = new PixselMap(w, h - 1);
-
-        if (h > 1) {
-            PixselIterator dst, src;
-            dst = tMap.getIterator(0, 0, w, h - 1, PixselIterator.DIR_TOP_LEFT);
-            src = getIterator(0, 0, w, pos, PixselIterator.DIR_TOP_LEFT);
-
-            while (src.hasNext()) {
-                dst.setNext(src.getNext());
-            }
-
-            src = getIterator(0, pos + 1, w, h - pos,
+            src = getIterator(pos + num, 0, w - pos - num, h,
                             PixselIterator.DIR_TOP_LEFT);
 
             while (src.hasNext()) {
@@ -585,9 +577,116 @@ public class PixselMap extends AbstractPixselMap {
     }
 
     /**
+     * Удаляет столбец слева.
+     * 
+     * @param num Количество удаляемых столбцов.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #removeRight(int)
+     * @see #removeColumn(int, int)
+     */
+    public void removeLeft(int num) throws DisallowOperationException {
+        removeColumn(0, num);
+    }
+
+    /**
+     * Удаляет столбец справа.
+     * 
+     * @param num Количество удаляемых столбцов.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #removeLeft(int)
+     * @see #removeColumn(int, int)
+     */
+    public void removeRight(int num) throws DisallowOperationException {
+        removeColumn(getWidth() - num, num);
+    }
+
+    /**
+     * Удаляет заданные строки.
+     * 
+     * @param pos Позиция первой удаляемой строки.
+     * @param num Количество удаляемых строк.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #removeBottom(int)
+     * @see #removeTop(int)
+     * @see #removeColumn(int, int)
+     */
+    public void removeRow(int pos, int num) throws DisallowOperationException {
+        PixselMap tMap;
+        int w, h;
+
+        if (pos < 0) {
+            num += pos;
+            pos = 0;
+        }
+
+        if (num < 0) return;
+
+        w = getWidth();
+        h = getHeight();
+
+        if (pos + num > h) num = h - pos;
+
+        if (isValidHeight(h - num))
+            throw new DisallowOperationException("change height");
+
+        tMap = new PixselMap(w, h - 1);
+
+        if (h > num) {
+            PixselIterator dst, src;
+            dst = tMap.getIterator(0, 0, w, h - num,
+                            PixselIterator.DIR_LEFT_TOP);
+            src = getIterator(0, 0, w, pos, PixselIterator.DIR_LEFT_TOP);
+
+            while (src.hasNext()) {
+                dst.setNext(src.getNext());
+            }
+
+            src = getIterator(0, pos + num, w, h - pos - num,
+                            PixselIterator.DIR_LEFT_TOP);
+
+            while (src.hasNext()) {
+                dst.setNext(src.getNext());
+            }
+        }
+
+        super.copy(tMap);
+    }
+
+    /**
+     * Удаляет строки сверху.
+     * 
+     * @param num Количество удаляемых строк.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #removeBottom(int)
+     * @see #removeRow(int, int)
+     */
+    public void removeTop(int num) throws DisallowOperationException {
+        removeRow(0, num);
+    }
+
+    /**
+     * Удаляет строки снизу.
+     * 
+     * @param num Количество удаляемых строк.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #removeTop(int)
+     * @see #removeRow(int, int)
+     */
+    public void removeBottom(int num) throws DisallowOperationException {
+        removeRow(getHeight() - num, num);
+    }
+
+    /**
      * Поворот карты. Поворот возможен на 90, 180 или 270 градусов.
      * 
-     * @param step количество четвертей круга, на которое надо повернуть карту.
+     * @param step Количество четвертей круга, на которое надо повернуть карту.
+     *            Положительному числу соответствует поворот по часовой стрелке,
+     *            отрицательному - против.
      */
     public void rotate(int step) {
         AbstractPixselMap apm;
@@ -598,6 +697,7 @@ public class PixselMap extends AbstractPixselMap {
         if (isEmpty()) return;
         step %= 4;
         if (step == 0) return;
+        if (step < 0) step += 4;
 
         w = getWidth();
         h = getHeight();
@@ -657,6 +757,7 @@ public class PixselMap extends AbstractPixselMap {
      * @param w Ширина фрагмента.
      * @param h Высота фрагмента.
      * @return Карта с копией пикселей заданного фрагмента.
+     * @see #overlay(int, int, AbstractPixselMap, int)
      */
     public AbstractPixselMap getRectangle(int x, int y, int w, int h) {
         if (x < 0) {
@@ -699,6 +800,7 @@ public class PixselMap extends AbstractPixselMap {
      * @param w Ширина фрагмента.
      * @param h Высота фрагмента.
      * @param state Устанавливаемое состояние пикселей.
+     * @see #negRectangle(int, int, int, int)
      */
     public void setRectangle(int x, int y, int w, int h, boolean state) {
         PixselIterator pi = getIterator(x, y, w, h,
@@ -720,6 +822,7 @@ public class PixselMap extends AbstractPixselMap {
      * @param y Начальная позиция фрагмента по вертикали.
      * @param w Ширина фрагмента.
      * @param h Высота фрагмента.
+     * @see #setRectangle(int, int, int, int, boolean)
      */
     public void negRectangle(int x, int y, int w, int h) {
         PixselIterator spi = getIterator(x, y, w, h,
@@ -754,6 +857,11 @@ public class PixselMap extends AbstractPixselMap {
      *            <li>{@link #OVERLAY_HOR} результат попиксельного ИСКЛЮЧАЮЩЕГО
      *            ИЛИ карты и штампа сохраняется в карте.
      *            </ul>
+     * @see #getRectangle(int, int, int, int)
+     * @see #place(int, int, AbstractPixselMap)
+     * @see #or(int, int, AbstractPixselMap)
+     * @see #and(int, int, AbstractPixselMap)
+     * @see #hor(int, int, AbstractPixselMap)
      */
     public void overlay(int x, int y, AbstractPixselMap apm, int op) {
         int srcX, srcY, w, h;
@@ -823,6 +931,11 @@ public class PixselMap extends AbstractPixselMap {
      * @param x начальная позиция по горизонтали.
      * @param y начальная позиция по вертикали.
      * @param apm карта, выступающая в роли штампа.
+     * @see #getRectangle(int, int, int, int)
+     * @see #overlay(int, int, AbstractPixselMap, int)
+     * @see #or(int, int, AbstractPixselMap)
+     * @see #and(int, int, AbstractPixselMap)
+     * @see #hor(int, int, AbstractPixselMap)
      */
     public void place(int x, int y, AbstractPixselMap apm) {
         overlay(x, y, apm, OVERLAY_PLACE);
@@ -835,6 +948,11 @@ public class PixselMap extends AbstractPixselMap {
      * @param y начальная позиция по вертикали.
      * @param apm карта, выступающая в роли штампа. Результат попиксельного
      *            ЛОГИЧЕСКОГО ИЛИ карты и штампа сохраняется в карте.
+     * @see #getRectangle(int, int, int, int)
+     * @see #overlay(int, int, AbstractPixselMap, int)
+     * @see #place(int, int, AbstractPixselMap)
+     * @see #and(int, int, AbstractPixselMap)
+     * @see #hor(int, int, AbstractPixselMap)
      */
     public void or(int x, int y, AbstractPixselMap apm) {
         overlay(x, y, apm, OVERLAY_OR);
@@ -847,6 +965,11 @@ public class PixselMap extends AbstractPixselMap {
      * @param y начальная позиция по вертикали.
      * @param apm карта, выступающая в роли штампа. Результат попиксельного
      *            ЛОГИЧЕСКОГО И карты и штампа сохраняется в карте.
+     * @see #getRectangle(int, int, int, int)
+     * @see #overlay(int, int, AbstractPixselMap, int)
+     * @see #place(int, int, AbstractPixselMap)
+     * @see #or(int, int, AbstractPixselMap)
+     * @see #hor(int, int, AbstractPixselMap)
      */
     public void and(int x, int y, AbstractPixselMap apm) {
         overlay(x, y, apm, OVERLAY_AND);
@@ -859,6 +982,11 @@ public class PixselMap extends AbstractPixselMap {
      * @param y начальная позиция по вертикали.
      * @param apm карта, выступающая в роли штампа. Результат попиксельного
      *            ИСКЛЮЧАЮЩЕГО ИЛИ карты и штампа сохраняется в карте.
+     * @see #getRectangle(int, int, int, int)
+     * @see #overlay(int, int, AbstractPixselMap, int)
+     * @see #place(int, int, AbstractPixselMap)
+     * @see #or(int, int, AbstractPixselMap)
+     * @see #and(int, int, AbstractPixselMap)
      */
     public void hor(int x, int y, AbstractPixselMap apm) {
         overlay(x, y, apm, OVERLAY_HOR);
