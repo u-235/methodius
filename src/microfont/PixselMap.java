@@ -523,6 +523,158 @@ public class PixselMap extends AbstractPixselMap {
     }
 
     /**
+     * Удаляет или добавляет столбцы.
+     * 
+     * @param pos Начальная позиция вставки/удаления.
+     * @param num Количество добавляемых/удаляемых столбцов. Если число
+     *            положительное -происходит вставка, иначе - удаление столбцов.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #removeColumns(int, int)
+     * @see #addColumns(int, int)
+     */
+    protected void changeWidth(int pos, int num)
+                    throws DisallowOperationException {
+        PixselMap tMap;
+        PixselIterator dst, src;
+        int w, h;
+
+        w = getWidth();
+        h = getHeight();
+
+        // Проверка параметров.
+        if (num == 0) {
+            // Делать нечего.
+            return;
+        } else if (num > 0) {
+            // Проверка для вставки.
+            if (pos < 0) {
+                num += pos;
+                pos = 0;
+                if (num <= 0) return;
+            }
+
+            if (pos > w) {
+                num += pos - w;
+                pos = w;
+            }
+        } else {
+            // Проверка для удаления.
+            if (pos >= w) return;
+
+            if (pos < 0) {
+                num -= pos;
+                pos = 0;
+                if (num >= 0) return;
+            }
+
+            if (pos - num > w) num = pos - w;
+        }
+
+        if (isValidWidth(w + num))
+            throw new DisallowOperationException("change width");
+
+        tMap = new PixselMap(w + num, h);
+
+        dst = tMap.getIterator(0, 0, w + num, h, PixselIterator.DIR_TOP_LEFT);
+        src = getIterator(0, 0, w, h, PixselIterator.DIR_TOP_LEFT);
+
+        while (src.getX() < pos) {
+            dst.setNext(src.getNext());
+        }
+
+        if (num > 0) {
+            dst = tMap.getIterator(pos, 0, w - pos - num, h,
+                            PixselIterator.DIR_TOP_LEFT);
+        } else {
+            src = getIterator(pos + num, 0, w - pos - num, h,
+                            PixselIterator.DIR_TOP_LEFT);
+        }
+
+        while (src.hasNext()) {
+            dst.setNext(src.getNext());
+        }
+
+        super.copy(tMap);
+    }
+
+    /**
+     * Удаляет или добавляет строки.
+     * 
+     * @param pos Начальная позиция вставки/удаления.
+     * @param num Количество добавляемых/удаляемых строк. Если число
+     *            положительное -происходит вставка, иначе - удаление строк.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #removeRowss(int, int)
+     * @see #addRows(int, int)
+     */
+    public void changeHeight(int pos, int num)
+                    throws DisallowOperationException {
+        PixselMap tMap;
+        PixselIterator dst, src;
+        int w, h;
+
+        w = getWidth();
+        h = getHeight();
+
+        // Проверка параметров.
+        if (num == 0) {
+            // Делать нечего.
+            return;
+        } else if (num > 0) {
+            // Проверка для вставки.
+            if (pos < 0) {
+                num += pos;
+                pos = 0;
+                if (num <= 0) return;
+            }
+
+            if (pos > h) {
+                num += pos - h;
+                pos = h;
+            }
+        } else {
+            // Проверка для удаления.
+            if (pos >= h) return;
+
+            if (pos < 0) {
+                num -= pos;
+                pos = 0;
+                if (num >= 0) return;
+            }
+
+            if (pos - num > h) num = pos - h;
+        }
+
+        if (isValidHeight(h + num))
+            throw new DisallowOperationException("change height");
+
+        tMap = new PixselMap(w, h + num);
+
+        dst = tMap.getIterator(0, 0, w, h + num, PixselIterator.DIR_LEFT_TOP);
+        src = getIterator(0, 0, w, h, PixselIterator.DIR_LEFT_TOP);
+
+        while (src.getY() < pos) {
+            dst.setNext(src.getNext());
+        }
+
+        if (num > 0) {
+            dst = tMap.getIterator(0, pos, w, h - pos - num,
+                            PixselIterator.DIR_LEFT_TOP);
+        } else {
+            src = getIterator(0, pos + num, w, h - pos - num,
+                            PixselIterator.DIR_LEFT_TOP);
+        }
+
+        while (src.hasNext()) {
+            dst.setNext(src.getNext());
+        }
+
+        super.copy(tMap);
+    }
+
+    /**
      * Удаляет заданный столбец.
      * 
      * @param pos Позиция первого удаляемого столбца.
@@ -533,73 +685,10 @@ public class PixselMap extends AbstractPixselMap {
      * @see #removeRight(int)
      * @see #removeRow(int, int)
      */
-    public void removeColumn(int pos, int num)
+    public void removeColumns(int pos, int num)
                     throws DisallowOperationException {
-        PixselMap tMap;
-        int w, h;
-
-        if (pos < 0) {
-            num += pos;
-            pos = 0;
-        }
-
-        if (num < 0) return;
-
-        w = getWidth();
-        h = getHeight();
-
-        if (pos + num > w) num = w - pos;
-
-        if (isValidWidth(w - num))
-            throw new DisallowOperationException("change width");
-
-        tMap = new PixselMap(w - num, h);
-
-        if (w > num) {
-            PixselIterator dst, src;
-            dst = tMap.getIterator(0, 0, w - num, h,
-                            PixselIterator.DIR_TOP_LEFT);
-            src = getIterator(0, 0, pos, h, PixselIterator.DIR_TOP_LEFT);
-
-            while (src.hasNext()) {
-                dst.setNext(src.getNext());
-            }
-
-            src = getIterator(pos + num, 0, w - pos - num, h,
-                            PixselIterator.DIR_TOP_LEFT);
-
-            while (src.hasNext()) {
-                dst.setNext(src.getNext());
-            }
-        }
-
-        super.copy(tMap);
-    }
-
-    /**
-     * Удаляет столбец слева.
-     * 
-     * @param num Количество удаляемых столбцов.
-     * @throws DisallowOperationException Если изменение размеров запрещено
-     *             конфигурацией класса или его потомков.
-     * @see #removeRight(int)
-     * @see #removeColumn(int, int)
-     */
-    public void removeLeft(int num) throws DisallowOperationException {
-        removeColumn(0, num);
-    }
-
-    /**
-     * Удаляет столбец справа.
-     * 
-     * @param num Количество удаляемых столбцов.
-     * @throws DisallowOperationException Если изменение размеров запрещено
-     *             конфигурацией класса или его потомков.
-     * @see #removeLeft(int)
-     * @see #removeColumn(int, int)
-     */
-    public void removeRight(int num) throws DisallowOperationException {
-        removeColumn(getWidth() - num, num);
+        if (num <= 0) return;
+        changeWidth(pos, -num);
     }
 
     /**
@@ -613,46 +702,37 @@ public class PixselMap extends AbstractPixselMap {
      * @see #removeTop(int)
      * @see #removeColumn(int, int)
      */
-    public void removeRow(int pos, int num) throws DisallowOperationException {
-        PixselMap tMap;
-        int w, h;
+    public void removeRows(int pos, int num) throws DisallowOperationException {
+        if (num <= 0) return;
+        changeHeight(pos, -num);
+    }
 
-        if (pos < 0) {
-            num += pos;
-            pos = 0;
-        }
+    /**
+     * Удаляет столбец слева.
+     * 
+     * @param num Количество удаляемых столбцов.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #removeRight(int)
+     * @see #removeColumn(int, int)
+     */
+    public void removeLeft(int num) throws DisallowOperationException {
+        if (num <= 0) return;
+        changeWidth(0, -num);
+    }
 
-        if (num < 0) return;
-
-        w = getWidth();
-        h = getHeight();
-
-        if (pos + num > h) num = h - pos;
-
-        if (isValidHeight(h - num))
-            throw new DisallowOperationException("change height");
-
-        tMap = new PixselMap(w, h - 1);
-
-        if (h > num) {
-            PixselIterator dst, src;
-            dst = tMap.getIterator(0, 0, w, h - num,
-                            PixselIterator.DIR_LEFT_TOP);
-            src = getIterator(0, 0, w, pos, PixselIterator.DIR_LEFT_TOP);
-
-            while (src.hasNext()) {
-                dst.setNext(src.getNext());
-            }
-
-            src = getIterator(0, pos + num, w, h - pos - num,
-                            PixselIterator.DIR_LEFT_TOP);
-
-            while (src.hasNext()) {
-                dst.setNext(src.getNext());
-            }
-        }
-
-        super.copy(tMap);
+    /**
+     * Удаляет столбец справа.
+     * 
+     * @param num Количество удаляемых столбцов.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #removeLeft(int)
+     * @see #removeColumn(int, int)
+     */
+    public void removeRight(int num) throws DisallowOperationException {
+        if (num <= 0) return;
+        changeWidth(getWidth() - num, -num);
     }
 
     /**
@@ -665,7 +745,8 @@ public class PixselMap extends AbstractPixselMap {
      * @see #removeRow(int, int)
      */
     public void removeTop(int num) throws DisallowOperationException {
-        removeRow(0, num);
+        if (num <= 0) return;
+        changeHeight(0, -num);
     }
 
     /**
@@ -678,7 +759,96 @@ public class PixselMap extends AbstractPixselMap {
      * @see #removeRow(int, int)
      */
     public void removeBottom(int num) throws DisallowOperationException {
-        removeRow(getHeight() - num, num);
+        if (num <= 0) return;
+        changeHeight(getHeight() - num, -num);
+    }
+
+    /**
+     * Вставляет заданный столбец.
+     * 
+     * @param pos Позиция первого вставляемого столбца.
+     * @param num Количество удаляемых столбцов.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #addLeft(int)
+     * @see #addRight(int)
+     * @see #addRow(int, int)
+     */
+    public void addColumns(int pos, int num) throws DisallowOperationException {
+        if (num <= 0) return;
+        changeWidth(pos, num);
+    }
+
+    /**
+     * Вставляет заданные строки.
+     * 
+     * @param pos Позиция первой вставляемой строки.
+     * @param num Количество вставляемых строк.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #addBottom(int)
+     * @see #addTop(int)
+     * @see #addColumn(int, int)
+     */
+    public void addRows(int pos, int num) throws DisallowOperationException {
+        if (num <= 0) return;
+        changeHeight(pos, -num);
+    }
+
+    /**
+     * Вставляет столбец слева.
+     * 
+     * @param num Количество вставляемых столбцов.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #addRight(int)
+     * @see #addColumn(int, int)
+     */
+    public void addLeft(int num) throws DisallowOperationException {
+        if (num <= 0) return;
+        changeWidth(0, num);
+    }
+
+    /**
+     * Вставляет столбец справа.
+     * 
+     * @param num Количество вставляемых столбцов.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #addLeft(int)
+     * @see #addColumn(int, int)
+     */
+    public void addRight(int num) throws DisallowOperationException {
+        if (num <= 0) return;
+        changeWidth(getWidth() - num, num);
+    }
+
+    /**
+     * Вставляет строки сверху.
+     * 
+     * @param num Количество вставляемых строк.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #addBottom(int)
+     * @see #addRow(int, int)
+     */
+    public void addTop(int num) throws DisallowOperationException {
+        if (num <= 0) return;
+        changeHeight(0, num);
+    }
+
+    /**
+     * Вставляет строки снизу.
+     * 
+     * @param num Количество вставляемых строк.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #addTop(int)
+     * @see #addRow(int, int)
+     */
+    public void addBottom(int num) throws DisallowOperationException {
+        if (num <= 0) return;
+        changeHeight(getHeight() - num, num);
     }
 
     /**
