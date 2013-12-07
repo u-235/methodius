@@ -13,10 +13,10 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import microfont.MFont;
 import microfont.MSymbol;
-import microfont.events.NotifyEvent;
-import microfont.events.NotifyEventListener;
 import microfont.events.PixselMapEvent;
 import microfont.events.PixselMapListener;
 
@@ -52,7 +52,7 @@ import microfont.events.PixselMapListener;
  * {@link #hit(MSymbolHit, int, int, microfont.MSymbol, int, int)}
  */
 public class MAbstractComponent extends ScrollableWindow implements
-                PixselMapListener, NotifyEventListener {
+                PixselMapListener, PropertyChangeListener {
     /**/
     private static final long serialVersionUID = 1L;
     /**
@@ -157,17 +157,17 @@ public class MAbstractComponent extends ScrollableWindow implements
 
         if (symbol != null) {
             symbol.removePixselMapListener(this);
-            parent = symbol.getParent();
-            if (parent != null) parent.removeNotifyEventListener(this);
+            parent = symbol.getOwner();
+            if (parent != null) parent.removePropertyChangeListener(this);
         }
 
         this.symbol = s;
         if (symbol != null) {
             symbol.addPixselMapListener(this);
-            parent = s.getParent();
+            parent = s.getOwner();
 
             if (parent != null) {
-                parent.addNotifyEventListener(this);
+                parent.addPropertyChangeListener(this);
                 updateMargins();
                 charset = parent.getCharset();
             }
@@ -181,7 +181,7 @@ public class MAbstractComponent extends ScrollableWindow implements
         MFont parent;
 
         if (symbol == null) return;
-        parent = symbol.getParent();
+        parent = symbol.getOwner();
         if (parent == null) return;
 
         marginLeft = parent.getMarginLeft();
@@ -713,7 +713,7 @@ public class MAbstractComponent extends ScrollableWindow implements
     }
 
     @Override
-    public void notifyHappened(NotifyEvent event) {
+    public void propertyChange(PropertyChangeEvent event) {
         // switch (change.getReason()) {
         // case MFontEvent.FONT_ASCENT:
         // case MFontEvent.FONT_ASCENT_CAPITAL:

@@ -4,6 +4,8 @@ package forms;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -12,13 +14,11 @@ import javax.swing.JSpinner;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import microfont.MFont;
-import microfont.events.NotifyEvent;
-import microfont.events.NotifyEventListener;
 import microfont.gui.MSymbolEditor;
 import utils.resource.Resource;
 
 @SuppressWarnings("serial")
-public class PFontSize extends JPanel implements NotifyEventListener {
+public class PFontSize extends JPanel implements PropertyChangeListener {
     Resource              res;
     MFont                 mFont;
     boolean               readOnly;
@@ -271,9 +271,9 @@ public class PFontSize extends JPanel implements NotifyEventListener {
     }
 
     public void setMFont(MFont font) {
-        if (mFont != null) mFont.removeNotifyEventListener(this);
+        if (mFont != null) mFont.removePropertyChangeListener(this);
         mFont = font;
-        if (mFont != null) mFont.addNotifyEventListener(this);
+        if (mFont != null) mFont.addPropertyChangeListener(this);
         else return;
 
         vFixsed.setSelected(mFont.isFixsed());
@@ -312,7 +312,7 @@ public class PFontSize extends JPanel implements NotifyEventListener {
     }
 
     @Override
-    public void notifyHappened(NotifyEvent event) {
+    public void propertyChange(PropertyChangeEvent event) {
         vLeft.setValue(mFont.getMarginLeft());
         vRight.setValue(mFont.getMarginRight());
         vBase.setValue(mFont.getBaseline());

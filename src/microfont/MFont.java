@@ -1,10 +1,10 @@
 
 package microfont;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
-import microfont.events.NotifyEvent;
-import microfont.events.NotifyEventListener;
 import microfont.events.PixselMapEvent;
 import microfont.events.PixselMapListener;
 import microfont.undo.MFontUndo;
@@ -16,9 +16,9 @@ import utils.event.ListenerChain;
  * 
  */
 public class MFont extends Object implements PixselMapListener,
-                NotifyEventListener, UndoableEditListener {
+                PropertyChangeListener, UndoableEditListener {
     public static final String FONT_ASCENT         = "mf.ascent";
-    public static final String FONT_ASCENT_CAPITAL = "mf.line";
+    public static final String FONT_LINE           = "mf.line";
     public static final String FONT_AUTHOR_MAIL    = "mf.author.mail";
     public static final String FONT_AUTHOR_NAME    = "mf.author.name";
     public static final String FONT_BASELINE       = "mf.baseline";
@@ -41,8 +41,8 @@ public class MFont extends Object implements PixselMapListener,
     public static final String FONT_WIDTH_MIN      = "mf.width.min";
     public static final String FONT_DESCRIPTION    = "mf.description";
 
-    private MSymbol            firstSymbol;
-    private int                size;
+    private MSymbol[]          symbols             = new MSymbol[0];
+    private int                size                = 0;
     private String             name;
     private String             prototype;
     private String             description;
@@ -128,8 +128,8 @@ public class MFont extends Object implements PixselMapListener,
      * 
      * @param listener Добавляемый получатель события.
      */
-    public void addNotifyEventListener(NotifyEventListener listener) {
-        listeners.add(NotifyEventListener.class, listener);
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        listeners.add(PropertyChangeListener.class, listener);
     }
 
     /**
@@ -137,27 +137,27 @@ public class MFont extends Object implements PixselMapListener,
      * 
      * @param listener Удаляемый получатель события.
      */
-    public void removeNotifyEventListener(NotifyEventListener listener) {
-        listeners.remove(NotifyEventListener.class, listener);
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        listeners.remove(PropertyChangeListener.class, listener);
     }
 
     /**
      * Генерация события изменения свойств символов. Получатели добавляются
-     * функцией {@link #addNotifyEventListener(NotifyEventListener)}.
+     * функцией {@link #addPropertyChangeListener(PropertyChangeListener)}.
      */
-    protected void fireNotifyEvent(NotifyEvent event) {
+    protected void firePropertyChange(PropertyChangeEvent event) {
         Object[] listenerArray;
 
         listenerArray = listeners.getListenerList();
         for (int i = 0; i < listenerArray.length; i += 2) {
-            if (listenerArray[i] == NotifyEventListener.class)
-                ((NotifyEventListener) listenerArray[i + 1])
-                                .notifyHappened(event);
+            if (listenerArray[i] == PropertyChangeListener.class)
+                ((PropertyChangeListener) listenerArray[i + 1])
+                                .propertyChange(event);
         }
     }
 
     protected void fireNotifyEvent(String message) {
-        fireNotifyEvent(new NotifyEvent(this, message));
+        firePropertyChange(new PropertyChangeEvent(this, message, null, null));
     }
 
     protected void fireNotifyEvent(MSymbol oldValue, MSymbol newValue) {
@@ -248,8 +248,8 @@ public class MFont extends Object implements PixselMapListener,
      * транслируется получателям шрифта.
      */
     @Override
-    public void notifyHappened(NotifyEvent event) {
-        fireNotifyEvent(event);
+    public void propertyChange(PropertyChangeEvent event) {
+        firePropertyChange(event);
     }
 
     public void addUndoableEditListener(UndoableEditListener listener) {
@@ -385,17 +385,15 @@ public class MFont extends Object implements PixselMapListener,
     }
 
     public void setFixsed(boolean fixsed) {
-        MSymbol turn = firstSymbol;
         boolean old = this.fixsed;
         this.fixsed = fixsed;
 
         if (!old && this.fixsed) {
-            while (turn != null) {
+            for (MSymbol sym : symbols) {
                 try {
-                    turn.setWidth(this.maxWidth);
+                    sym.setWidth(this.maxWidth);
                 } catch (DisallowOperationException e) {
                 }
-                turn = turn.nextSymbol;
             }
             updateWidth();
         }
@@ -441,7 +439,6 @@ public class MFont extends Object implements PixselMapListener,
     }
 
     public void setWidth(int width) {
-        MSymbol turn = firstSymbol;
         int w, min, max, i, oldWidth, oldMax, oldMin;
 
         oldWidth = this.width;
@@ -450,13 +447,13 @@ public class MFont extends Object implements PixselMapListener,
         validWidth = width;
 
         if (this.fixsed) {
-            while (turn != null) {
+            for (MSymbol sym : symbols) {
                 try {
-                    turn.setWidth(width);
+                    sym.setWidth(width);
                 } catch (DisallowOperationException e) {
+                    // XXX print
                     System.out.println("bad width");
                 }
-                turn = turn.nextSymbol;
             }
 
             this.width = width;
@@ -468,12 +465,10 @@ public class MFont extends Object implements PixselMapListener,
             min = Integer.MAX_VALUE;
             i = 0;
 
-            turn = firstSymbol;
-            while (turn != null) {
-                w += turn.getWidth();
-                min = (min < turn.getWidth()) ? min : turn.getWidth();
-                max = (max > turn.getWidth()) ? max : turn.getWidth();
-                turn = turn.nextSymbol;
+            for (MSymbol sym : symbols) {
+                w += sym.getWidth();
+                min = (min < sym.getWidth()) ? min : sym.getWidth();
+                max = (max > sym.getWidth()) ? max : sym.getWidth();
 
                 if (i == 0) {
                     w = 0;
@@ -520,14 +515,13 @@ public class MFont extends Object implements PixselMapListener,
         validHeight = height;
 
         if (old != this.height) {
-            MSymbol turn = firstSymbol;
-            while (turn != null) {
+            for (MSymbol sym : symbols) {
                 try {
-                    turn.setHeight(this.height);
+                    sym.setHeight(this.height);
                 } catch (DisallowOperationException e) {
+                    // XXX print
                     System.out.println("bad height");
                 }
-                turn = turn.nextSymbol;
             }
         }
 
@@ -642,7 +636,7 @@ public class MFont extends Object implements PixselMapListener,
             throw (new IllegalArgumentException("invalid line"));
         this.line = checkAscentCapital(ascentCapital);
 
-        fireNotifyEvent(old, this.line, FONT_ASCENT_CAPITAL);
+        fireNotifyEvent(old, this.line, FONT_LINE);
     }
 
     public int getDescent() {
@@ -671,7 +665,7 @@ public class MFont extends Object implements PixselMapListener,
      */
     public boolean isBelong(MSymbol ref) {
         if (ref == null) return false;
-        return ref.parent == this;
+        return ref.owner == this;
     }
 
     /**
@@ -693,38 +687,33 @@ public class MFont extends Object implements PixselMapListener,
     }
 
     public MSymbol symbolAtNumber(int index) {
-        MSymbol ret = firstSymbol;
-        int i = 0;
+        if (index >= symbols.length) return null;
 
-        while (ret != null) {
-            if (i == index) break;
-            i++;
-            ret = ret.nextSymbol;
-        }
-        return ret;
+        return symbols[index];
     }
 
     public MSymbol symbolByCode(int code) {
-        MSymbol ret = firstSymbol;
-
-        while (ret != null) {
-            if (ret.getCode() == code) break;
-            ret = ret.nextSymbol;
+        for (MSymbol sym : symbols) {
+            if (sym.getCode() == code) return sym;
         }
-        return ret;
+        return null;
     }
 
     private void add(MSymbol symbol, boolean fire) {
-        MSymbol prev = null;
-        MSymbol next = null;
-        MSymbol curr;
+        MSymbol old = null;
+        int i;
 
         if (symbol == null) return;
         if (isBelong(symbol)) return;
 
-        symbol.removePixselMapListener(symbol.parent);
-        symbol.removeUndoableEditListener(symbol.parent);
-        symbol.parent = this;
+        symbol.removeNotifyEventListener(symbol.owner);
+        symbol.removePixselMapListener(symbol.owner);
+        symbol.removeUndoableEditListener(symbol.owner);
+        symbol.owner = this;
+        symbol.addPropertyChangeListener(this);
+        symbol.addPixselMapListener(this);
+        symbol.addUndoableEditListener(this);
+
         try {
             symbol.setHeight(height);
         } catch (DisallowOperationException e) {
@@ -734,54 +723,60 @@ public class MFont extends Object implements PixselMapListener,
         } catch (DisallowOperationException e) {
         }
 
-        curr = firstSymbol;
-
-        while (curr != null) {
-            next = curr.nextSymbol;
-            prev = curr.prevSymbol;
-            if (curr.getCode() == symbol.getCode()) break;
-            if (curr.getCode() > symbol.getCode()) {
-                next = curr;
-                curr = null;
+        i = 0;
+        for (MSymbol sym : symbols) {
+            if (sym.getCode() == symbol.getCode()) {
+                old = sym;
                 break;
             }
-            prev = curr;
-            curr = next;
-            next = null;
+            if (sym.getCode() > symbol.getCode()) break;
+            i++;
         }
 
-        symbol.prevSymbol = prev;
-        symbol.nextSymbol = next;
-        symbol.addPixselMapListener(this);
-        symbol.addUndoableEditListener(this);
-
-        if (prev == null) firstSymbol = symbol;
-        else prev.nextSymbol = symbol;
-
-        if (next != null) next.prevSymbol = symbol;
-
-        if (curr == null) size++;
+        if (old == null) {
+            MSymbol[] t = new MSymbol[symbols.length + 1];
+            System.arraycopy(symbols, 0, t, 0, i);
+            System.arraycopy(symbols, i, t, i + 1, symbols.length - i);
+            t[i] = symbol;
+            symbols = t;
+            size++;
+        } else {
+            old.removeNotifyEventListener(this);
+            old.removePixselMapListener(this);
+            old.removeUndoableEditListener(this);
+            old.owner = null;
+            symbols[i] = symbol;
+        }
 
         if (fire) {
-            fireNotifyEvent(curr, symbol);
-            if (curr == null) fireNotifyEvent(size - 1, size, FONT_SIZE);
+            fireNotifyEvent(old, symbol);
+            if (old == null) fireNotifyEvent(size - 1, size, FONT_SIZE);
             updateWidth();
         }
     }
 
     private void remove(MSymbol symbol, boolean fire) {
-        MSymbol prev, next;
+        int i;
 
+        if (symbol == null) return;
         if (!isBelong(symbol)) return;
 
-        prev = symbol.prevSymbol;
-        next = symbol.nextSymbol;
-        symbol.removePixselMapListener(this);
-        symbol.prevSymbol = null;
-        symbol.nextSymbol = null;
-        symbol.parent = null;
-        if (prev != null) prev.nextSymbol = next;
-        if (next != null) next.prevSymbol = prev;
+        i = 0;
+        for (MSymbol sym : symbols) {
+            if (sym.equals(symbol)) {
+                sym.removeNotifyEventListener(this);
+                sym.removePixselMapListener(this);
+                sym.removeUndoableEditListener(this);
+                sym.owner = null;
+                break;
+            }
+            i++;
+        }
+
+        MSymbol[] t = new MSymbol[symbols.length - 1];
+        System.arraycopy(symbols, 0, t, 0, i);
+        System.arraycopy(symbols, i + 1, t, i, symbols.length - i - 1);
+
         size--;
 
         if (fire) {
@@ -792,20 +787,19 @@ public class MFont extends Object implements PixselMapListener,
     }
 
     private void removeAll(boolean fire) {
-        MSymbol turn;
         int oldSize;
 
-        turn = firstSymbol;
         oldSize = size;
 
-        firstSymbol = null;
-        size = 0;
-
-        while (turn != null) {
-            turn.removePixselMapListener(this);
-            turn.parent = null;
-            turn = turn.nextSymbol;
+        for (MSymbol sym : symbols) {
+            sym.removeNotifyEventListener(this);
+            sym.removePixselMapListener(this);
+            sym.removeUndoableEditListener(this);
+            sym.owner = null;
         }
+
+        symbols = new MSymbol[0];
+        size = 0;
 
         if (fire) {
             fireNotifyEvent(oldSize, size, FONT_SIZE);
@@ -830,15 +824,9 @@ public class MFont extends Object implements PixselMapListener,
     }
 
     public MSymbol[] getSymbols() {
-        MSymbol[] ret = new MSymbol[size];
-        MSymbol turn = firstSymbol;
-        int i = 0;
+        MSymbol[] ret = new MSymbol[symbols.length];
 
-        while (turn != null) {
-            ret[i] = new MSymbol(turn);
-            i++;
-            turn = turn.nextSymbol;
-        }
+        System.arraycopy(symbols, 0, ret, 0, symbols.length);
         return ret;
     }
 

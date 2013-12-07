@@ -3,6 +3,8 @@ package forms;
 
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -12,11 +14,9 @@ import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 import utils.resource.Resource;
 import microfont.MFont;
-import microfont.events.NotifyEvent;
-import microfont.events.NotifyEventListener;
 
 @SuppressWarnings("serial")
-public class PFontAuthor extends JPanel implements NotifyEventListener {
+public class PFontAuthor extends JPanel implements PropertyChangeListener {
     Resource           res;
     MFont              mFont;
     boolean            readOnly;
@@ -87,9 +87,9 @@ public class PFontAuthor extends JPanel implements NotifyEventListener {
     }
 
     public void setMFont(MFont font) {
-        if (mFont != null) mFont.removeNotifyEventListener(this);
+        if (mFont != null) mFont.removePropertyChangeListener(this);
         mFont = font;
-        if (mFont != null) mFont.addNotifyEventListener(this);
+        if (mFont != null) mFont.addPropertyChangeListener(this);
         else return;
         vName.setText(mFont.getAuthorName());
         vComtacts.setText(mFont.getAuthorMail());
@@ -110,7 +110,7 @@ public class PFontAuthor extends JPanel implements NotifyEventListener {
     }
 
     @Override
-    public void notifyHappened(NotifyEvent event) {
+    public void propertyChange(PropertyChangeEvent event) {
         // TODO Auto-generated method stub
 
     }

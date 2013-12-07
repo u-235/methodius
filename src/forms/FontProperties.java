@@ -119,10 +119,10 @@ public class FontProperties {
     }
 
     /**
-     * Добавляет компонент <b>c</b> к <b>parent</b> используя менеджер
+     * Добавляет компонент <b>c</b> к <b>owner</b> используя менеджер
      * {@linkplain GridBagLayout}
      * 
-     * @param parent Контейнер для компонентов.
+     * @param owner Контейнер для компонентов.
      * @param c Добавляемый компонент.
      * @param cnst Константы размещения компонента.
      */

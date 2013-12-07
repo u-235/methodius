@@ -4,6 +4,8 @@ package logic;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import javax.swing.AbstractAction;
@@ -18,8 +20,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.undo.UndoManager;
 import microfont.MFont;
 import microfont.MSymbol;
-import microfont.events.NotifyEvent;
-import microfont.events.NotifyEventListener;
 import microfont.ls.MFontLoadSave;
 import utils.resource.Resource;
 import forms.EditPanel;
@@ -74,7 +74,7 @@ public class Application {
     static FontProperties              fpf;
 
     private static MFont               font;
-    private static NotifyEventListener atFontChange;
+    private static PropertyChangeListener atFontChange;
     private static int                 mode;
 
     public static void main(String[] args) {
@@ -199,7 +199,7 @@ public class Application {
 
     static synchronized void setMFont(MFont newFont) {
         if (font != null) {
-            font.removeNotifyEventListener(atFontChange);
+            font.removePropertyChangeListener(atFontChange);
             font.removeUndoableEditListener(uManager);
             font.removeUndoableEditListener(atUndoRedo);
             uManager.discardAllEdits();
@@ -208,7 +208,9 @@ public class Application {
         font = newFont;
 
         if (font != null) {
-            font.addNotifyEventListener(atFontChange);
+            // XXX print
+            System.out.println("add listeners.");
+            font.addPropertyChangeListener(atFontChange);
             font.addUndoableEditListener(uManager);
             font.addUndoableEditListener(atUndoRedo);
             fontName = font.getName();
@@ -217,9 +219,17 @@ public class Application {
         }
         actions.get(ON_SAVE_AS).setEnabled(font != null);
 
+        // XXX print
+        System.out.println("set in font panel.");
         fontPanel.setMFont(font);
+        // XXX print
+        System.out.println("update title.");
         updateTitle();
+        // XXX print
+        System.out.println("update undo redo.");
         updateUndoRedo();
+        // XXX print
+        System.out.println("set saved.");
         setSaved(true);
     }
 
@@ -339,10 +349,11 @@ public class Application {
         }
     }
 
-    private static class OnFontChange implements NotifyEventListener {
+    private static class OnFontChange implements PropertyChangeListener {
         @Override
-        public void notifyHappened(NotifyEvent change) {
-            System.out.println(change.getNotify());
+        public void propertyChange(PropertyChangeEvent change) {
+            //XXX print
+            System.out.println(change.getPropertyName());
             updateUndoRedo();
         }
     }
@@ -392,6 +403,8 @@ public class Application {
             if (file == null) return;
 
             try {
+                // XXX print
+                System.out.println("Load micro font.");
                 font = MFontLoadSave.load(file, null);
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(null, "Can't open file.",
@@ -406,6 +419,8 @@ public class Application {
             undoCount = 0;
             updateUndoRedo();
             fontFile = file;
+            // XXX print
+            System.out.println("Setting microfont.");
             setMFont(font);
         }
     }

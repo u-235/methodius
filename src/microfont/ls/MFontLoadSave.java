@@ -204,7 +204,7 @@ public class MFontLoadSave {
         int sectCount = 0;
         String key, value;
         int width = 0, index = 0, size = 0, height = -1;//
-        int start, end;
+        int start;
         byte[] bytes;
 
         inpStream = new FileInputStream(f);
@@ -296,17 +296,25 @@ public class MFontLoadSave {
                 } else if (key.compareToIgnoreCase(SYMBOLS_BYTES) == 0) {
                     bytes = new byte[(width * height + 7) / 8];
 
-                    start = 0;
-                    for (int i = 0; true; i++) {
-                        if (i >= bytes.length) break;
-                        end = value.indexOf(' ', start);
-                        if (end < 0) end = value.length();
-                        if (start >= end) break;
-                        bytes[i] = (byte) (Integer.parseInt(
-                                        value.substring(start, end), 16) & 0xff);
-                        start = end + 1;
+                    int n = 0;
+                    boolean space=true;
+                    for (int i = 0; i < value.length(); i++) {
+                        char c = value.charAt(i);
+                        if (c >= '0' && c <= '9') {
+                            bytes[n] = (byte) (bytes[n] * 16 + c - '0');
+                            space = false;
+                        } else if (c >= 'a' && c <= 'f') {
+                            bytes[n] = (byte) (bytes[n] * 16 + c - 'a' + 10);
+                            space = false;
+                        } else if (c >= 'A' && c <= 'F') {
+                            bytes[n] = (byte) (bytes[n] * 16 + c - 'A' + 10);
+                            space = false;
+                        }else if (!space) {
+                            space=true;
+                            n++;
+                        }
                     }
-
+                    
                     ret.add(new MSymbol(index, width, height, bytes));
                     index++;
                 }

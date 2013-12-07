@@ -2,8 +2,8 @@
 package microfont;
 
 import java.awt.Dimension;
-import microfont.events.NotifyEvent;
-import microfont.events.NotifyEventListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import microfont.events.PixselMapEvent;
 import microfont.events.PixselMapListener;
 import utils.event.ListenerChain;
@@ -21,8 +21,9 @@ import utils.event.ListenerChain;
  * функционирование которого описано в {@link AbstractPixselMap}. Всякое
  * изменение пикселей публичными методами приводит к генерации сообщения
  * <code>PixselMapEvent</code>.
- * <li>Сообщение {@link NotifyEvent} и получатель {@link NotifyEventListener}.
- * Это сообщение генерируется при изменении размеров карты.
+ * <li>Сообщение {@link PropertyChangeEvent} и получатель
+ * {@link PropertyChangeListener} . Это сообщение генерируется при изменении
+ * размеров карты.
  * </ul>
  * 
  * <h3>Операции с картой.</h3>
@@ -79,7 +80,7 @@ public class PixselMap extends AbstractPixselMap {
      */
     public static final int OVERLAY_HOR   = 3;
 
-    public static String    NOTIFY_SIZE   = "PixselMapSize";
+    public static String    PROPERTY_SIZE   = "PixselMapSize";
 
     /** Хранилище получателей сообщений. */
     protected ListenerChain listeners     = new ListenerChain();
@@ -135,19 +136,21 @@ public class PixselMap extends AbstractPixselMap {
     }
 
     /**
-     * Проверка высоты. Метод всегда возвращает <code>true</code>.
+     * Проверка высоты. Метод возвращает <code>true</code> для неотрицательных
+     * значений <code>h</code>.
      */
     @Override
     protected boolean isValidHeight(int h) {
-        return true;
+        return h >= 0;
     }
 
     /**
-     * Проверка ширины. Метод всегда возвращает <code>true</code>.
+     * Проверка ширины. Метод возвращает <code>true</code> для неотрицательных
+     * значений <code>w</code>.
      */
     @Override
     protected boolean isValidWidth(int w) {
-        return true;
+        return w >= 0;
     }
 
     /**
@@ -155,8 +158,8 @@ public class PixselMap extends AbstractPixselMap {
      * 
      * @param listener Добавляемый получатель события.
      */
-    public void addNotifyEventListener(NotifyEventListener listener) {
-        listeners.add(NotifyEventListener.class, listener);
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        listeners.add(PropertyChangeListener.class, listener);
     }
 
     /**
@@ -164,24 +167,35 @@ public class PixselMap extends AbstractPixselMap {
      * 
      * @param listener Удаляемый получатель события.
      */
-    public void removeNotifyEventListener(NotifyEventListener listener) {
-        listeners.remove(NotifyEventListener.class, listener);
+    public void removeNotifyEventListener(PropertyChangeListener listener) {
+        listeners.remove(PropertyChangeListener.class, listener);
     }
 
     /**
      * Генерация события изменения свойств карты. Получатели добавляются
-     * функцией {@link #addNotifyEventListener(NotifyEventListener)}.
+     * функцией {@link #addPropertyChangeListener(PropertyChangeListener)}.
      */
-    protected void fireNotifyEvent(NotifyEvent event) {
+    protected void firePropertyChange(PropertyChangeEvent event) {
         Object[] listenerArray;
 
         listenerArray = listeners.getListenerList();
         for (int i = 0; i < listenerArray.length; i += 2) {
-            if (listenerArray[i] == NotifyEventListener.class) {
-                ((NotifyEventListener) listenerArray[i + 1])
-                                .notifyHappened(event);
+            if (listenerArray[i] == PropertyChangeListener.class) {
+                ((PropertyChangeListener) listenerArray[i + 1])
+                                .propertyChange(event);
             }
         }
+    }
+
+    protected void firePropertyChange(String prop, int oldValue, int newValue) {
+        firePropertyChange(new PropertyChangeEvent(this, prop, new Integer(
+                        oldValue), new Integer(newValue)));
+    }
+
+    protected void firePropertyChange(String prop, Dimension oldValue,
+                    Dimension newValue) {
+        firePropertyChange(new PropertyChangeEvent(this, prop, oldValue,
+                        newValue));
     }
 
     /**
@@ -245,7 +259,8 @@ public class PixselMap extends AbstractPixselMap {
         w = getWidth();
         h = getHeight();
         if (oldW != w || oldH != h) {
-            fireNotifyEvent(new NotifyEvent(this, NOTIFY_SIZE));
+            firePropertyChange(PROPERTY_SIZE, new Dimension(oldW, oldH),
+                            new Dimension(getWidth(), getHeight()));
         }
 
         firePixselEvent();
@@ -275,7 +290,8 @@ public class PixselMap extends AbstractPixselMap {
         super.changeSize(w, h);
 
         if (oldW != w || oldH != h) {
-            fireNotifyEvent(new NotifyEvent(this, NOTIFY_SIZE));
+            firePropertyChange(PROPERTY_SIZE, new Dimension(oldW, oldH),
+                            new Dimension(getWidth(), getHeight()));
         }
         firePixselEvent();
     }
@@ -606,7 +622,7 @@ public class PixselMap extends AbstractPixselMap {
      *            положительное -происходит вставка, иначе - удаление строк.
      * @throws DisallowOperationException Если изменение размеров запрещено
      *             конфигурацией класса или его потомков.
-     * @see #removeRowss(int, int)
+     * @see #removeRows(int, int)
      * @see #addRows(int, int)
      */
     public void changeHeight(int pos, int num)
@@ -683,7 +699,7 @@ public class PixselMap extends AbstractPixselMap {
      *             конфигурацией класса или его потомков.
      * @see #removeLeft(int)
      * @see #removeRight(int)
-     * @see #removeRow(int, int)
+     * @see #removeRows(int, int)
      */
     public void removeColumns(int pos, int num)
                     throws DisallowOperationException {
@@ -700,7 +716,7 @@ public class PixselMap extends AbstractPixselMap {
      *             конфигурацией класса или его потомков.
      * @see #removeBottom(int)
      * @see #removeTop(int)
-     * @see #removeColumn(int, int)
+     * @see #removeColumns(int, int)
      */
     public void removeRows(int pos, int num) throws DisallowOperationException {
         if (num <= 0) return;
@@ -714,7 +730,7 @@ public class PixselMap extends AbstractPixselMap {
      * @throws DisallowOperationException Если изменение размеров запрещено
      *             конфигурацией класса или его потомков.
      * @see #removeRight(int)
-     * @see #removeColumn(int, int)
+     * @see #removeColumns(int, int)
      */
     public void removeLeft(int num) throws DisallowOperationException {
         if (num <= 0) return;
@@ -728,7 +744,7 @@ public class PixselMap extends AbstractPixselMap {
      * @throws DisallowOperationException Если изменение размеров запрещено
      *             конфигурацией класса или его потомков.
      * @see #removeLeft(int)
-     * @see #removeColumn(int, int)
+     * @see #removeColumns(int, int)
      */
     public void removeRight(int num) throws DisallowOperationException {
         if (num <= 0) return;
@@ -742,7 +758,7 @@ public class PixselMap extends AbstractPixselMap {
      * @throws DisallowOperationException Если изменение размеров запрещено
      *             конфигурацией класса или его потомков.
      * @see #removeBottom(int)
-     * @see #removeRow(int, int)
+     * @see #removeRows(int, int)
      */
     public void removeTop(int num) throws DisallowOperationException {
         if (num <= 0) return;
@@ -756,7 +772,7 @@ public class PixselMap extends AbstractPixselMap {
      * @throws DisallowOperationException Если изменение размеров запрещено
      *             конфигурацией класса или его потомков.
      * @see #removeTop(int)
-     * @see #removeRow(int, int)
+     * @see #removeRows(int, int)
      */
     public void removeBottom(int num) throws DisallowOperationException {
         if (num <= 0) return;
@@ -772,7 +788,7 @@ public class PixselMap extends AbstractPixselMap {
      *             конфигурацией класса или его потомков.
      * @see #addLeft(int)
      * @see #addRight(int)
-     * @see #addRow(int, int)
+     * @see #addRows(int, int)
      */
     public void addColumns(int pos, int num) throws DisallowOperationException {
         if (num <= 0) return;
@@ -788,7 +804,7 @@ public class PixselMap extends AbstractPixselMap {
      *             конфигурацией класса или его потомков.
      * @see #addBottom(int)
      * @see #addTop(int)
-     * @see #addColumn(int, int)
+     * @see #addColumns(int, int)
      */
     public void addRows(int pos, int num) throws DisallowOperationException {
         if (num <= 0) return;
@@ -802,7 +818,7 @@ public class PixselMap extends AbstractPixselMap {
      * @throws DisallowOperationException Если изменение размеров запрещено
      *             конфигурацией класса или его потомков.
      * @see #addRight(int)
-     * @see #addColumn(int, int)
+     * @see #addColumns(int, int)
      */
     public void addLeft(int num) throws DisallowOperationException {
         if (num <= 0) return;
@@ -816,7 +832,7 @@ public class PixselMap extends AbstractPixselMap {
      * @throws DisallowOperationException Если изменение размеров запрещено
      *             конфигурацией класса или его потомков.
      * @see #addLeft(int)
-     * @see #addColumn(int, int)
+     * @see #addColumns(int, int)
      */
     public void addRight(int num) throws DisallowOperationException {
         if (num <= 0) return;
@@ -830,7 +846,7 @@ public class PixselMap extends AbstractPixselMap {
      * @throws DisallowOperationException Если изменение размеров запрещено
      *             конфигурацией класса или его потомков.
      * @see #addBottom(int)
-     * @see #addRow(int, int)
+     * @see #addRows(int, int)
      */
     public void addTop(int num) throws DisallowOperationException {
         if (num <= 0) return;
@@ -844,7 +860,7 @@ public class PixselMap extends AbstractPixselMap {
      * @throws DisallowOperationException Если изменение размеров запрещено
      *             конфигурацией класса или его потомков.
      * @see #addTop(int)
-     * @see #addRow(int, int)
+     * @see #addRows(int, int)
      */
     public void addBottom(int num) throws DisallowOperationException {
         if (num <= 0) return;

@@ -3,19 +3,19 @@ package microfont.gui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import javax.swing.AbstractListModel;
 import javax.swing.Timer;
 import microfont.MFont;
 import microfont.MSymbol;
-import microfont.events.NotifyEvent;
-import microfont.events.NotifyEventListener;
 
 /**
  * Класс для представления {@linkplain MFont шрифта} в JList.
  * 
  */
 public class MListModel extends AbstractListModel<MSymbol> implements
-                NotifyEventListener {
+                PropertyChangeListener {
     private static final long serialVersionUID = 1L;
     /** */
     private MFont             font;
@@ -62,7 +62,7 @@ public class MListModel extends AbstractListModel<MSymbol> implements
 
         if (this.font != null) {
             oldInd = this.font.getSize() - 1;
-            this.font.removeNotifyEventListener(this);
+            this.font.removePropertyChangeListener(this);
         }
 
         this.font = font;
@@ -70,7 +70,7 @@ public class MListModel extends AbstractListModel<MSymbol> implements
         fireIntervalRemoved(this, 0, oldInd);
 
         if (font != null) {
-            font.addNotifyEventListener(this);
+            font.addPropertyChangeListener(this);
             fireIntervalAdded(this, 0, font.getSize() - 1);
         }
     }
@@ -91,7 +91,7 @@ public class MListModel extends AbstractListModel<MSymbol> implements
     }
 
     @Override
-    public void notifyHappened(NotifyEvent event) {
+    public void propertyChange(PropertyChangeEvent event) {
         MFont font;
 
         font = (MFont) event.getSource();
