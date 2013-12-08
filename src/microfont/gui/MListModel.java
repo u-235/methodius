@@ -67,11 +67,13 @@ public class MListModel extends AbstractListModel<MSymbol> implements
 
         this.font = font;
 
-        fireIntervalRemoved(this, 0, oldInd);
+        if (oldInd > 0) fireIntervalRemoved(this, 0, oldInd);
 
         if (font != null) {
             font.addPropertyChangeListener(this);
-            fireIntervalAdded(this, 0, font.getSize() - 1);
+            int i = this.font.getSize() - 1;
+            if (i < 0) i = 0;
+            fireIntervalAdded(this, 0, i);
         }
     }
 

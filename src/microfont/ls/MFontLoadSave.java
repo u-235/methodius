@@ -103,12 +103,11 @@ public class MFontLoadSave {
         writeNewLine(writer);
 
         writeSection(writer, AUTHOR);
-        writeKey(writer, AUTHOR_NAME, mFont.getAuthorName());
-        writeKey(writer, AUTHOR_CONTACT, mFont.getAuthorMail());
+        writeKey(writer, AUTHOR_NAME, mFont.getAuthor());
         writeNewLine(writer);
 
         writeSection(writer, INFO);
-        writeKey(writer, INFO_CHARSET, mFont.getCharset());
+        writeKey(writer, INFO_CHARSET, mFont.getCodePage());
         writeKey(writer, INFO_NAME, mFont.getName());
         writeKey(writer, INFO_PROTOTIPE, mFont.getPrototype());
         writeKey(writer, INFO_SIZE, mFont.getSize());
@@ -241,15 +240,15 @@ public class MFontLoadSave {
 
             if (section.compareToIgnoreCase(AUTHOR) == 0) {
                 if (key.compareToIgnoreCase(AUTHOR_CONTACT) == 0)
-                    ret.setAuthorMail(value);
+                    ret.setAuthor(ret.getAuthor()+value);
                 if (key.compareToIgnoreCase(AUTHOR_NAME) == 0)
-                    ret.setAuthorName(value);
+                    ret.setAuthor(value+ret.getAuthor());
                 continue;
             }
 
             if (section.compareToIgnoreCase(INFO) == 0) {
                 if (key.compareToIgnoreCase(INFO_CHARSET) == 0) ret
-                                .setCharset(value);
+                                .setCodePage(value);
                 else if (key.compareToIgnoreCase(INFO_NAME) == 0) {
                     ret.setName(value);
                 } else if (key.compareToIgnoreCase(INFO_PROTOTIPE) == 0) {

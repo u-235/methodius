@@ -169,7 +169,7 @@ public class MAbstractComponent extends ScrollableWindow implements
             if (parent != null) {
                 parent.addPropertyChangeListener(this);
                 updateMargins();
-                charset = parent.getCharset();
+                charset = parent.getCodePage();
             }
         }
 

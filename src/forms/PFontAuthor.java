@@ -19,9 +19,8 @@ import microfont.MFont;
 public class PFontAuthor extends JPanel implements PropertyChangeListener {
     Resource           res;
     MFont              mFont;
-    boolean            readOnly;
-    private JTextField vName;
-    private JTextArea  vComtacts;
+    boolean            readOnly=false;
+    private JTextArea vName;
 
     public PFontAuthor(Resource res) {
         super();
@@ -30,12 +29,12 @@ public class PFontAuthor extends JPanel implements PropertyChangeListener {
 
         setResource(res);
 
-        vName = new JTextField(24);
+        vName = new JTextArea(2,24);
         vName.addFocusListener(new FocusListener() {
             @Override
             public void focusLost(FocusEvent e) {
                 if (mFont == null) return;
-                mFont.setAuthorName(vName.getText().trim());
+                mFont.setAuthor(vName.getText().trim());
             }
 
             @Override
@@ -43,34 +42,10 @@ public class PFontAuthor extends JPanel implements PropertyChangeListener {
             }
         });
 
-        JPanel fr = new JPanel();
-        fr.add(vName);
-        Border border = new TitledBorder(res.getString(
-                        "properties.tab.author.name", Resource.TEXT_NAME_KEY));
-        fr.setBorder(border);
-        vComtacts = new JTextArea(2, 24);
-        vComtacts.addFocusListener(new FocusListener() {
-            @Override
-            public void focusLost(FocusEvent e) {
-                if (mFont == null) return;
-                mFont.setAuthorMail(vComtacts.getText().trim());
-            }
-
-            @Override
-            public void focusGained(FocusEvent e) {
-            }
-        });
-
-        vComtacts.setWrapStyleWord(true);
-        vComtacts.setLineWrap(true);
-        border = new TitledBorder(res.getString(
-                        "properties.tab.author.contacts",
-                        Resource.TEXT_NAME_KEY));
-        JScrollPane scroll = new JScrollPane(vComtacts);
-        scroll.setBorder(border);
-
-        add(fr, 0);
-        add(scroll, 1);
+        vName.setWrapStyleWord(true);
+        vName.setLineWrap(true);
+        JScrollPane scroll = new JScrollPane(vName);
+        add(scroll);
         updateReadOnly();
     }
 
@@ -91,8 +66,7 @@ public class PFontAuthor extends JPanel implements PropertyChangeListener {
         mFont = font;
         if (mFont != null) mFont.addPropertyChangeListener(this);
         else return;
-        vName.setText(mFont.getAuthorName());
-        vComtacts.setText(mFont.getAuthorMail());
+        vName.setText(mFont.getAuthor());
     }
 
     public boolean isReadOnly() {
@@ -100,13 +74,12 @@ public class PFontAuthor extends JPanel implements PropertyChangeListener {
     }
 
     public void setReadOnly(boolean readOnly) {
-        this.readOnly = readOnly;
+        //this.readOnly = readOnly;
         updateReadOnly();
     }
 
     void updateReadOnly() {
         vName.setEditable(!readOnly);
-        vComtacts.setEditable(!readOnly);
     }
 
     @Override

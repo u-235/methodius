@@ -22,11 +22,10 @@ import microfont.undo.MSymbolUndo;
  * <li>{@link #code} - соответствует коду символа в кодовой странице шрифта. Это
  * свойство доступно через {@link #getCode()} {@link #setCode(int)}
  * <li>{@link #unicode} - код символа в UTF-16, независящий от кодировки.
- * MSymbol может изменять это свойство только один раз вызвав
- * {@link #setUnicode(int)}, пока переменная {@link #hasUnicode} равна
- * <code>false</code>, в дальнейшем возможно только получение значения методом
- * {@link #getUnicode()}. Более того, это свойство может быть неактуальным, это
- * можно проверить при помощи {@link #isUnicode()}. *
+ * MSymbol может изменять это свойство вызвав {@link #setUnicode(int)}, при этом
+ * переменная {@link #hasUnicode} устанавливается в <code>true</code>, получение
+ * значения возможно методом {@link #getUnicode()}. Это свойство может быть
+ * неактуальным, что можно проверить при помощи {@link #isUnicode()}. *
  * </ol>
  * 
  * <h3>Поддержка отменяемых действий.</h3>
@@ -34,18 +33,28 @@ import microfont.undo.MSymbolUndo;
  */
 public class MSymbol extends PixselMap {
     /** Шрифт, к которому принадлежит символ. */
-    MFont                owner;
+    MFont                      owner;
     /** Индекс символа в шрифте. Индекс зависит от кодовой страницы шрифта. */
-    private int          code;
+    private int                code;
     /** Код символа в UTF-16 */
-    private int          unicode;
+    private int                unicode;
     /** Был ли установлен код символа. */
-    private boolean      hasUnicode;
+    private boolean            hasUnicode;
     /** Объект с изменениями символа. */
-    private MSymbolUndo  undo;
+    private MSymbolUndo        undo;
 
-    public static String PROPERTY_CODE    = "MSymbolCode";
-    public static String PROPERTY_UNICODE = "MSymbolUnicode";
+    /**
+     * Название свойства size.
+     * 
+     * @see #firePropertyChange(String, int, int)
+     */
+    public final static String PROPERTY_CODE    = "MSymbolCode";
+    /**
+     * Название свойства size.
+     * 
+     * @see #firePropertyChange(String, int, int)
+     */
+    public final static String PROPERTY_UNICODE = "MSymbolUnicode";
 
     /**
      * Конструктор символа с заданными размерами, индексом и копированием
@@ -104,11 +113,6 @@ public class MSymbol extends PixselMap {
         return super.isValidWidth(w);
     }
 
-    protected boolean isValidCode(int code) {
-        if (owner != null) return owner.isValidCode(code);
-        return true;
-    }
-
     /**
      * Метод возвращает индекс символа в шрифте.
      * 
@@ -119,20 +123,19 @@ public class MSymbol extends PixselMap {
     }
 
     /**
-     * Метод устанавливает индекс символа в шрифте.
+     * Метод устанавливает индекс символа в шрифте.<br>
+     * {@linkplain PixselMap#firePropertyChange(String, int, int) Выпускается
+     * сообщение} {@link PROPERTY_CODE}.
      * 
      * @param c Новый индекс.
-     * @throws DisallowOperationException Если символ принадлежит шрифту и
-     *             изменение индекса в шрифте невозможно.
      * @see #getCode()
      */
-    public synchronized void setCode(int c) throws DisallowOperationException {
+    public synchronized void setCode(int c) {
         if (code == c) return;
 
-        if (!isValidCode(c))
-            throw new DisallowOperationException("change code");
-
+        int old = code;
         code = c;
+        firePropertyChange(PROPERTY_CODE, old, code);
     }
 
     /**
@@ -156,21 +159,20 @@ public class MSymbol extends PixselMap {
     }
 
     /**
-     * Метод устанавливает код символа в UTF-16.
+     * Метод устанавливает код символа в UTF-16.<br>
+     * {@linkplain PixselMap#firePropertyChange(String, int, int) Выпускается
+     * сообщение} {@link PROPERTY_UNICODE}.
      * 
      * @param u Новый код символа.
-     * @throws DisallowOperationException Если код символа уже был установлен.
      * @see #isUnicode()
      * @see #getUnicode()
      */
-    public synchronized void setUnicode(int u)
-                    throws DisallowOperationException {
+    public synchronized void setUnicode(int u) {
         if (unicode == u) return;
 
-        if (hasUnicode) throw new DisallowOperationException("change unicode");
-
-        hasUnicode = true;
+        int old = unicode;
         unicode = u;
+        firePropertyChange(PROPERTY_UNICODE, old, unicode);
     }
 
     /**
@@ -185,8 +187,10 @@ public class MSymbol extends PixselMap {
 
     /**
      * Копирование массива точек из символа <code>sym</code>. Так же изменяется
-     * переменная {@link #code}.<br>
-     * Важно знать, что <b>списки получателей сообщений не копируются</b>.
+     * переменные {@link #code} и {@link #unicode}.<br>
+     * Важно знать, что <b>списки получателей сообщений не копируются</b>.<br>
+     * Могут {@linkplain PixselMap#firePropertyChange(String, int, int)
+     * выпускаться сообщения} {@link PROPERTY_CODE} и {@link PROPERTY_UNICODE}.
      * 
      * @param sym Источник копирования.
      * @throws DisallowOperationException Если изменение размеров запрещено
@@ -200,11 +204,11 @@ public class MSymbol extends PixselMap {
      */
     public synchronized void copy(MSymbol sym)
                     throws DisallowOperationException {
-        if (sym == null) throw (new NullPointerException());
-
-        if (sym.isUnicode()) setUnicode(sym.getUnicode());
-        setCode(sym.getCode());
         super.copy(sym);
+        synchronized (sym) {
+            if (sym.isUnicode()) setUnicode(sym.getUnicode());
+            setCode(sym.getCode());
+        }
     }
 
     /**

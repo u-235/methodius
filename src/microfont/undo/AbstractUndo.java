@@ -75,7 +75,7 @@ public abstract class AbstractUndo implements UndoableEdit {
         return undoName;
     }
 
-    public static void setUndoPresentationName(String name) {
+    public static void setUndoName(String name) {
         if (name != null) undoName = name;
         else undoName = DEFAULT_UNDO_NAME;
     }
@@ -86,7 +86,7 @@ public abstract class AbstractUndo implements UndoableEdit {
         return redoName;
     }
 
-    public static void setRedoPresentationName(String name) {
+    public static void setRedoName(String name) {
         if (name != null) redoName = name;
         else redoName = DEFAULT_REDO_NAME;
     }

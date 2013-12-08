@@ -61,29 +61,33 @@ import utils.event.ListenerChain;
  */
 public class PixselMap extends AbstractPixselMap {
     /** Сдвиг влево в {@link #shift(int, int)}. */
-    public static final int SHIFT_LEFT    = 0;
+    public static final int    SHIFT_LEFT    = 0;
     /** Сдвиг вправо в {@link #shift(int, int)}. */
-    public static final int SHIFT_RIGHT   = 1;
+    public static final int    SHIFT_RIGHT   = 1;
     /** Сдвиг вверх в {@link #shift(int, int)}. */
-    public static final int SHIFT_UP      = 2;
+    public static final int    SHIFT_UP      = 2;
     /** Сдвиг вниз в {@link #shift(int, int)}. */
-    public static final int SHIFT_DOWN    = 3;
+    public static final int    SHIFT_DOWN    = 3;
 
     /** Операция вставки в {@link #overlay(int, int, AbstractPixselMap, int)}. */
-    public static final int OVERLAY_PLACE = 0;
+    public static final int    OVERLAY_PLACE = 0;
     /** Операция сложения в {@link #overlay(int, int, AbstractPixselMap, int)}. */
-    public static final int OVERLAY_OR    = 1;
+    public static final int    OVERLAY_OR    = 1;
     /** Операция умножения в {@link #overlay(int, int, AbstractPixselMap, int)}. */
-    public static final int OVERLAY_AND   = 2;
+    public static final int    OVERLAY_AND   = 2;
     /**
      * Операция исключения в {@link #overlay(int, int, AbstractPixselMap, int)}.
      */
-    public static final int OVERLAY_HOR   = 3;
-
-    public static String    PROPERTY_SIZE   = "PixselMapSize";
+    public static final int    OVERLAY_HOR   = 3;
+    /**
+     * Название свойства size.
+     * 
+     * @see #firePropertyChange(String, Dimension, Dimension)
+     */
+    public final static String PROPERTY_SIZE = "PixselMapSize";
 
     /** Хранилище получателей сообщений. */
-    protected ListenerChain listeners     = new ListenerChain();
+    protected ListenerChain    listeners     = new ListenerChain();
 
     /**
      * Конструктор для создания карты с заданными размерами. Все пиксели
@@ -157,6 +161,8 @@ public class PixselMap extends AbstractPixselMap {
      * Добавление получателя события изменения свойств карты.
      * 
      * @param listener Добавляемый получатель события.
+     * @see #firePropertyChange(PropertyChangeEvent)
+     * @see #removeNotifyEventListener(PropertyChangeListener)
      */
     public void addPropertyChangeListener(PropertyChangeListener listener) {
         listeners.add(PropertyChangeListener.class, listener);
@@ -166,14 +172,18 @@ public class PixselMap extends AbstractPixselMap {
      * Удаление получателя события изменения свойств карты.
      * 
      * @param listener Удаляемый получатель события.
+     * @see #addNotifyEventListener(PropertyChangeListener)
      */
     public void removeNotifyEventListener(PropertyChangeListener listener) {
         listeners.remove(PropertyChangeListener.class, listener);
     }
 
     /**
-     * Генерация события изменения свойств карты. Получатели добавляются
-     * функцией {@link #addPropertyChangeListener(PropertyChangeListener)}.
+     * Выпуск события изменения свойств карты. Получатели добавляются функцией
+     * {@link #addPropertyChangeListener(PropertyChangeListener)}.
+     * 
+     * @see #firePropertyChange(String, int, int)
+     * @see #firePropertyChange(String, Dimension, Dimension)
      */
     protected void firePropertyChange(PropertyChangeEvent event) {
         Object[] listenerArray;
@@ -187,13 +197,31 @@ public class PixselMap extends AbstractPixselMap {
         }
     }
 
+    /**
+     * Выпуск события изменения свойств карты.
+     * 
+     * @param prop Название свойства.
+     * @param oldValue Старое значение.
+     * @param newValue Новое значение.
+     * @see #firePropertyChange(PropertyChangeEvent)
+     */
     protected void firePropertyChange(String prop, int oldValue, int newValue) {
+        if (oldValue == newValue) return;
         firePropertyChange(new PropertyChangeEvent(this, prop, new Integer(
                         oldValue), new Integer(newValue)));
     }
 
+    /**
+     * Выпуск события изменения свойств карты.
+     * 
+     * @param prop Название свойства.
+     * @param oldValue Старое значение.
+     * @param newValue Новое значение.
+     * @see #firePropertyChange(PropertyChangeEvent)
+     */
     protected void firePropertyChange(String prop, Dimension oldValue,
                     Dimension newValue) {
+        if (oldValue.equals(newValue)) return;
         firePropertyChange(new PropertyChangeEvent(this, prop, oldValue,
                         newValue));
     }
@@ -245,25 +273,24 @@ public class PixselMap extends AbstractPixselMap {
      * @throws DisallowOperationException Если изменение размеров запрещено
      *             конфигурацией класса или его потомков и размер копируемой
      *             карты не совпадает с размером текущей карты.
+     * @throws NullPointerException Если <code>sym</code> равен
+     *             <code>null</code>.
      */
     @Override
-    public void copy(AbstractPixselMap src) throws DisallowOperationException {
-        int oldW, oldH, w, h;
+    public synchronized void copy(AbstractPixselMap src)
+                    throws DisallowOperationException {
+        if (src == null) throw (new NullPointerException());
 
-        oldW = getWidth();
-        oldH = getHeight();
+        synchronized (src) {
+            Dimension oldValue = new Dimension(getWidth(), getHeight());
 
-        cleanChange();
-        super.copy(src);
+            cleanChange();
+            super.copy(src);
 
-        w = getWidth();
-        h = getHeight();
-        if (oldW != w || oldH != h) {
-            firePropertyChange(PROPERTY_SIZE, new Dimension(oldW, oldH),
-                            new Dimension(getWidth(), getHeight()));
+            Dimension newValue = new Dimension(getWidth(), getHeight());
+            firePropertyChange(PROPERTY_SIZE, oldValue, newValue);
+            firePixselEvent();
         }
-
-        firePixselEvent();
     }
 
     /**
@@ -280,19 +307,14 @@ public class PixselMap extends AbstractPixselMap {
      * @throws DisallowOperationException Если изменение размеров запрещено
      *             конфигурацией класса или его потомков.
      */
-    public void setSize(int w, int h) throws DisallowOperationException {
-        int oldW, oldH;
-
-        oldW = getWidth();
-        oldH = getHeight();
+    public synchronized void setSize(int w, int h) throws DisallowOperationException {
+        Dimension oldValue = new Dimension(getWidth(), getHeight());
 
         cleanChange();
         super.changeSize(w, h);
 
-        if (oldW != w || oldH != h) {
-            firePropertyChange(PROPERTY_SIZE, new Dimension(oldW, oldH),
-                            new Dimension(getWidth(), getHeight()));
-        }
+        Dimension newValue = new Dimension(getWidth(), getHeight());
+        firePropertyChange(PROPERTY_SIZE, oldValue, newValue);
         firePixselEvent();
     }
 
@@ -349,7 +371,7 @@ public class PixselMap extends AbstractPixselMap {
      * @param set <b>true</b> если пиксель должен быть установлен, <b>false</b>
      *            если нужно сбросить.
      */
-    public void setPixsel(int x, int y, boolean set) {
+    public synchronized void setPixsel(int x, int y, boolean set) {
         cleanChange();
         changePixsel(x, y, set);
         firePixselEvent();
@@ -361,7 +383,7 @@ public class PixselMap extends AbstractPixselMap {
      * 
      * @param a Копируемый массив пикселей.
      */
-    public void setArray(boolean[] a) throws IllegalArgumentException {
+    public synchronized void setArray(boolean[] a) throws IllegalArgumentException {
         cleanChange();
         setBooleans(a);
         firePixselEvent();
@@ -374,7 +396,7 @@ public class PixselMap extends AbstractPixselMap {
      * 
      * @param a Копируемый массив пикселей.
      */
-    public void setArray(byte[] a) throws IllegalArgumentException {
+    public synchronized void setArray(byte[] a) throws IllegalArgumentException {
         cleanChange();
         setBytes(a);
         firePixselEvent();
@@ -393,7 +415,7 @@ public class PixselMap extends AbstractPixselMap {
      * @see #shiftRight()
      * @see #shiftUp()
      */
-    public void shift(int dir, int step) {
+    public synchronized void shift(int dir, int step) {
         int x, y, w, h;
         int iterDir;
         PixselIterator dst, src;
@@ -489,7 +511,7 @@ public class PixselMap extends AbstractPixselMap {
      * 
      * @see #reflectHorizontale()
      */
-    public void reflectVerticale() {
+    public synchronized void reflectVerticale() {
         int w, h;
         boolean end, start;
 
@@ -516,7 +538,7 @@ public class PixselMap extends AbstractPixselMap {
      * 
      * @see #reflectVerticale()
      */
-    public void reflectHorizontale() {
+    public synchronized void reflectHorizontale() {
         int w, h;
         boolean end, start;
 
@@ -549,7 +571,7 @@ public class PixselMap extends AbstractPixselMap {
      * @see #removeColumns(int, int)
      * @see #addColumns(int, int)
      */
-    protected void changeWidth(int pos, int num)
+    protected synchronized void changeWidth(int pos, int num)
                     throws DisallowOperationException {
         PixselMap tMap;
         PixselIterator dst, src;
@@ -625,7 +647,7 @@ public class PixselMap extends AbstractPixselMap {
      * @see #removeRows(int, int)
      * @see #addRows(int, int)
      */
-    public void changeHeight(int pos, int num)
+    public synchronized void changeHeight(int pos, int num)
                     throws DisallowOperationException {
         PixselMap tMap;
         PixselIterator dst, src;
@@ -874,7 +896,7 @@ public class PixselMap extends AbstractPixselMap {
      *            Положительному числу соответствует поворот по часовой стрелке,
      *            отрицательному - против.
      */
-    public void rotate(int step) {
+    public synchronized void rotate(int step) {
         AbstractPixselMap apm;
         boolean resized, reqResize;
         int w, h;
@@ -945,7 +967,7 @@ public class PixselMap extends AbstractPixselMap {
      * @return Карта с копией пикселей заданного фрагмента.
      * @see #overlay(int, int, AbstractPixselMap, int)
      */
-    public AbstractPixselMap getRectangle(int x, int y, int w, int h) {
+    public synchronized AbstractPixselMap getRectangle(int x, int y, int w, int h) {
         if (x < 0) {
             w += x;
             x = 0;
@@ -988,7 +1010,7 @@ public class PixselMap extends AbstractPixselMap {
      * @param state Устанавливаемое состояние пикселей.
      * @see #negRectangle(int, int, int, int)
      */
-    public void setRectangle(int x, int y, int w, int h, boolean state) {
+    public synchronized void setRectangle(int x, int y, int w, int h, boolean state) {
         PixselIterator pi = getIterator(x, y, w, h,
                         PixselIterator.DIR_LEFT_BOTTOM);
 
@@ -1010,7 +1032,7 @@ public class PixselMap extends AbstractPixselMap {
      * @param h Высота фрагмента.
      * @see #setRectangle(int, int, int, int, boolean)
      */
-    public void negRectangle(int x, int y, int w, int h) {
+    public synchronized void negRectangle(int x, int y, int w, int h) {
         PixselIterator spi = getIterator(x, y, w, h,
                         PixselIterator.DIR_LEFT_BOTTOM);
         PixselIterator dpi = getIterator(x, y, w, h,
@@ -1049,7 +1071,7 @@ public class PixselMap extends AbstractPixselMap {
      * @see #and(int, int, AbstractPixselMap)
      * @see #hor(int, int, AbstractPixselMap)
      */
-    public void overlay(int x, int y, AbstractPixselMap apm, int op) {
+    public synchronized void overlay(int x, int y, AbstractPixselMap apm, int op) {
         int srcX, srcY, w, h;
 
         w = apm.getWidth();

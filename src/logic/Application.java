@@ -134,7 +134,8 @@ public class Application {
         work.setLeft(fontPanel);
         work.setRight(editPanel);
 
-        updateTitle();
+        setMFont(new MFont());
+        //updateTitle();
         setSaved(true);
 
         work.pack();
