@@ -1,10 +1,6 @@
 
 package microfont;
 
-import javax.swing.event.UndoableEditEvent;
-import javax.swing.event.UndoableEditListener;
-import microfont.undo.MSymbolUndo;
-
 /**
  * Класс MSymbol для хранения и изменения символа {@link MFont шрифта}.<br>
  * Важно знать, что хотя символ и является разделяемым ресурсом, но один и тот
@@ -27,8 +23,6 @@ import microfont.undo.MSymbolUndo;
  * значения возможно методом {@link #getUnicode()}. Это свойство может быть
  * неактуальным, что можно проверить при помощи {@link #isUnicode()}. *
  * </ol>
- * 
- * <h3>Поддержка отменяемых действий.</h3>
  * <p>
  */
 public class MSymbol extends PixselMap {
@@ -40,8 +34,6 @@ public class MSymbol extends PixselMap {
     private int                unicode;
     /** Был ли установлен код символа. */
     private boolean            hasUnicode;
-    /** Объект с изменениями символа. */
-    private MSymbolUndo        undo;
 
     /**
      * Название свойства size.
@@ -226,70 +218,5 @@ public class MSymbol extends PixselMap {
         if (isUnicode()) return super.equals(sym) && unicode == sym.unicode;
         return super.equals(sym) && code == sym.code;
 
-    }
-
-    /**
-     * Добавляет получателя сообщений об отменяемых операциях.
-     * 
-     * @param listener Получатель сообщений об отменяемых операциях.
-     */
-    public void addUndoableEditListener(UndoableEditListener listener) {
-        listeners.add(UndoableEditListener.class, listener);
-    }
-
-    /**
-     * Удаляет получателя сообщений об отменяемых операциях.
-     * 
-     * @param listener Получатель сообщений об отменяемых операциях.
-     */
-    public void removeUndoableEditListener(UndoableEditListener listener) {
-        listeners.remove(UndoableEditListener.class, listener);
-    }
-
-    /**
-     * Выпускает сообщение об отменяемой операции.
-     * 
-     * @param change Объект, содержащий изменения, произведённые операцией.
-     */
-    protected void fireUndoEvent(UndoableEditEvent change) {
-        Object[] listenerArray;
-
-        if (listeners == null) return;
-
-        listenerArray = listeners.getListenerList();
-        for (int i = 0; i < listenerArray.length; i++) {
-            if (listenerArray[i] == UndoableEditListener.class)
-                ((UndoableEditListener) listenerArray[i + 1])
-                                .undoableEditHappened(change);
-        }
-    }
-
-    /**
-     * Создаёт объект для фиксации отменяемых изменений.
-     * 
-     * @param operation Название операции, должно быть на языке локализации.
-     * @see #endChange()
-     * @see #fireUndoEvent(UndoableEditEvent)
-     */
-    public synchronized void beginChange(String operation) {
-        if (undo != null) return;
-
-        undo = new MSymbolUndo(this, operation);
-    }
-
-    /**
-     * Фиксирует отменяемые изменения и вызывает выпуск сообщения об отменяемой
-     * операции.
-     * 
-     * @see #beginChange(String)
-     * @see #fireUndoEvent(UndoableEditEvent)
-     */
-    public synchronized void endChange() {
-        if (undo == null) return;
-
-        undo.end();
-
-        if (undo.canUndo()) fireUndoEvent(new UndoableEditEvent(this, undo));
-        undo = null;
     }
 }

@@ -3,11 +3,8 @@ package microfont;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import javax.swing.event.UndoableEditEvent;
-import javax.swing.event.UndoableEditListener;
 import microfont.events.PixselMapEvent;
 import microfont.events.PixselMapListener;
-import microfont.undo.MFontUndo;
 import utils.event.ListenerChain;
 
 /**
@@ -16,7 +13,7 @@ import utils.event.ListenerChain;
  * 
  */
 public class MFont extends Object implements PixselMapListener,
-                PropertyChangeListener, UndoableEditListener {
+                PropertyChangeListener {
     public static final String FONT_ASCENT         = "mf.ascent";
     public static final String FONT_LINE           = "mf.line";
     public static final String FONT_AUTHOR         = "mf.author";
@@ -59,7 +56,7 @@ public class MFont extends Object implements PixselMapListener,
     private int                line;
     private int                descent;
     private ListenerChain      listeners           = new ListenerChain();
-    private MFontUndo          undo;
+    Document                   document;
 
     public MFont() {
         codePage = null;
@@ -242,49 +239,6 @@ public class MFont extends Object implements PixselMapListener,
         firePropertyChange(event);
     }
 
-    public void addUndoableEditListener(UndoableEditListener listener) {
-        listeners.add(UndoableEditListener.class, listener);
-    }
-
-    public void removeUndoableEditListener(UndoableEditListener listener) {
-        listeners.remove(UndoableEditListener.class, listener);
-    }
-
-    protected void fireUndoEvent(UndoableEditEvent change) {
-        Object[] listenerArray;
-
-        if (listeners == null) return;
-        System.out.println("MFont: fire undo event");
-
-        listenerArray = listeners.getListenerList();
-        for (int i = 0; i < listenerArray.length; i += 2) {
-            if (listenerArray[i] == UndoableEditListener.class)
-                ((UndoableEditListener) listenerArray[i + 1])
-                                .undoableEditHappened(change);
-        }
-    }
-
-    public synchronized void beginChange(String operation) {
-        if (undo != null) return;
-
-        undo = new MFontUndo(this, operation);
-    }
-
-    public synchronized void endChange() {
-        if (undo == null) return;
-
-        undo.end();
-
-        if (undo.canUndo()) fireUndoEvent(new UndoableEditEvent(this, undo));
-        undo = null;
-    }
-
-    @Override
-    public void undoableEditHappened(UndoableEditEvent event) {
-        // TODO Здесь надо проверить, нужно ли добавить event к MFontUndo
-        fireUndoEvent(event);
-    }
-
     public void copy(MFont font) {
         boolean oldFix;
         int oldWidth, oldHeight;
@@ -382,6 +336,7 @@ public class MFont extends Object implements PixselMapListener,
             validWidth = max;
             for (MSymbol sym : symbols) {
                 try {
+                    if (document != null) document.nestedEdit(sym);
                     sym.setWidth(max);
                 } catch (DisallowOperationException e) {
                 }
@@ -427,6 +382,7 @@ public class MFont extends Object implements PixselMapListener,
 
         for (MSymbol sym : symbols) {
             try {
+                if (document != null) document.nestedEdit(sym);
                 sym.setWidth(w);
             } catch (DisallowOperationException e) {
                 // XXX print
@@ -475,6 +431,7 @@ public class MFont extends Object implements PixselMapListener,
         if (old != h) {
             for (MSymbol sym : symbols) {
                 try {
+                    if (document != null) document.nestedEdit(sym);
                     sym.setHeight(this.height);
                 } catch (DisallowOperationException e) {
                     // XXX print
@@ -668,17 +625,17 @@ public class MFont extends Object implements PixselMapListener,
 
         symbol.removeNotifyEventListener(symbol.owner);
         symbol.removePixselMapListener(symbol.owner);
-        symbol.removeUndoableEditListener(symbol.owner);
         symbol.owner = this;
         symbol.addPropertyChangeListener(this);
         symbol.addPixselMapListener(this);
-        symbol.addUndoableEditListener(this);
 
         try {
+            if (document != null) document.nestedEdit(symbol);
             symbol.setHeight(height);
         } catch (DisallowOperationException e) {
         }
         if (fixsed) try {
+            if (document != null) document.nestedEdit(symbol);
             symbol.setWidth(width);
         } catch (DisallowOperationException e) {
         }
@@ -703,7 +660,6 @@ public class MFont extends Object implements PixselMapListener,
         } else {
             old.removeNotifyEventListener(this);
             old.removePixselMapListener(this);
-            old.removeUndoableEditListener(this);
             old.owner = null;
             symbols[i] = symbol;
         }
@@ -725,7 +681,6 @@ public class MFont extends Object implements PixselMapListener,
             if (sym.equals(symbol)) {
                 sym.removeNotifyEventListener(this);
                 sym.removePixselMapListener(this);
-                sym.removeUndoableEditListener(this);
                 sym.owner = null;
                 break;
             }
@@ -752,7 +707,6 @@ public class MFont extends Object implements PixselMapListener,
         for (MSymbol sym : symbols) {
             sym.removeNotifyEventListener(this);
             sym.removePixselMapListener(this);
-            sym.removeUndoableEditListener(this);
             sym.owner = null;
         }
 
