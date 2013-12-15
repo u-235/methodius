@@ -201,8 +201,6 @@ public class Application {
     static synchronized void setMFont(MFont newFont) {
         if (font != null) {
             font.removePropertyChangeListener(atFontChange);
-            font.removeUndoableEditListener(uManager);
-            font.removeUndoableEditListener(atUndoRedo);
             uManager.discardAllEdits();
         }
 
@@ -212,8 +210,6 @@ public class Application {
             // XXX print
             System.out.println("add listeners.");
             font.addPropertyChangeListener(atFontChange);
-            font.addUndoableEditListener(uManager);
-            font.addUndoableEditListener(atUndoRedo);
             fontName = font.getName();
         } else {
             fontName = null;

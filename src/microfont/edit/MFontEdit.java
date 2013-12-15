@@ -1,12 +1,12 @@
 
-package microfont.undo;
+package microfont.edit;
 
 import microfont.MFont;
 
-public class MFontUndo extends AbstractUndo {
+public class MFontEdit extends AbstractEdit {
     private static final long serialVersionUID = 1L;
 
-    public MFontUndo(MFont mFont, String operation) {
+    public MFontEdit(MFont mFont, String operation) {
         super(operation);
         // TODO Auto-generated constructor stub
     }

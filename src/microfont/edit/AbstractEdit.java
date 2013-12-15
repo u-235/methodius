@@ -1,11 +1,14 @@
 
-package microfont.undo;
+package microfont.edit;
 
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoableEdit;
 
-public abstract class AbstractUndo implements UndoableEdit {
+/**
+ * Реализация отменяемых операций <code>UndoableEdit</code>.
+ */
+public abstract class AbstractEdit implements UndoableEdit {
     private static final String DEFAULT_UNDO_NAME = "Undo";
     private static final String DEFAULT_REDO_NAME = "Redo";
     private static String       undoName          = DEFAULT_UNDO_NAME;
@@ -15,7 +18,13 @@ public abstract class AbstractUndo implements UndoableEdit {
     protected boolean           isUndo;
     protected boolean           isEmpty;
 
-    public AbstractUndo(String operation) {
+    /**
+     * Создание отменяемой операции.
+     * 
+     * @param operation Название операции. Должно быть представлено текстом,
+     *            понятным человеку, на языке текущей локализации.
+     */
+    public AbstractEdit(String operation) {
         this.operation = operation;
         isUndo = true;
         isEmpty = false;
@@ -60,7 +69,6 @@ public abstract class AbstractUndo implements UndoableEdit {
 
     @Override
     public boolean isSignificant() {
-        // TODO Auto-generated method stub
         return true;
     }
 
@@ -75,6 +83,15 @@ public abstract class AbstractUndo implements UndoableEdit {
         return undoName;
     }
 
+    /**
+     * Устанавливает название отмены операций.
+     * 
+     * @param name Понятное человеку общее название отмены операций. Например,
+     *            на английском языке это <b>Undo</b>, на русском -
+     *            <b>Отменить</b>.
+     * @see #getUndoPresentationName()
+     * @see #getPresentationName()
+     */
     public static void setUndoName(String name) {
         if (name != null) undoName = name;
         else undoName = DEFAULT_UNDO_NAME;
@@ -86,6 +103,16 @@ public abstract class AbstractUndo implements UndoableEdit {
         return redoName;
     }
 
+    /**
+     * 
+     * Устанавливает название повтора операций.
+     * 
+     * @param name Понятное человеку общее название повтора операций. Например,
+     *            на английском языке это <b>Redo</b>, на русском -
+     *            <b>Повторить</b> или <b>Вернуть</b>.
+     * @see #getRedoPresentationName()
+     * @see #getPresentationName()
+     */
     public static void setRedoName(String name) {
         if (name != null) redoName = name;
         else redoName = DEFAULT_REDO_NAME;

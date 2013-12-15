@@ -1,15 +1,15 @@
 
-package microfont.undo;
+package microfont.edit;
 
 import microfont.DisallowOperationException;
 import microfont.MSymbol;
 
-public class MSymbolUndo extends AbstractUndo {
+public class MSymbolEdit extends AbstractEdit {
     MSymbol owner;
     MSymbol before;
     MSymbol after;
 
-    public MSymbolUndo(MSymbol mSymbol, String operation) {
+    public MSymbolEdit(MSymbol mSymbol, String operation) {
         super(operation);
         owner = mSymbol;
         before = new MSymbol(mSymbol);

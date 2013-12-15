@@ -3,17 +3,21 @@ package microfont;
 
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
-import microfont.undo.MFontUndo;
-import microfont.undo.MSymbolUndo;
+import microfont.edit.MFontEdit;
+import microfont.edit.MSymbolEdit;
 import utils.event.ListenerChain;
 
+/**
+ * 
+ *
+ */
 public class Document {
     private ListenerChain listeners = new ListenerChain();
     private MFont         font;
     /** Объект с изменениями шрифта. */
-    private MFontUndo     undoFont;
+    private MFontEdit     undoFont;
     /** Объект с изменениями символа. */
-    private MSymbolUndo   undoSymbol;
+    private MSymbolEdit   undoSymbol;
 
     public void addUndoableEditListener(UndoableEditListener listener) {
         listeners.add(UndoableEditListener.class, listener);
@@ -38,17 +42,17 @@ public class Document {
 
     public synchronized void fontEdit(String operation) {
         endEdit();
-        undoFont = new MFontUndo(font, operation);
+        undoFont = new MFontEdit(font, operation);
     }
 
     public synchronized void symbolEdit(MSymbol sym, String operation) {
         endEdit();
-        undoSymbol = new MSymbolUndo(sym, operation);
+        undoSymbol = new MSymbolEdit(sym, operation);
     }
 
     public synchronized void nestedEdit(MSymbol sym) {
         if (undoFont == null) return;
-        undoFont.addEdit(new MSymbolUndo(sym, null));
+        undoFont.addEdit(new MSymbolEdit(sym, null));
     }
 
     public synchronized void endEdit() {
