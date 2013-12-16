@@ -56,6 +56,12 @@ public class MFont extends Object implements PixselMapListener,
     private int                line;
     private int                descent;
     private ListenerChain      listeners           = new ListenerChain();
+    /**
+     * Документ, которому принадлежит шрифт. Эта переменная никак не
+     * изменяется в классе.
+     * 
+     * @see Document
+     */
     Document                   document;
 
     public MFont() {

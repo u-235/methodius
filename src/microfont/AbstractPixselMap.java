@@ -195,6 +195,7 @@ public class AbstractPixselMap {
                 break;
             default:// i.e. DIR_TOP_LEFT
                 direction = DIR_TOP_LEFT;
+                //$FALL-THROUGH$
             case DIR_LEFT_TOP:
                 posX = startX;
                 posY = startY;
