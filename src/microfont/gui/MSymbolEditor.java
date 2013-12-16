@@ -7,6 +7,8 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.beans.PropertyChangeEvent;
+import microfont.Document;
 import microfont.MSymbol;
 
 public class MSymbolEditor extends MAbstractComponent implements MouseListener,
@@ -18,6 +20,7 @@ public class MSymbolEditor extends MAbstractComponent implements MouseListener,
 
     MSymbolHit                symbolHit        = null;
     int                       prevX, prevY;
+    private Document document;
 
     public MSymbolEditor(MSymbol symbol) {
         super(symbol);
@@ -54,7 +57,7 @@ public class MSymbolEditor extends MAbstractComponent implements MouseListener,
             else return;
 
             changeEnable = true;
-            if (symbol != null) symbol.beginChange("paint");
+            if (symbol != null && document != null) document.symbolEdit("paint");
 
             symbolHit = hit(symbolHit, e.getX(), e.getY());
             if ((symbolHit.flags & symbolHit.PIXSEL) != 0)
@@ -71,7 +74,7 @@ public class MSymbolEditor extends MAbstractComponent implements MouseListener,
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        if (symbol != null) symbol.endChange();
+        if (symbol != null && document != null) document.endEdit();
         if (changeEnable) changeEnable = false;
     }
 
@@ -137,5 +140,36 @@ public class MSymbolEditor extends MAbstractComponent implements MouseListener,
         drawSymbol(g, X, Y);
         drawMargins(g, X, Y);
         drawGrid(g, X, Y);
+    }
+    
+    public Document getDocument() {
+        return document;
+    }
+    
+    public void setDocument(Document doc) {
+        if (document != null) {
+            document.addPropertyChangeListener(this);
+        }
+        
+        document=doc;
+        
+        if (document != null) {
+            document.removePropertyChangeListener(this);
+        }
+    }
+    
+    @Override
+    public void setSymbol(MSymbol sym) {
+        super.setSymbol(sym);
+        if (document != null) document.setEditedSymbol(sym);
+    }
+    
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+        super.propertyChange(event);
+        if(document != null && event.getSource() == document) {
+            if (event.getPropertyName().equals(Document.PROPERTY_EDITED_SYMBOL))
+                super.setSymbol((MSymbol)event.getNewValue());
+        }
     }
 }

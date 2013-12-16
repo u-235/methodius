@@ -163,7 +163,7 @@ public class PFontSize extends JPanel implements PropertyChangeListener {
                 sp = (JSpinner) e.getSource();
                 value = ((Integer) sp.getValue());
 
-                check = mFont.checkAscentCapital(value);
+                check = mFont.checkLine(value);
                 if (value != check) sp.setValue(check);
                 else mFont.setLine(value);
             }

@@ -110,7 +110,7 @@ public class MSymbol extends PixselMap {
      * 
      * @see #setCode(int)
      */
-    public int getCode() {
+    public synchronized int getCode() {
         return code;
     }
 
@@ -146,7 +146,7 @@ public class MSymbol extends PixselMap {
      * @see #isUnicode()
      * @see #setUnicode(int)
      */
-    public int getUnicode() {
+    public synchronized int getUnicode() {
         return code;
     }
 

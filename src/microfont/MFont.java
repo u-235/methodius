@@ -14,31 +14,23 @@ import utils.event.ListenerChain;
  */
 public class MFont extends Object implements PixselMapListener,
                 PropertyChangeListener {
-    public static final String FONT_ASCENT         = "mf.ascent";
-    public static final String FONT_LINE           = "mf.line";
-    public static final String FONT_AUTHOR         = "mf.author";
-    public static final String FONT_BASELINE       = "mf.baseline";
-    public static final String FONT_CODE_PAGE      = "mf.CodePage";
-    public static final String FONT_DESCENT        = "mf.descent";
-    public static final String FONT_FIXSED         = "mf.fixsed";
-    public static final String FONT_HEIGHT         = "mf.height";
-    public static final String FONT_MARGIN_LEFT    = "mf.magrin.left";
-    public static final String FONT_MARGIN_RIGHT   = "mf.margin.right";
-    public static final String FONT_NAME           = "mf.name";
-    public static final String FONT_PROTOTYPE      = "mf.prototype";
-    public static final String FONT_REMOVE_ALL     = "mf.remove.all";
-    public static final String FONT_SIZE           = "mf.size";
-    public static final String FONT_SYMBOL_ADDED   = "mf.symbol.added";
-    public static final String FONT_SYMBOL_CHANGED = "mf.symbol.changed";
-    public static final String FONT_SYMBOL_REMOVE  = "mf.symbol.removed";
-    public static final String FONT_SYMBOL_REPLACE = "mf.symbol.replaced";
-    public static final String FONT_WIDTH          = "mf.width";
-    public static final String FONT_WIDTH_MAX      = "mf.width.max";
-    public static final String FONT_WIDTH_MIN      = "mf.width.min";
-    public static final String FONT_DESCRIPTION    = "mf.description";
+    public static final String PROPERTY_ASCENT       = "mf.ascent";
+    public static final String PROPERTY_AUTHOR       = "mf.author";
+    public static final String PROPERTY_BASELINE     = "mf.baseline";
+    public static final String PROPERTY_CODE_PAGE    = "mf.CodePage";
+    public static final String PROPERTY_DESCENT      = "mf.descent";
+    public static final String PROPERTY_DESCRIPTION  = "mf.description";
+    public static final String PROPERTY_FIXSED       = "mf.fixsed";
+    public static final String PROPERTY_HEIGHT       = "mf.height";
+    public static final String PROPERTY_LINE         = "mf.line";
+    public static final String PROPERTY_MARGIN_LEFT  = "mf.magrin.left";
+    public static final String PROPERTY_MARGIN_RIGHT = "mf.margin.right";
+    public static final String PROPERTY_NAME         = "mf.name";
+    public static final String PROPERTY_PROTOTYPE    = "mf.prototype";
+    public static final String PROPERTY_SYMBOLS      = "mf.symbols";
+    public static final String PROPERTY_WIDTH        = "mf.width";
 
-    private MSymbol[]          symbols             = new MSymbol[0];
-    private int                size                = 0;
+    private MSymbol[]          symbols               = new MSymbol[0];
     private String             name;
     private String             prototype;
     private String             description;
@@ -55,10 +47,10 @@ public class MFont extends Object implements PixselMapListener,
     private int                ascent;
     private int                line;
     private int                descent;
-    private ListenerChain      listeners           = new ListenerChain();
+    private ListenerChain      listeners             = new ListenerChain();
     /**
-     * Документ, которому принадлежит шрифт. Эта переменная никак не
-     * изменяется в классе.
+     * Документ, которому принадлежит шрифт. Эта переменная никак не изменяется
+     * в классе.
      * 
      * @see Document
      */
@@ -150,22 +142,13 @@ public class MFont extends Object implements PixselMapListener,
     }
 
     protected void firePropertyChange(MSymbol oldValue, MSymbol newValue) {
-        String reason;
+        if (oldValue == newValue) return;
 
-        if (oldValue == null) {
-            if (newValue == null) return;
-            reason = FONT_SYMBOL_ADDED;
-        } else {
-            if (newValue == null) reason = FONT_SYMBOL_REMOVE;
-            else if (oldValue.equals(newValue)) return;
-            else reason = FONT_SYMBOL_REPLACE;
-        }
-
-        firePropertyChange(new PropertyChangeEvent(this, reason, oldValue,
-                        newValue));
+        firePropertyChange(new PropertyChangeEvent(this, PROPERTY_SYMBOLS,
+                        oldValue, newValue));
     }
 
-    protected void firePropertyChange(String message, String oldValue,
+    protected void firePropertyChange(String property, String oldValue,
                     String newValue) {
         if (oldValue == null) {
             if (newValue == null) return;
@@ -173,22 +156,23 @@ public class MFont extends Object implements PixselMapListener,
             if (newValue != null && oldValue.equals(newValue)) return;
         }
 
-        firePropertyChange(new PropertyChangeEvent(this, message, oldValue,
+        firePropertyChange(new PropertyChangeEvent(this, property, oldValue,
                         newValue));
     }
 
-    protected void firePropertyChange(String message, int oldValue, int newValue) {
+    protected void firePropertyChange(String property, int oldValue,
+                    int newValue) {
         if (oldValue == newValue) return;
 
-        firePropertyChange(new PropertyChangeEvent(this, message, new Integer(
+        firePropertyChange(new PropertyChangeEvent(this, property, new Integer(
                         oldValue), new Integer(newValue)));
     }
 
-    protected void firePropertyChange(String message, boolean oldValue,
+    protected void firePropertyChange(String property, boolean oldValue,
                     boolean newValue) {
         if (oldValue == newValue) return;
 
-        firePropertyChange(new PropertyChangeEvent(this, message, new Boolean(
+        firePropertyChange(new PropertyChangeEvent(this, property, new Boolean(
                         oldValue), new Boolean(newValue)));
     }
 
@@ -246,24 +230,12 @@ public class MFont extends Object implements PixselMapListener,
     }
 
     public void copy(MFont font) {
-        boolean oldFix;
-        int oldWidth, oldHeight;
-        if (font == null) return;
+        removeAll();
+        setWidth(font.width);
+        setHeight(font.height);
+        setFixsed(font.fixsed);
+        setSymbols(font.getSymbols());
 
-        /* Уловка для замены символов. */
-        oldFix = fixsed;
-        oldWidth = width;
-        oldHeight = height;
-        fixsed = font.fixsed;
-        width = font.width;
-        height = font.height;
-        validWidth = font.validWidth;
-        validHeight = font.validHeight;
-
-        setName(font.name);
-        setPrototype(font.prototype);
-        setCodePage(font.codePage);
-        setAuthor(font.author);
         setMarginLeft(font.marginLeft);
         setMarginRight(font.marginRight);
         setBaseline(font.baseline);
@@ -271,17 +243,13 @@ public class MFont extends Object implements PixselMapListener,
         setLine(font.line);
         setDescent(font.descent);
 
-        setSymbols(font.getSymbols());
-
-        width = oldWidth;
-        height = oldHeight;
-        setWidth(font.width);
-        setHeight(font.height);
-        fixsed = oldFix;
-        setFixsed(font.fixsed);
+        setName(font.name);
+        setPrototype(font.prototype);
+        setCodePage(font.codePage);
+        setAuthor(font.author);
     }
 
-    String convertName(String name) {
+    private String convertName(String name) {
         String ret;
         int i, j;
 
@@ -306,7 +274,7 @@ public class MFont extends Object implements PixselMapListener,
     public void setName(String s) {
         String old = name;
         name = convertName(s);
-        firePropertyChange(FONT_NAME, old, name);
+        firePropertyChange(PROPERTY_NAME, old, name);
     }
 
     public String getPrototype() {
@@ -316,7 +284,7 @@ public class MFont extends Object implements PixselMapListener,
     public void setPrototype(String s) {
         String old = this.prototype;
         prototype = convertName(s);
-        firePropertyChange(FONT_PROTOTYPE, old, prototype);
+        firePropertyChange(PROPERTY_PROTOTYPE, old, prototype);
     }
 
     public String getDescriptin() {
@@ -326,7 +294,7 @@ public class MFont extends Object implements PixselMapListener,
     public void setDescriptin(String s) {
         String old = description;
         description = s;
-        firePropertyChange(FONT_DESCRIPTION, old, description);
+        firePropertyChange(PROPERTY_DESCRIPTION, old, description);
     }
 
     public boolean isFixsed() {
@@ -338,6 +306,8 @@ public class MFont extends Object implements PixselMapListener,
         int max = getMaxWidth();
         this.fixsed = fixsed;
 
+        firePropertyChange(PROPERTY_FIXSED, old, this.fixsed);
+
         if (!old && this.fixsed) {
             validWidth = max;
             for (MSymbol sym : symbols) {
@@ -348,8 +318,6 @@ public class MFont extends Object implements PixselMapListener,
                 }
             }
         }
-
-        firePropertyChange(FONT_FIXSED, old, this.fixsed);
     }
 
     public String getCodePage() {
@@ -360,7 +328,7 @@ public class MFont extends Object implements PixselMapListener,
         String old = codePage;
         codePage = cp;
 
-        firePropertyChange(FONT_CODE_PAGE, old, codePage);
+        firePropertyChange(PROPERTY_CODE_PAGE, old, codePage);
     }
 
     public String getAuthor() {
@@ -371,7 +339,7 @@ public class MFont extends Object implements PixselMapListener,
         String old = author;
         author = s;
 
-        firePropertyChange(FONT_AUTHOR, old, author);
+        firePropertyChange(PROPERTY_AUTHOR, old, author);
     }
 
     public int getWidth() {
@@ -381,43 +349,51 @@ public class MFont extends Object implements PixselMapListener,
     public void setWidth(int w) {
         int oldWidth;
 
-        if (!fixsed) return;
-
         oldWidth = width;
         validWidth = w;
+        width = w;
 
-        for (MSymbol sym : symbols) {
-            try {
-                if (document != null) document.nestedEdit(sym);
-                sym.setWidth(w);
-            } catch (DisallowOperationException e) {
-                // XXX print
-                System.out.println("bad width");
+        firePropertyChange(PROPERTY_WIDTH, oldWidth, width);
+
+        if (isFixsed()) {
+            for (MSymbol sym : symbols) {
+                try {
+                    if (document != null) document.nestedEdit(sym);
+                    sym.setWidth(width);
+                } catch (DisallowOperationException e) {
+                    // XXX print
+                    System.out.println("bad width");
+                }
             }
         }
 
-        width = w;
-
-        firePropertyChange(FONT_WIDTH, oldWidth, width);
         setMarginLeft(marginLeft);
         setMarginRight(marginRight);
     }
 
     public int getMinWidth() {
-        int ret = 0;
+        if (symbols.length == 0) return getWidth();
+        
+        int ret = Integer.MAX_VALUE;
+        int w;
 
         for (MSymbol sym : symbols) {
-            ret = ret < sym.getWidth() ? ret : sym.getWidth();
+            w = sym.getWidth();
+            ret = ret < w ? ret : w;
         }
 
         return ret;
     }
 
     public int getMaxWidth() {
+        if (symbols.length == 0) return  getWidth();
+
         int ret = 0;
+        int w ;
 
         for (MSymbol sym : symbols) {
-            ret = ret < sym.getWidth() ? sym.getWidth() : ret;
+            w = sym.getWidth();
+            ret = ret < w ? w : ret;
         }
 
         return ret;
@@ -428,27 +404,26 @@ public class MFont extends Object implements PixselMapListener,
     }
 
     public void setHeight(int h) {
-        int old = this.height;
+        int old = height;
 
         if (h < 0) throw (new IllegalArgumentException("invalid height"));
 
         validHeight = h;
+        height = h;
 
-        if (old != h) {
+        firePropertyChange(PROPERTY_HEIGHT, old, height);
+
+        if (old != height) {
             for (MSymbol sym : symbols) {
                 try {
                     if (document != null) document.nestedEdit(sym);
-                    sym.setHeight(this.height);
+                    sym.setHeight(height);
                 } catch (DisallowOperationException e) {
                     // XXX print
                     System.out.println("bad height");
                 }
             }
         }
-
-        this.height = h;
-
-        firePropertyChange(FONT_HEIGHT, old, height);
 
         setBaseline(baseline);
     }
@@ -467,15 +442,13 @@ public class MFont extends Object implements PixselMapListener,
     public void setMarginLeft(int margin) {
         int old = marginLeft;
 
-        // if (margin < 0) throw (new
-        // IllegalArgumentException("invalid margin"));
         marginLeft = checkMarginLeft(margin);
 
-        firePropertyChange(FONT_MARGIN_LEFT, old, marginLeft);
+        firePropertyChange(PROPERTY_MARGIN_LEFT, old, marginLeft);
     }
 
     public int getMarginRight() {
-        return this.marginRight;
+        return marginRight;
     }
 
     public int checkMarginRight(int value) {
@@ -486,17 +459,15 @@ public class MFont extends Object implements PixselMapListener,
     }
 
     public void setMarginRight(int margin) {
-        int old = this.marginRight;
+        int old = marginRight;
 
-        // if (margin < 0) throw (new
-        // IllegalArgumentException("invalid margin"));
-        this.marginRight = checkMarginRight(margin);
+        marginRight = checkMarginRight(margin);
 
-        firePropertyChange(FONT_MARGIN_RIGHT, old, this.marginRight);
+        firePropertyChange(PROPERTY_MARGIN_RIGHT, old, marginRight);
     }
 
     public int getBaseline() {
-        return this.baseline;
+        return baseline;
     }
 
     public int checkBaseline(int value) {
@@ -506,21 +477,20 @@ public class MFont extends Object implements PixselMapListener,
         else return value;
     }
 
-    public void setBaseline(int baseline) {
-        int old = this.baseline;
+    public void setBaseline(int bl) {
+        int old = baseline;
 
-        if (baseline < 0)
-            throw (new IllegalArgumentException("invalid baseline"));
-        this.baseline = checkBaseline(baseline);
+        if (bl < 0) throw (new IllegalArgumentException("invalid baseline"));
+        baseline = checkBaseline(bl);
 
-        firePropertyChange(FONT_BASELINE, old, this.baseline);
+        firePropertyChange(PROPERTY_BASELINE, old, baseline);
 
         setAscent(ascent);
         setDescent(descent);
     }
 
     public int getAscent() {
-        return this.ascent;
+        return ascent;
     }
 
     public int checkAscent(int value) {
@@ -530,13 +500,13 @@ public class MFont extends Object implements PixselMapListener,
         else return value;
     }
 
-    public void setAscent(int ascent) {
-        int old = this.ascent;
+    public void setAscent(int asc) {
+        int old = ascent;
 
-        if (ascent < 0) throw (new IllegalArgumentException("invalid ascent"));
-        this.ascent = checkAscent(ascent);
+        if (asc < 0) throw (new IllegalArgumentException("invalid ascent"));
+        ascent = checkAscent(asc);
 
-        firePropertyChange(FONT_ASCENT, old, this.ascent);
+        firePropertyChange(PROPERTY_ASCENT, old, ascent);
 
         setLine(line);
     }
@@ -545,25 +515,24 @@ public class MFont extends Object implements PixselMapListener,
         return this.line;
     }
 
-    public int checkAscentCapital(int value) {
+    public int checkLine(int value) {
         int bound = ascent / 2;
         if (value < bound) return bound;
         else if (value > ascent) return ascent;
         else return value;
     }
 
-    public void setLine(int ascentCapital) {
-        int old = this.line;
+    public void setLine(int ln) {
+        int old = line;
 
-        if (ascentCapital < 0)
-            throw (new IllegalArgumentException("invalid line"));
-        this.line = checkAscentCapital(ascentCapital);
+        if (ln < 0) throw (new IllegalArgumentException("invalid line"));
+        line = checkLine(ln);
 
-        firePropertyChange(FONT_LINE, old, this.line);
+        firePropertyChange(PROPERTY_LINE, old, line);
     }
 
     public int getDescent() {
-        return this.descent;
+        return descent;
     }
 
     public int checkDescent(int value) {
@@ -573,14 +542,13 @@ public class MFont extends Object implements PixselMapListener,
         else return value;
     }
 
-    public void setDescent(int descent) {
-        int old = this.descent;
+    public void setDescent(int dsc) {
+        int old = descent;
 
-        if (descent < 0)
-            throw (new IllegalArgumentException("invalid descent"));
-        this.descent = checkDescent(descent);
+        if (dsc < 0) throw (new IllegalArgumentException("invalid descent"));
+        descent = checkDescent(dsc);
 
-        firePropertyChange(FONT_DESCENT, old, this.descent);
+        firePropertyChange(PROPERTY_DESCENT, old, descent);
     }
 
     /**
@@ -597,7 +565,7 @@ public class MFont extends Object implements PixselMapListener,
      * @see #getSize()
      */
     public boolean isEmpty() {
-        return size <= 0;
+        return symbols.length <= 0;
     }
 
     /**
@@ -606,7 +574,7 @@ public class MFont extends Object implements PixselMapListener,
      * @see #isEmpty()
      */
     public int getSize() {
-        return size;
+        return symbols.length;
     }
 
     public MSymbol symbolAtNumber(int index) {
@@ -622,7 +590,7 @@ public class MFont extends Object implements PixselMapListener,
         return null;
     }
 
-    private void add(MSymbol symbol, boolean fire) {
+    public void add(MSymbol symbol) {
         MSymbol old = null;
         int i;
 
@@ -662,7 +630,6 @@ public class MFont extends Object implements PixselMapListener,
             System.arraycopy(symbols, i, t, i + 1, symbols.length - i);
             t[i] = symbol;
             symbols = t;
-            size++;
         } else {
             old.removeNotifyEventListener(this);
             old.removePixselMapListener(this);
@@ -670,16 +637,12 @@ public class MFont extends Object implements PixselMapListener,
             symbols[i] = symbol;
         }
 
-        if (fire) {
-            firePropertyChange(old, symbol);
-            if (old == null) firePropertyChange(FONT_SIZE, size - 1, size);
-        }
+        firePropertyChange(old, symbol);
     }
 
-    private void remove(MSymbol symbol, boolean fire) {
+    public void remove(MSymbol symbol) {
         int i;
 
-        if (symbol == null) return;
         if (!isBelong(symbol)) return;
 
         i = 0;
@@ -697,39 +660,7 @@ public class MFont extends Object implements PixselMapListener,
         System.arraycopy(symbols, 0, t, 0, i);
         System.arraycopy(symbols, i + 1, t, i, symbols.length - i - 1);
 
-        size--;
-
-        if (fire) {
-            firePropertyChange(symbol, null);
-            firePropertyChange(FONT_SIZE, size + 1, size);
-        }
-    }
-
-    private void removeAll(boolean fire) {
-        int oldSize;
-
-        oldSize = size;
-
-        for (MSymbol sym : symbols) {
-            sym.removeNotifyEventListener(this);
-            sym.removePixselMapListener(this);
-            sym.owner = null;
-        }
-
-        symbols = new MSymbol[0];
-        size = 0;
-
-        if (fire) {
-            firePropertyChange(FONT_SIZE, oldSize, size);
-        }
-    }
-
-    public void add(MSymbol symbol) {
-        add(symbol, true);
-    }
-
-    public void remove(MSymbol symbol) {
-        remove(symbol, true);
+        firePropertyChange(symbol, null);
     }
 
     public void removeAtIndex(int index) {
@@ -737,7 +668,9 @@ public class MFont extends Object implements PixselMapListener,
     }
 
     public void removeAll() {
-        removeAll(true);
+        for (MSymbol sym : symbols) {
+            remove(sym);
+        }
     }
 
     public MSymbol[] getSymbols() {
@@ -747,11 +680,62 @@ public class MFont extends Object implements PixselMapListener,
         return ret;
     }
 
-    public void setSymbols(MSymbol[] symbols) {
-        removeAll(false);
-        for (MSymbol sym : symbols) {
-            add(sym, false);
+    public void setSymbols(MSymbol[] ss) {
+        removeAll();
+        for (MSymbol sym : ss) {
+            add(sym);
         }
-        firePropertyChange(FONT_SIZE);
+    }
+
+    public Object getProperty(String property) {
+        if (property.equals(PROPERTY_ASCENT)) return new Integer(getAscent());
+        else if (property.equals(PROPERTY_AUTHOR)) return getAuthor();
+        else if (property.equals(PROPERTY_BASELINE)) return new Integer(
+                        getBaseline());
+        else if (property.equals(PROPERTY_CODE_PAGE)) return getCodePage();
+        else if (property.equals(PROPERTY_DESCENT)) return new Integer(
+                        getDescent());
+        else if (property.equals(PROPERTY_DESCRIPTION)) return getDescriptin();
+        else if (property.equals(PROPERTY_FIXSED)) return new Boolean(
+                        isFixsed());
+        else if (property.equals(PROPERTY_HEIGHT)) return new Integer(
+                        getHeight());
+        else if (property.equals(PROPERTY_LINE)) return new Integer(getLine());
+        else if (property.equals(PROPERTY_MARGIN_LEFT)) return new Integer(
+                        getMarginLeft());
+        else if (property.equals(PROPERTY_MARGIN_RIGHT)) return new Integer(
+                        getMarginRight());
+        else if (property.equals(PROPERTY_NAME)) return getName();
+        else if (property.equals(PROPERTY_PROTOTYPE)) return getPrototype();
+        else if (property.equals(PROPERTY_WIDTH))
+            return new Integer(getWidth());
+        return null;
+    }
+
+    public void setProperty(String property, Object value) {
+        if (value instanceof Integer) {
+            int i = ((Integer) value).intValue();
+
+            if (property.equals(PROPERTY_ASCENT)) setAscent(i);
+            else if (property.equals(PROPERTY_BASELINE)) setBaseline(i);
+            else if (property.equals(PROPERTY_DESCENT)) setDescent(i);
+            else if (property.equals(PROPERTY_HEIGHT)) setHeight(i);
+            else if (property.equals(PROPERTY_LINE)) setLine(i);
+            else if (property.equals(PROPERTY_MARGIN_LEFT)) setMarginLeft(i);
+            else if (property.equals(PROPERTY_MARGIN_RIGHT)) setMarginRight(i);
+            else if (property.equals(PROPERTY_WIDTH)) setWidth(i);
+        } else if (value instanceof Boolean) {
+            boolean b = ((Boolean) value).booleanValue();
+
+            if (property.equals(PROPERTY_FIXSED)) setFixsed(b);
+        } else if (value instanceof String) {
+            String s = (String) value;
+
+            if (property.equals(PROPERTY_AUTHOR)) setAuthor(s);
+            else if (property.equals(PROPERTY_CODE_PAGE)) setCodePage(s);
+            else if (property.equals(PROPERTY_DESCRIPTION)) setDescriptin(s);
+            else if (property.equals(PROPERTY_NAME)) setName(s);
+            else if (property.equals(PROPERTY_PROTOTYPE)) setPrototype(s);
+        }
     }
 }

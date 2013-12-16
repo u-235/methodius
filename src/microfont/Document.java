@@ -233,7 +233,7 @@ public class Document {
      * @param sym Изменяемый символ. Этот символ должен принадлежать шрифту.
      */
     public synchronized void nestedEdit(MSymbol sym) {
-        if (font == null || !font.isBelong(sym)) return;
+        if (undoFont == null || font == null || !font.isBelong(sym)) return;
 
         undoFont.addEdit(new MSymbolEdit(sym, null));
     }

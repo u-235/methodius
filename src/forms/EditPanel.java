@@ -8,6 +8,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 import logic.Application;
+import microfont.Document;
 import microfont.MSymbol;
 import microfont.gui.MSymbolEditor;
 
@@ -47,5 +48,9 @@ public class EditPanel extends JPanel {
 
     public void setMSymbol(MSymbol symbol) {
         edit.setSymbol(symbol);
+    }
+
+    public void setDocument(Document doc) {
+        edit.setDocument(doc);
     }
 }

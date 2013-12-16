@@ -18,6 +18,7 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.undo.UndoManager;
+import microfont.Document;
 import microfont.MFont;
 import microfont.MSymbol;
 import microfont.ls.MFontLoadSave;
@@ -29,53 +30,54 @@ import forms.WorkShop;
 import gui.ActionX;
 
 public class Application {
-    public static final String         NAME             = "Mifodius";
-    public static final int            VER_MAJOR        = 0;
-    public static final int            VER_MINOR        = 8;
+    public static final String            NAME             = "Mifodius";
+    public static final int               VER_MAJOR        = 0;
+    public static final int               VER_MINOR        = 8;
 
-    public static final String         ON_NEW_FONT      = "font.new";
-    public static final String         ON_OPEN_FONT     = "font.open";
-    public static final String         ON_SAVE_FONT     = "font.save";
-    public static final String         ON_SAVE_AS       = "font.save.as";
-    public static final String         ON_UNDO          = "undo";
-    public static final String         ON_REDO          = "redo";
-    public static final String         ON_REFLECT_HOR   = "refl.hor";
-    public static final String         ON_REFLECT_VERT  = "refl.vert";
-    public static final String         ON_PROPERTIES    = "font.prop";
-    public static final String         ON_EXIT          = "exit";
-    public static final String         ON_SHIFT_LEFT    = "shift.left";
-    public static final String         ON_SHIFT_RIGHT   = "shift.right";
-    public static final String         ON_SHIFT_UP      = "shift.up";
-    public static final String         ON_SHIFT_DOWN    = "shift.down";
-    public static final String         ON_MODE_POINTER  = "mode.point";
-    public static final String         ON_MODE_XPENSIL  = "mode.x.pensil";
-    public static final String         ON_MODE_PENSIL   = "mode.pensil";
-    public static final String         ON_MODE_RUBER    = "mode.ruber";
-    public static final String         ON_SYMBOL_CHANGE = "symbol.change";
-    public static final String         ON_HEAP_SIZE     = "heap.size";
+    public static final String            ON_NEW_FONT      = "font.new";
+    public static final String            ON_OPEN_FONT     = "font.open";
+    public static final String            ON_SAVE_FONT     = "font.save";
+    public static final String            ON_SAVE_AS       = "font.save.as";
+    public static final String            ON_UNDO          = "undo";
+    public static final String            ON_REDO          = "redo";
+    public static final String            ON_REFLECT_HOR   = "refl.hor";
+    public static final String            ON_REFLECT_VERT  = "refl.vert";
+    public static final String            ON_PROPERTIES    = "font.prop";
+    public static final String            ON_EXIT          = "exit";
+    public static final String            ON_SHIFT_LEFT    = "shift.left";
+    public static final String            ON_SHIFT_RIGHT   = "shift.right";
+    public static final String            ON_SHIFT_UP      = "shift.up";
+    public static final String            ON_SHIFT_DOWN    = "shift.down";
+    public static final String            ON_MODE_POINTER  = "mode.point";
+    public static final String            ON_MODE_XPENSIL  = "mode.x.pensil";
+    public static final String            ON_MODE_PENSIL   = "mode.pensil";
+    public static final String            ON_MODE_RUBER    = "mode.ruber";
+    public static final String            ON_SYMBOL_CHANGE = "symbol.change";
+    public static final String            ON_HEAP_SIZE     = "heap.size";
 
-    public static Resource             res;
-    static File                        fontFile;
-    static String                      fontName         = "new font";
-    static boolean                     fontSaved;
-    public static boolean              exit;
+    public static Resource                res;
+    static File                           fontFile;
+    static String                         fontName         = "new font";
+    static boolean                        fontSaved;
+    public static boolean                 exit;
 
-    static ActionMap                   actions;
+    static ActionMap                      actions;
 
-    private static OnUndoRedo          atUndoRedo;
-    static UndoManager                 uManager;
-    static int                         undoCount;
+    private static OnUndoRedo             atUndoRedo;
+    static UndoManager                    uManager;
+    static int                            undoCount;
 
-    static WorkShop                    work;
-    static FontPanel                   fontPanel;
-    static EditPanel                   editPanel;
-    static JFileChooser                chooserSave;
-    static JFileChooser                chooserOpen;
-    static FontProperties              fpf;
+    static WorkShop                       work;
+    static FontPanel                      fontPanel;
+    static EditPanel                      editPanel;
+    static JFileChooser                   chooserSave;
+    static JFileChooser                   chooserOpen;
+    static FontProperties                 fpf;
 
-    private static MFont               font;
+    //private static MFont                  font;
+    private static Document               doc;
     private static PropertyChangeListener atFontChange;
-    private static int                 mode;
+    private static int                    mode;
 
     public static void main(String[] args) {
         Runtime r;
@@ -107,6 +109,9 @@ public class Application {
 
     public static void doWorkShop() {
         if (work != null) return;
+        
+        doc=new Document();
+        
         res = new Resource("locale/MainForm");
         atFontChange = new OnFontChange();
 
@@ -115,6 +120,8 @@ public class Application {
 
         atUndoRedo = new OnUndoRedo();
         uManager = new UndoManager();
+        doc.addUndoableEditListener(uManager);
+        doc.addUndoableEditListener(atUndoRedo);
         updateUndoRedo();
 
         work.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -130,12 +137,13 @@ public class Application {
             }
         });
         editPanel = new EditPanel(actions);
+        editPanel.setDocument(doc);
         fontPanel = new FontPanel(actions);
         work.setLeft(fontPanel);
         work.setRight(editPanel);
 
         setMFont(new MFont());
-        //updateTitle();
+        // updateTitle();
         setSaved(true);
 
         work.pack();
@@ -199,12 +207,14 @@ public class Application {
     }
 
     static synchronized void setMFont(MFont newFont) {
+        MFont font=doc.getFont();
         if (font != null) {
             font.removePropertyChangeListener(atFontChange);
             uManager.discardAllEdits();
         }
 
         font = newFont;
+        doc.setFont(font);
 
         if (font != null) {
             // XXX print
@@ -275,6 +285,7 @@ public class Application {
 
     private static boolean saveFontFile(boolean saveAs) {
         File file;
+        MFont font=doc.getFont();
 
         if (font == null) return false;
 
@@ -349,7 +360,7 @@ public class Application {
     private static class OnFontChange implements PropertyChangeListener {
         @Override
         public void propertyChange(PropertyChangeEvent change) {
-            //XXX print
+            // XXX print
             System.out.println(change.getPropertyName());
             updateUndoRedo();
         }
@@ -508,9 +519,9 @@ public class Application {
         public void actionPerformed(ActionEvent e) {
             try {
                 MSymbol symbol = editPanel.getMSymbol();
-                symbol.beginChange("reflect horizontale");
+                doc.symbolEdit("reflect horizontale");
                 symbol.reflectHorizontale();
-                symbol.endChange();
+                doc.endEdit();
             } catch (NullPointerException ex) {
             }
         }
@@ -527,9 +538,9 @@ public class Application {
         public void actionPerformed(ActionEvent e) {
             try {
                 MSymbol symbol = editPanel.getMSymbol();
-                symbol.beginChange("reflect verticale");
+                doc.symbolEdit("reflect verticale");
                 symbol.reflectVerticale();
-                symbol.endChange();
+                doc.endEdit();
             } catch (NullPointerException ex) {
             }
         }
@@ -546,9 +557,9 @@ public class Application {
         public void actionPerformed(ActionEvent e) {
             try {
                 MSymbol symbol = editPanel.getMSymbol();
-                symbol.beginChange("shift left");
+                doc.symbolEdit("shift left");
                 symbol.shiftLeft();
-                symbol.endChange();
+                doc.endEdit();
             } catch (NullPointerException ex) {
             }
         }
@@ -565,9 +576,9 @@ public class Application {
         public void actionPerformed(ActionEvent e) {
             try {
                 MSymbol symbol = editPanel.getMSymbol();
-                symbol.beginChange("shift right");
+                doc.symbolEdit("shift right");
                 symbol.shiftRight();
-                symbol.endChange();
+                doc.endEdit();
             } catch (NullPointerException ex) {
             }
         }
@@ -584,9 +595,9 @@ public class Application {
         public void actionPerformed(ActionEvent e) {
             try {
                 MSymbol symbol = editPanel.getMSymbol();
-                symbol.beginChange("shift up");
+                doc.symbolEdit("shift up");
                 symbol.shiftUp();
-                symbol.endChange();
+                doc.endEdit();
             } catch (NullPointerException ex) {
             }
         }
@@ -603,9 +614,9 @@ public class Application {
         public void actionPerformed(ActionEvent e) {
             try {
                 MSymbol symbol = editPanel.getMSymbol();
-                symbol.beginChange("shift down");
+                doc.symbolEdit("shift down");
                 symbol.shiftDown();
-                symbol.endChange();
+                doc.endEdit();
             } catch (NullPointerException ex) {
             }
         }
@@ -634,6 +645,7 @@ public class Application {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            MFont font=doc.getFont();
             MFont c;
             if (fpf == null) fpf = new FontProperties(work, res);
 
