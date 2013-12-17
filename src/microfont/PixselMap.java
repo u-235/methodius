@@ -162,7 +162,7 @@ public class PixselMap extends AbstractPixselMap {
      * 
      * @param listener Добавляемый получатель события.
      * @see #firePropertyChange(PropertyChangeEvent)
-     * @see #removeNotifyEventListener(PropertyChangeListener)
+     * @see #removePropertyChangeListener(PropertyChangeListener)
      */
     public void addPropertyChangeListener(PropertyChangeListener listener) {
         listeners.add(PropertyChangeListener.class, listener);
@@ -172,9 +172,9 @@ public class PixselMap extends AbstractPixselMap {
      * Удаление получателя события изменения свойств карты.
      * 
      * @param listener Удаляемый получатель события.
-     * @see #addNotifyEventListener(PropertyChangeListener)
+     * @see #addPropertyChangeListener(PropertyChangeListener)
      */
-    public void removeNotifyEventListener(PropertyChangeListener listener) {
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
         listeners.remove(PropertyChangeListener.class, listener);
     }
 

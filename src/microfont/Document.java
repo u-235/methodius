@@ -246,10 +246,12 @@ public class Document {
     public synchronized void endEdit() {
         if (undoFont != null) {
             undoFont.end();
-            fireUndoEvent(new UndoableEditEvent(this, undoFont));
+            if (undoFont.canUndo())
+                fireUndoEvent(new UndoableEditEvent(this, undoFont));
         } else if (undoSymbol != null) {
             undoSymbol.end();
-            fireUndoEvent(new UndoableEditEvent(this, undoSymbol));
+            if (undoSymbol.canUndo())
+                fireUndoEvent(new UndoableEditEvent(this, undoSymbol));
         }
 
         undoFont = null;

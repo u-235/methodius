@@ -597,7 +597,7 @@ public class MFont extends Object implements PixselMapListener,
         if (symbol == null) return;
         if (isBelong(symbol)) return;
 
-        symbol.removeNotifyEventListener(symbol.owner);
+        symbol.removePropertyChangeListener(symbol.owner);
         symbol.removePixselMapListener(symbol.owner);
         symbol.owner = this;
         symbol.addPropertyChangeListener(this);
@@ -631,7 +631,7 @@ public class MFont extends Object implements PixselMapListener,
             t[i] = symbol;
             symbols = t;
         } else {
-            old.removeNotifyEventListener(this);
+            old.removePropertyChangeListener(this);
             old.removePixselMapListener(this);
             old.owner = null;
             symbols[i] = symbol;
@@ -648,7 +648,7 @@ public class MFont extends Object implements PixselMapListener,
         i = 0;
         for (MSymbol sym : symbols) {
             if (sym.equals(symbol)) {
-                sym.removeNotifyEventListener(this);
+                sym.removePropertyChangeListener(this);
                 sym.removePixselMapListener(this);
                 sym.owner = null;
                 break;

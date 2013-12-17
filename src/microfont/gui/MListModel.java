@@ -96,8 +96,9 @@ public class MListModel extends AbstractListModel<MSymbol> implements
     public void propertyChange(PropertyChangeEvent event) {
         MFont font;
 
-        font = (MFont) event.getSource();
-
-        fireContentsChanged(this, 0, font.getSize() - 1);
+        if ((event.getSource() instanceof MFont)) {
+            font = (MFont) event.getSource();
+            fireContentsChanged(this, 0, font.getSize() - 1);
+        }
     }
 }

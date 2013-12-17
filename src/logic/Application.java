@@ -217,8 +217,6 @@ public class Application {
         doc.setFont(font);
 
         if (font != null) {
-            // XXX print
-            System.out.println("add listeners.");
             font.addPropertyChangeListener(atFontChange);
             fontName = font.getName();
         } else {
@@ -226,17 +224,9 @@ public class Application {
         }
         actions.get(ON_SAVE_AS).setEnabled(font != null);
 
-        // XXX print
-        System.out.println("set in font panel.");
         fontPanel.setMFont(font);
-        // XXX print
-        System.out.println("update title.");
         updateTitle();
-        // XXX print
-        System.out.println("update undo redo.");
         updateUndoRedo();
-        // XXX print
-        System.out.println("set saved.");
         setSaved(true);
     }
 
@@ -360,8 +350,6 @@ public class Application {
     private static class OnFontChange implements PropertyChangeListener {
         @Override
         public void propertyChange(PropertyChangeEvent change) {
-            // XXX print
-            System.out.println(change.getPropertyName());
             updateUndoRedo();
         }
     }
@@ -411,8 +399,6 @@ public class Application {
             if (file == null) return;
 
             try {
-                // XXX print
-                System.out.println("Load micro font.");
                 font = MFontLoadSave.load(file, null);
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(null, "Can't open file.",
@@ -427,8 +413,6 @@ public class Application {
             undoCount = 0;
             updateUndoRedo();
             fontFile = file;
-            // XXX print
-            System.out.println("Setting microfont.");
             setMFont(font);
         }
     }
@@ -651,7 +635,11 @@ public class Application {
 
             if (font == null) return;
             c = new MFont(font);
-            if (fpf.start(c) == FontProperties.ACTION_OK) font.copy(c);
+            if (fpf.start(c) == FontProperties.ACTION_OK) {
+                doc.fontEdit("change property");
+                font.copy(c);
+                doc.endEdit();
+            }
             fpf.setMFont(null);
         }
 
