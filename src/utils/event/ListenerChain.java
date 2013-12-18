@@ -64,7 +64,7 @@ public class ListenerChain {
      * 
      * @param size Требуемый размер массива.
      */
-    protected void _allocate(int size) {
+    protected void allocate(int size) {
         int sz;
 
         if (size == actualSize) return;
@@ -88,8 +88,8 @@ public class ListenerChain {
      * @param lClass Класс получателя сообщений.
      * @param listener Добавляемый получатель сообщений.
      */
-    protected <С extends EventListener> void _add(Class<С> lClass, С listener) {
-        _allocate(actualSize + 2);
+    protected <С extends EventListener> void pAdd(Class<С> lClass, С listener) {
+        allocate(actualSize + 2);
         items[actualSize - 2] = lClass;
         items[actualSize - 1] = listener;
     }
@@ -103,11 +103,13 @@ public class ListenerChain {
      * @param lClass Класс получателя сообщений.
      * @param listener Удаляемый получатель сообщений.
      */
-    protected <С extends EventListener> void _remove(Class<С> lClass, С listener) {
+    protected <С extends EventListener> void pRemove(Class<С> lClass, С listener) {
         for (int i = 0; i < actualSize; i += 2) {
             if (items[i] == lClass && items[i + 1] == listener) {
+                items[i] = null;
+                items[i + 1] = null;
                 System.arraycopy(items, i + 2, items, i, actualSize - i - 2);
-                _allocate(actualSize - 2);
+                allocate(actualSize - 2);
                 break;
             }
         }
@@ -138,8 +140,8 @@ public class ListenerChain {
                     С listener) {
         if (listener == null) return;
 
-        _remove(lClass, listener);
-        _add(lClass, listener);
+        pRemove(lClass, listener);
+        pAdd(lClass, listener);
     }
 
     /**
@@ -154,6 +156,6 @@ public class ListenerChain {
                     С listener) {
         if (listener == null) return;
 
-        _remove(lClass, listener);
+        pRemove(lClass, listener);
     }
 }
