@@ -42,9 +42,19 @@ public class MSymbolEdit extends AbstractEdit {
             e.printStackTrace();
         }
     }
+    
+    @Override
+    public void die() {
+        super.die();
+        owner=null;
+        before=null;
+        after=null;
+    }
 
     @Override
     public void end() {
+        super.end();
+        
         if (owner.equals(before)) {
             die();
             return;

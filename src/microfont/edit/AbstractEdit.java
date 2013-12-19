@@ -8,15 +8,16 @@ import javax.swing.undo.UndoableEdit;
 /**
  * Реализация отменяемых операций <code>UndoableEdit</code>.
  */
-public abstract class AbstractEdit implements UndoableEdit {
+public class AbstractEdit implements UndoableEdit {
     private static final String DEFAULT_UNDO_NAME = "Undo";
     private static final String DEFAULT_REDO_NAME = "Redo";
     private static String       undoName          = DEFAULT_UNDO_NAME;
     private static String       redoName          = DEFAULT_REDO_NAME;
 
     private String              operation;
-    protected boolean           isUndo;
-    protected boolean           isEmpty;
+    private boolean             isUndo;
+    private boolean             isEmpty;
+    private boolean             progress;
 
     /**
      * Создание отменяемой операции.
@@ -28,6 +29,7 @@ public abstract class AbstractEdit implements UndoableEdit {
         this.operation = operation;
         isUndo = true;
         isEmpty = false;
+        progress = true;
     }
 
     @Override
@@ -52,9 +54,16 @@ public abstract class AbstractEdit implements UndoableEdit {
         return !isUndo && !isEmpty;
     }
 
+    public boolean isLive() {
+        return !isEmpty;
+    }
+
     @Override
     public void die() {
+        if (isEmpty) return;
+        
         isEmpty = true;
+        end();
     }
 
     @Override
@@ -102,7 +111,7 @@ public abstract class AbstractEdit implements UndoableEdit {
         if (operation != null) return redoName + " " + operation;
         return redoName;
     }
-
+    
     /**
      * 
      * Устанавливает название повтора операций.
@@ -118,5 +127,21 @@ public abstract class AbstractEdit implements UndoableEdit {
         else redoName = DEFAULT_REDO_NAME;
     }
 
-    public abstract void end();
+    /**
+     * Возвращает <code>true</code> если объект может принимать данные.<br>
+     * После вызова {@link #end} возвращает </false>.
+     */
+    public boolean isInProgress() {
+        return progress;
+    }
+
+    /**
+     * Завершает состояние приёма данных. Последующие вызовы не имеют влияния.
+     * 
+     * @see #isInProgress()
+     * @see #addEdit(UndoableEdit)
+     */
+    public void end() {
+        progress = false;
+    }
 }

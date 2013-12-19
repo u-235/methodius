@@ -9,7 +9,6 @@ import utils.event.ListenerChain;
 
 /**
  * 
- * @author Николай
  * 
  */
 public class MFont extends Object implements PixselMapListener,
@@ -48,13 +47,6 @@ public class MFont extends Object implements PixselMapListener,
     private int                line;
     private int                descent;
     private ListenerChain      listeners             = new ListenerChain();
-    /**
-     * Документ, которому принадлежит шрифт. Эта переменная никак не изменяется
-     * в классе.
-     * 
-     * @see Document
-     */
-    Document                   document;
 
     public MFont() {
         codePage = null;
@@ -312,7 +304,6 @@ public class MFont extends Object implements PixselMapListener,
             validWidth = max;
             for (MSymbol sym : symbols) {
                 try {
-                    if (document != null) document.nestedEdit(sym);
                     sym.setWidth(max);
                 } catch (DisallowOperationException e) {
                 }
@@ -358,7 +349,6 @@ public class MFont extends Object implements PixselMapListener,
         if (isFixsed()) {
             for (MSymbol sym : symbols) {
                 try {
-                    if (document != null) document.nestedEdit(sym);
                     sym.setWidth(width);
                 } catch (DisallowOperationException e) {
                     // XXX print
@@ -373,7 +363,7 @@ public class MFont extends Object implements PixselMapListener,
 
     public int getMinWidth() {
         if (symbols.length == 0) return getWidth();
-        
+
         int ret = Integer.MAX_VALUE;
         int w;
 
@@ -386,10 +376,10 @@ public class MFont extends Object implements PixselMapListener,
     }
 
     public int getMaxWidth() {
-        if (symbols.length == 0) return  getWidth();
+        if (symbols.length == 0) return getWidth();
 
         int ret = 0;
-        int w ;
+        int w;
 
         for (MSymbol sym : symbols) {
             w = sym.getWidth();
@@ -416,7 +406,6 @@ public class MFont extends Object implements PixselMapListener,
         if (old != height) {
             for (MSymbol sym : symbols) {
                 try {
-                    if (document != null) document.nestedEdit(sym);
                     sym.setHeight(height);
                 } catch (DisallowOperationException e) {
                     // XXX print
@@ -604,12 +593,10 @@ public class MFont extends Object implements PixselMapListener,
         symbol.addPixselMapListener(this);
 
         try {
-            if (document != null) document.nestedEdit(symbol);
             symbol.setHeight(height);
         } catch (DisallowOperationException e) {
         }
         if (fixsed) try {
-            if (document != null) document.nestedEdit(symbol);
             symbol.setWidth(width);
         } catch (DisallowOperationException e) {
         }
@@ -647,7 +634,7 @@ public class MFont extends Object implements PixselMapListener,
 
         i = 0;
         for (MSymbol sym : symbols) {
-            if (sym.equals(symbol)) {
+            if (sym == symbol) {
                 sym.removePropertyChangeListener(this);
                 sym.removePixselMapListener(this);
                 sym.owner = null;
@@ -659,11 +646,12 @@ public class MFont extends Object implements PixselMapListener,
         MSymbol[] t = new MSymbol[symbols.length - 1];
         System.arraycopy(symbols, 0, t, 0, i);
         System.arraycopy(symbols, i + 1, t, i, symbols.length - i - 1);
+        symbols = t;
 
         firePropertyChange(symbol, null);
     }
 
-    public void removeAtIndex(int index) {
+    public void removeByCode(int index) {
         remove(symbolByCode(index));
     }
 
@@ -675,15 +663,19 @@ public class MFont extends Object implements PixselMapListener,
 
     public MSymbol[] getSymbols() {
         MSymbol[] ret = new MSymbol[symbols.length];
-
-        System.arraycopy(symbols, 0, ret, 0, symbols.length);
+        
+        for (int i=0; i < symbols.length; i++) {
+            ret[i]=new MSymbol(symbols[i]);
+        }
+        
         return ret;
     }
 
     public void setSymbols(MSymbol[] ss) {
         removeAll();
+        
         for (MSymbol sym : ss) {
-            add(sym);
+            add(new MSymbol(sym));
         }
     }
 

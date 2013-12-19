@@ -285,15 +285,10 @@ public class Document {
 
         if (font != null) {
             endEdit();
-            font.document = null;
         }
 
         font = mf;
         setEditedSymbol(null);
-
-        if (font != null) {
-            font.document = this;
-        }
 
         firePropertyChange(PROPERTY_FONT, oldFont, font);
     }
