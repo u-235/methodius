@@ -401,6 +401,13 @@ public class AbstractPixselMap {
      */
     public AbstractPixselMap() {
     }
+    
+    /**
+     * Возвращает объект для синхронизации.
+     */
+    protected Object getLock() {
+        return this;
+    }
 
     /**
      * Устанавливает ширину и высоту карты и подготавливает внутренний массив

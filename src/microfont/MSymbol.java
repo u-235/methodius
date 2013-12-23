@@ -27,7 +27,7 @@ package microfont;
  */
 public class MSymbol extends PixselMap {
     /** Шрифт, к которому принадлежит символ. */
-    MFont                      owner;
+    AbstractMFont              owner;
     /** Индекс символа в шрифте. Индекс зависит от кодовой страницы шрифта. */
     private int                code;
     /** Код символа в UTF-16 */
@@ -74,6 +74,16 @@ public class MSymbol extends PixselMap {
     public MSymbol(MSymbol src) {
         super(src);
         code = src.code;
+    }
+
+    /**
+     * Если символ принадлежит шрифту, то возвращается объект синхронизации
+     * шрифта. Иначе возвращается объект синхронизации символа.
+     */
+    @Override
+    protected Object getLock() {
+        if (owner == null) return super.getLock();
+        return owner.getLock();
     }
 
     /**
@@ -173,7 +183,7 @@ public class MSymbol extends PixselMap {
      * @return Шрифт или <b>null</b> если символ не принадлежит ни какому
      *         шрифту.
      */
-    public MFont getOwner() {
+    public AbstractMFont getOwner() {
         return owner;
     }
 
