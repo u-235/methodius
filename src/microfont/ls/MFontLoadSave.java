@@ -110,7 +110,7 @@ public class MFontLoadSave {
         writeKey(writer, INFO_CHARSET, mFont.getCodePage());
         writeKey(writer, INFO_NAME, mFont.getName());
         writeKey(writer, INFO_PROTOTIPE, mFont.getPrototype());
-        writeKey(writer, INFO_SIZE, mFont.getSize());
+        writeKey(writer, INFO_SIZE, mFont.length());
 
         writeKey(writer, INFO_FIXSED);
         if (mFont.isFixsed()) {
@@ -131,8 +131,8 @@ public class MFontLoadSave {
         writeComment(writer, "Byte arrays of synbol in hex radix.");
         writeSection(writer, SYMBOLS);
         last = -1;
-        for (int i = 0; i < mFont.getSize(); i++) {
-            sym = mFont.symbolAtNumber(i);
+        for (int i = 0; i < mFont.length(); i++) {
+            sym = mFont.symbolByIndex(i);
             last++;
             if (last != sym.getCode()) {
                 writeKey(writer, SYMBOLS_CODE, sym.getCode());

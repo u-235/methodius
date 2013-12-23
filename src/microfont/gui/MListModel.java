@@ -61,7 +61,7 @@ public class MListModel extends AbstractListModel<MSymbol> implements
         int oldInd = 0;
 
         if (this.font != null) {
-            oldInd = this.font.getSize() - 1;
+            oldInd = this.font.length() - 1;
             this.font.removePropertyChangeListener(this);
         }
 
@@ -71,7 +71,7 @@ public class MListModel extends AbstractListModel<MSymbol> implements
 
         if (font != null) {
             font.addPropertyChangeListener(this);
-            int i = this.font.getSize() - 1;
+            int i = this.font.length() - 1;
             if (i < 0) i = 0;
             fireIntervalAdded(this, 0, i);
         }
@@ -81,15 +81,15 @@ public class MListModel extends AbstractListModel<MSymbol> implements
     public int getSize() {
         if (font == null) return 0;
 
-        return font.getSize();
+        return font.length();
     }
 
     @Override
     public MSymbol getElementAt(int index) {
         if (font == null) return null;
         if (index < 0) index = 0;
-        if (index >= font.getSize()) index = font.getSize();
-        return font.symbolAtNumber(index);
+        if (index >= font.length()) index = font.length();
+        return font.symbolByIndex(index);
     }
 
     @Override
@@ -98,7 +98,7 @@ public class MListModel extends AbstractListModel<MSymbol> implements
 
         if ((event.getSource() instanceof MFont)) {
             font = (MFont) event.getSource();
-            fireContentsChanged(this, 0, font.getSize() - 1);
+            fireContentsChanged(this, 0, font.length() - 1);
         }
     }
 }

@@ -15,6 +15,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import microfont.AbstractMFont;
 import microfont.MFont;
 import microfont.MSymbol;
 import microfont.events.PixselMapEvent;
@@ -120,6 +121,7 @@ public class MAbstractComponent extends ScrollableWindow implements
         this.addKeyListener(new KeyAdapter() {
             @Override
             public void keyTyped(KeyEvent e) {
+                //XXX print
                 System.out.println("typed");
                 if (e.getKeyChar() == '-') ScalleMinus();
                 if (e.getKeyChar() == '+') ScallePlus();
@@ -153,7 +155,7 @@ public class MAbstractComponent extends ScrollableWindow implements
      * @see #getSymbol()
      */
     public void setSymbol(MSymbol s) {
-        MFont parent;
+        AbstractMFont parent;
 
         if (symbol != null) {
             symbol.removePixselMapListener(this);
@@ -178,18 +180,21 @@ public class MAbstractComponent extends ScrollableWindow implements
     }
 
     void updateMargins() {
-        MFont parent;
+        MFont owner;
 
         if (symbol == null) return;
-        parent = symbol.getOwner();
-        if (parent == null) return;
+        AbstractMFont amf=symbol.getOwner();
+        if (amf == null) return;
+        if (!(amf instanceof MFont)) return;
+        
+        owner = (MFont)symbol.getOwner();
 
-        marginLeft = parent.getMarginLeft();
-        marginRight = parent.getMarginRight();
-        baseline = parent.getBaseline();
-        ascent = parent.getAscent();
-        ascentCapital = parent.getLine();
-        descent = parent.getDescent();
+        marginLeft = owner.getMarginLeft();
+        marginRight = owner.getMarginRight();
+        baseline = owner.getBaseline();
+        ascent = owner.getAscent();
+        ascentCapital = owner.getLine();
+        descent = owner.getDescent();
     }
 
     /**
