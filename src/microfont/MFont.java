@@ -1,73 +1,46 @@
 
 package microfont;
 
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import microfont.events.PixselMapEvent;
 import microfont.events.PixselMapListener;
-import utils.event.ListenerChain;
 
 /**
  * 
- * 
  */
-public class MFont extends Object implements PixselMapListener,
+public class MFont extends AbstractMFont implements PixselMapListener,
                 PropertyChangeListener {
     public static final String PROPERTY_ASCENT       = "mf.ascent";
     public static final String PROPERTY_AUTHOR       = "mf.author";
     public static final String PROPERTY_BASELINE     = "mf.baseline";
-    public static final String PROPERTY_CODE_PAGE    = "mf.CodePage";
     public static final String PROPERTY_DESCENT      = "mf.descent";
     public static final String PROPERTY_DESCRIPTION  = "mf.description";
-    public static final String PROPERTY_FIXSED       = "mf.fixsed";
-    public static final String PROPERTY_HEIGHT       = "mf.height";
     public static final String PROPERTY_LINE         = "mf.line";
     public static final String PROPERTY_MARGIN_LEFT  = "mf.magrin.left";
     public static final String PROPERTY_MARGIN_RIGHT = "mf.margin.right";
     public static final String PROPERTY_NAME         = "mf.name";
     public static final String PROPERTY_PROTOTYPE    = "mf.prototype";
-    public static final String PROPERTY_SYMBOLS      = "mf.symbols";
-    public static final String PROPERTY_WIDTH        = "mf.width";
-
-    private MSymbol[]          symbols               = new MSymbol[0];
+    
     private String             name;
     private String             prototype;
     private String             description;
-    private boolean            fixsed;
-    private String             codePage;
     private String             author;
-    private int                width;
-    private int                validWidth;
-    private int                height;
-    private int                validHeight;
     private int                marginLeft;
     private int                marginRight;
     private int                baseline;
     private int                ascent;
     private int                line;
     private int                descent;
-    private ListenerChain      listeners             = new ListenerChain();
 
     public MFont() {
-        codePage = null;
-        width = 0;
-        height = 0;
-        validWidth = 0;
-        validHeight = 0;
+        super();
     }
 
     public MFont(MFont src) {
-        synchronized (src) {
+            super(src);
+        synchronized (src.getLock()) {
             name = src.name;
             prototype = src.prototype;
-            fixsed = src.fixsed;
-            codePage = src.codePage;
             author = src.author;
-            width = src.width;
-            height = src.height;
-            validWidth = src.validWidth;
-            validHeight = src.validHeight;
-            setSymbols(src.getSymbols());
             marginLeft = src.marginLeft;
             marginRight = src.marginRight;
             baseline = src.baseline;
@@ -77,156 +50,8 @@ public class MFont extends Object implements PixselMapListener,
         }
     }
 
-    /**
-     * 
-     * @param width
-     * @return
-     */
-    protected boolean isValidWidth(int width) {
-        if (!fixsed) return true;
-        return width == validWidth;
-    }
-
-    /**
-     * 
-     * @param height
-     * @return
-     */
-    protected boolean isValidHeight(int height) {
-        return height == validHeight;
-    }
-
-    /**
-     * Добавление получателя события изменения свойств символов.
-     * 
-     * @param listener Добавляемый получатель события.
-     */
-    public void addPropertyChangeListener(PropertyChangeListener listener) {
-        listeners.add(PropertyChangeListener.class, listener);
-    }
-
-    /**
-     * Удаление получателя события изменения свойств символов.
-     * 
-     * @param listener Удаляемый получатель события.
-     */
-    public void removePropertyChangeListener(PropertyChangeListener listener) {
-        listeners.remove(PropertyChangeListener.class, listener);
-    }
-
-    /**
-     * Генерация события изменения свойств символов. Получатели добавляются
-     * функцией {@link #addPropertyChangeListener(PropertyChangeListener)}.
-     */
-    protected void firePropertyChange(PropertyChangeEvent event) {
-        Object[] listenerArray;
-
-        listenerArray = listeners.getListenerList();
-        for (int i = 0; i < listenerArray.length; i += 2) {
-            if (listenerArray[i] == PropertyChangeListener.class)
-                ((PropertyChangeListener) listenerArray[i + 1])
-                                .propertyChange(event);
-        }
-    }
-
-    protected void firePropertyChange(String message) {
-        firePropertyChange(new PropertyChangeEvent(this, message, null, null));
-    }
-
-    protected void firePropertyChange(MSymbol oldValue, MSymbol newValue) {
-        if (oldValue == newValue) return;
-
-        firePropertyChange(new PropertyChangeEvent(this, PROPERTY_SYMBOLS,
-                        oldValue, newValue));
-    }
-
-    protected void firePropertyChange(String property, String oldValue,
-                    String newValue) {
-        if (oldValue == null) {
-            if (newValue == null) return;
-        } else {
-            if (newValue != null && oldValue.equals(newValue)) return;
-        }
-
-        firePropertyChange(new PropertyChangeEvent(this, property, oldValue,
-                        newValue));
-    }
-
-    protected void firePropertyChange(String property, int oldValue,
-                    int newValue) {
-        if (oldValue == newValue) return;
-
-        firePropertyChange(new PropertyChangeEvent(this, property, new Integer(
-                        oldValue), new Integer(newValue)));
-    }
-
-    protected void firePropertyChange(String property, boolean oldValue,
-                    boolean newValue) {
-        if (oldValue == newValue) return;
-
-        firePropertyChange(new PropertyChangeEvent(this, property, new Boolean(
-                        oldValue), new Boolean(newValue)));
-    }
-
-    /**
-     * Добавление получателя события при измении пикселей одного из символов
-     * шрифта.
-     * 
-     * @param listener Добавляемый получатель события.
-     */
-    public void addPixselMapListener(PixselMapListener listener) {
-        listeners.add(PixselMapListener.class, listener);
-    }
-
-    /**
-     * Удаление получателя события при измении пикселей одного из символов
-     * шрифта.
-     * 
-     * @param listener Удаляемый получатель события.
-     */
-    public void removePixselMapListener(PixselMapListener listener) {
-        listeners.remove(PixselMapListener.class, listener);
-    }
-
-    /**
-     * Генерация события при измении пикселей одного из символов шрифта.
-     * Получатели добавляются функцией
-     * {@link #addPixselMapListener(PixselMapListener)}.
-     */
-    protected void firePixselEvent(PixselMapEvent event) {
-        Object[] listenerArray;
-
-        listenerArray = listeners.getListenerList();
-        for (int i = 0; i < listenerArray.length; i += 2) {
-            if (listenerArray[i] == PixselMapListener.class)
-                ((PixselMapListener) listenerArray[i + 1]).pixselChanged(event);
-        }
-    }
-
-    /**
-     * Получение события при изменении одного из символов. Это событие
-     * транслируется получателям шрифта.
-     */
-    @Override
-    public void pixselChanged(PixselMapEvent change) {
-        firePixselEvent(change);
-    }
-
-    /**
-     * Получение уведомляющего события от одного из символов. Это событие
-     * транслируется получателям шрифта.
-     */
-    @Override
-    public void propertyChange(PropertyChangeEvent event) {
-        firePropertyChange(event);
-    }
-
     public void copy(MFont font) {
-        removeAll();
-        setWidth(font.width);
-        setHeight(font.height);
-        setFixsed(font.fixsed);
-        setSymbols(font.getSymbols());
+        super.copy(font);
 
         setMarginLeft(font.marginLeft);
         setMarginRight(font.marginRight);
@@ -237,26 +62,7 @@ public class MFont extends Object implements PixselMapListener,
 
         setName(font.name);
         setPrototype(font.prototype);
-        setCodePage(font.codePage);
         setAuthor(font.author);
-    }
-
-    private String convertName(String name) {
-        String ret;
-        int i, j;
-
-        if (name == null) return null;
-
-        i = name.indexOf('\n');
-        j = name.indexOf('\r');
-
-        if (j > 0 && j < i) i = j;
-        if (i > 0) ret = name.substring(0, i);
-        else ret = name;
-
-        ret = new String(ret.trim());
-        if (ret.length() == 0) ret = null;
-        return ret;
     }
 
     public String getName() {
@@ -265,7 +71,7 @@ public class MFont extends Object implements PixselMapListener,
 
     public void setName(String s) {
         String old = name;
-        name = convertName(s);
+        name = s;
         firePropertyChange(PROPERTY_NAME, old, name);
     }
 
@@ -275,7 +81,7 @@ public class MFont extends Object implements PixselMapListener,
 
     public void setPrototype(String s) {
         String old = this.prototype;
-        prototype = convertName(s);
+        prototype = s;
         firePropertyChange(PROPERTY_PROTOTYPE, old, prototype);
     }
 
@@ -289,39 +95,6 @@ public class MFont extends Object implements PixselMapListener,
         firePropertyChange(PROPERTY_DESCRIPTION, old, description);
     }
 
-    public boolean isFixsed() {
-        return this.fixsed;
-    }
-
-    public void setFixsed(boolean fixsed) {
-        boolean old = this.fixsed;
-        int max = getMaxWidth();
-        this.fixsed = fixsed;
-
-        firePropertyChange(PROPERTY_FIXSED, old, this.fixsed);
-
-        if (!old && this.fixsed) {
-            validWidth = max;
-            for (MSymbol sym : symbols) {
-                try {
-                    sym.setWidth(max);
-                } catch (DisallowOperationException e) {
-                }
-            }
-        }
-    }
-
-    public String getCodePage() {
-        return codePage;
-    }
-
-    public void setCodePage(String cp) {
-        String old = codePage;
-        codePage = cp;
-
-        firePropertyChange(PROPERTY_CODE_PAGE, old, codePage);
-    }
-
     public String getAuthor() {
         return author;
     }
@@ -333,86 +106,17 @@ public class MFont extends Object implements PixselMapListener,
         firePropertyChange(PROPERTY_AUTHOR, old, author);
     }
 
-    public int getWidth() {
-        return width;
-    }
-
+    @Override
     public void setWidth(int w) {
-        int oldWidth;
-
-        oldWidth = width;
-        validWidth = w;
-        width = w;
-
-        firePropertyChange(PROPERTY_WIDTH, oldWidth, width);
-
-        if (isFixsed()) {
-            for (MSymbol sym : symbols) {
-                try {
-                    sym.setWidth(width);
-                } catch (DisallowOperationException e) {
-                    // XXX print
-                    System.out.println("bad width");
-                }
-            }
-        }
+        super.setWidth(w);
 
         setMarginLeft(marginLeft);
         setMarginRight(marginRight);
     }
 
-    public int getMinWidth() {
-        if (symbols.length == 0) return getWidth();
-
-        int ret = Integer.MAX_VALUE;
-        int w;
-
-        for (MSymbol sym : symbols) {
-            w = sym.getWidth();
-            ret = ret < w ? ret : w;
-        }
-
-        return ret;
-    }
-
-    public int getMaxWidth() {
-        if (symbols.length == 0) return getWidth();
-
-        int ret = 0;
-        int w;
-
-        for (MSymbol sym : symbols) {
-            w = sym.getWidth();
-            ret = ret < w ? w : ret;
-        }
-
-        return ret;
-    }
-
-    public int getHeight() {
-        return this.height;
-    }
-
+    @Override
     public void setHeight(int h) {
-        int old = height;
-
-        if (h < 0) throw (new IllegalArgumentException("invalid height"));
-
-        validHeight = h;
-        height = h;
-
-        firePropertyChange(PROPERTY_HEIGHT, old, height);
-
-        if (old != height) {
-            for (MSymbol sym : symbols) {
-                try {
-                    sym.setHeight(height);
-                } catch (DisallowOperationException e) {
-                    // XXX print
-                    System.out.println("bad height");
-                }
-            }
-        }
+        super.setHeight(h);
 
         setBaseline(baseline);
     }
@@ -540,158 +244,15 @@ public class MFont extends Object implements PixselMapListener,
         firePropertyChange(PROPERTY_DESCENT, old, descent);
     }
 
-    /**
-     * Return <code>true</code> if <code>ref</code> belong to font.
-     */
-    public boolean isBelong(MSymbol ref) {
-        if (ref == null) return false;
-        return ref.owner == this;
-    }
-
-    /**
-     * Return <code>true</code> if font has not symbols.
-     * 
-     * @see #getSize()
-     */
-    public boolean isEmpty() {
-        return symbols.length <= 0;
-    }
-
-    /**
-     * Return number of symbols, that contain font.
-     * 
-     * @see #isEmpty()
-     */
-    public int getSize() {
-        return symbols.length;
-    }
-
-    public MSymbol symbolAtNumber(int index) {
-        if (index >= symbols.length) return null;
-
-        return symbols[index];
-    }
-
-    public MSymbol symbolByCode(int code) {
-        for (MSymbol sym : symbols) {
-            if (sym.getCode() == code) return sym;
-        }
-        return null;
-    }
-
-    public void add(MSymbol symbol) {
-        MSymbol old = null;
-        int i;
-
-        if (symbol == null) return;
-        if (isBelong(symbol)) return;
-
-        symbol.removePropertyChangeListener(symbol.owner);
-        symbol.removePixselMapListener(symbol.owner);
-        symbol.owner = this;
-        symbol.addPropertyChangeListener(this);
-        symbol.addPixselMapListener(this);
-
-        try {
-            symbol.setHeight(height);
-        } catch (DisallowOperationException e) {
-        }
-        if (fixsed) try {
-            symbol.setWidth(width);
-        } catch (DisallowOperationException e) {
-        }
-
-        i = 0;
-        for (MSymbol sym : symbols) {
-            if (sym.getCode() == symbol.getCode()) {
-                old = sym;
-                break;
-            }
-            if (sym.getCode() > symbol.getCode()) break;
-            i++;
-        }
-
-        if (old == null) {
-            MSymbol[] t = new MSymbol[symbols.length + 1];
-            System.arraycopy(symbols, 0, t, 0, i);
-            System.arraycopy(symbols, i, t, i + 1, symbols.length - i);
-            t[i] = symbol;
-            symbols = t;
-        } else {
-            old.removePropertyChangeListener(this);
-            old.removePixselMapListener(this);
-            old.owner = null;
-            symbols[i] = symbol;
-        }
-
-        firePropertyChange(old, symbol);
-    }
-
-    public void remove(MSymbol symbol) {
-        int i;
-
-        if (!isBelong(symbol)) return;
-
-        i = 0;
-        for (MSymbol sym : symbols) {
-            if (sym == symbol) {
-                sym.removePropertyChangeListener(this);
-                sym.removePixselMapListener(this);
-                sym.owner = null;
-                break;
-            }
-            i++;
-        }
-
-        MSymbol[] t = new MSymbol[symbols.length - 1];
-        System.arraycopy(symbols, 0, t, 0, i);
-        System.arraycopy(symbols, i + 1, t, i, symbols.length - i - 1);
-        symbols = t;
-
-        firePropertyChange(symbol, null);
-    }
-
-    public void removeByCode(int index) {
-        remove(symbolByCode(index));
-    }
-
-    public void removeAll() {
-        for (MSymbol sym : symbols) {
-            remove(sym);
-        }
-    }
-
-    public MSymbol[] getSymbols() {
-        MSymbol[] ret = new MSymbol[symbols.length];
-        
-        for (int i=0; i < symbols.length; i++) {
-            ret[i]=new MSymbol(symbols[i]);
-        }
-        
-        return ret;
-    }
-
-    public void setSymbols(MSymbol[] ss) {
-        removeAll();
-        
-        for (MSymbol sym : ss) {
-            add(new MSymbol(sym));
-        }
-    }
-
+    @Override
     public Object getProperty(String property) {
         if (property.equals(PROPERTY_ASCENT)) return new Integer(getAscent());
         else if (property.equals(PROPERTY_AUTHOR)) return getAuthor();
         else if (property.equals(PROPERTY_BASELINE)) return new Integer(
                         getBaseline());
-        else if (property.equals(PROPERTY_CODE_PAGE)) return getCodePage();
         else if (property.equals(PROPERTY_DESCENT)) return new Integer(
                         getDescent());
         else if (property.equals(PROPERTY_DESCRIPTION)) return getDescriptin();
-        else if (property.equals(PROPERTY_FIXSED)) return new Boolean(
-                        isFixsed());
-        else if (property.equals(PROPERTY_HEIGHT)) return new Integer(
-                        getHeight());
         else if (property.equals(PROPERTY_LINE)) return new Integer(getLine());
         else if (property.equals(PROPERTY_MARGIN_LEFT)) return new Integer(
                         getMarginLeft());
@@ -701,33 +262,241 @@ public class MFont extends Object implements PixselMapListener,
         else if (property.equals(PROPERTY_PROTOTYPE)) return getPrototype();
         else if (property.equals(PROPERTY_WIDTH))
             return new Integer(getWidth());
-        return null;
+        return super.getProperty(property);
     }
 
+    @Override
     public void setProperty(String property, Object value) {
         if (value instanceof Integer) {
             int i = ((Integer) value).intValue();
 
-            if (property.equals(PROPERTY_ASCENT)) setAscent(i);
-            else if (property.equals(PROPERTY_BASELINE)) setBaseline(i);
-            else if (property.equals(PROPERTY_DESCENT)) setDescent(i);
-            else if (property.equals(PROPERTY_HEIGHT)) setHeight(i);
-            else if (property.equals(PROPERTY_LINE)) setLine(i);
-            else if (property.equals(PROPERTY_MARGIN_LEFT)) setMarginLeft(i);
-            else if (property.equals(PROPERTY_MARGIN_RIGHT)) setMarginRight(i);
-            else if (property.equals(PROPERTY_WIDTH)) setWidth(i);
-        } else if (value instanceof Boolean) {
-            boolean b = ((Boolean) value).booleanValue();
-
-            if (property.equals(PROPERTY_FIXSED)) setFixsed(b);
-        } else if (value instanceof String) {
+            if (property.equals(PROPERTY_ASCENT)) {
+                setAscent(i);
+                return;
+            }
+            else if (property.equals(PROPERTY_BASELINE)) {
+                setBaseline(i);
+                return;
+            }
+            else if (property.equals(PROPERTY_DESCENT)) {
+                setDescent(i);
+                return;
+            }
+            else if (property.equals(PROPERTY_LINE)) {
+                setLine(i);
+                return;
+            }
+            else if (property.equals(PROPERTY_MARGIN_LEFT)) {
+                setMarginLeft(i);
+                return;
+            }
+            else if (property.equals(PROPERTY_MARGIN_RIGHT)) {
+                setMarginRight(i);
+                return;
+            }
+        }else if (value instanceof String) {
             String s = (String) value;
 
-            if (property.equals(PROPERTY_AUTHOR)) setAuthor(s);
-            else if (property.equals(PROPERTY_CODE_PAGE)) setCodePage(s);
-            else if (property.equals(PROPERTY_DESCRIPTION)) setDescriptin(s);
-            else if (property.equals(PROPERTY_NAME)) setName(s);
-            else if (property.equals(PROPERTY_PROTOTYPE)) setPrototype(s);
+            if (property.equals(PROPERTY_AUTHOR)) {
+                setAuthor(s);
+                return;
+            }
+            else if (property.equals(PROPERTY_DESCRIPTION)) {
+                setDescriptin(s);
+                return;
+            }
+            else if (property.equals(PROPERTY_NAME)) {
+                setName(s);
+                return;
+            }
+            else if (property.equals(PROPERTY_PROTOTYPE)) {
+                setPrototype(s);
+                return;
+            }
         }
+        
+        super.setProperty(property, value);
+    }
+    
+
+
+    /**
+     * Возвращает количество пустых колонок слева.
+     * 
+     * @see #emptyTop()
+     * @see #emptyBottom()
+     * @see #emptyRight()
+     */
+    public int emptyLeft() {
+        return width;
+    }
+
+    /**
+     * Возвращает количество пустых колонок справа.
+     * 
+     * @see #emptyTop()
+     * @see #emptyBottom()
+     * @see #emptyLeft()
+     */
+    public int emptyRight() {
+        return width;
+    }
+
+    /**
+     * Возвращает количество пустых строк сверху.
+     * 
+     * @see #emptyBottom()
+     * @see #emptyLeft()
+     * @see #emptyRight()
+     */
+    public int emptyTop() {
+        return height;
+    }
+
+    /**
+     * Возвращает количество пустых строк снизу.
+     * 
+     * @see #emptyTop()
+     * @see #emptyLeft()
+     * @see #emptyRight()
+     */
+    public int emptyBottom() {
+        return height;
+    }
+    
+
+
+    /**
+     * Удаляет столбец слева.
+     * 
+     * @param num Количество удаляемых столбцов.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #removeRight(int)
+     * @see #removeColumns(int, int)
+     */
+    public void removeLeft(int num) throws DisallowOperationException {
+        if (num <= 0) return;
+    }
+
+    /**
+     * Удаляет столбец справа.
+     * 
+     * @param num Количество удаляемых столбцов.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #removeLeft(int)
+     * @see #removeColumns(int, int)
+     */
+    public void removeRight(int num) throws DisallowOperationException {
+        if (num <= 0) return;
+    }
+
+    /**
+     * Удаляет строки сверху.
+     * 
+     * @param num Количество удаляемых строк.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #removeBottom(int)
+     * @see #removeRows(int, int)
+     */
+    public void removeTop(int num) throws DisallowOperationException {
+        if (num <= 0) return;
+    }
+
+    /**
+     * Удаляет строки снизу.
+     * 
+     * @param num Количество удаляемых строк.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #removeTop(int)
+     * @see #removeRows(int, int)
+     */
+    public void removeBottom(int num) throws DisallowOperationException {
+        if (num <= 0) return;
+    }
+
+    /**
+     * Вставляет заданный столбец.
+     * 
+     * @param pos Позиция первого вставляемого столбца.
+     * @param num Количество удаляемых столбцов.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #addLeft(int)
+     * @see #addRight(int)
+     * @see #addRows(int, int)
+     */
+    public void addColumns(int pos, int num) throws DisallowOperationException {
+        if (num <= 0) return;
+    }
+
+    /**
+     * Вставляет заданные строки.
+     * 
+     * @param pos Позиция первой вставляемой строки.
+     * @param num Количество вставляемых строк.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #addBottom(int)
+     * @see #addTop(int)
+     * @see #addColumns(int, int)
+     */
+    public void addRows(int pos, int num) throws DisallowOperationException {
+        if (num <= 0) return;
+    }
+
+    /**
+     * Вставляет столбец слева.
+     * 
+     * @param num Количество вставляемых столбцов.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #addRight(int)
+     * @see #addColumns(int, int)
+     */
+    public void addLeft(int num) throws DisallowOperationException {
+        if (num <= 0) return;
+    }
+
+    /**
+     * Вставляет столбец справа.
+     * 
+     * @param num Количество вставляемых столбцов.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #addLeft(int)
+     * @see #addColumns(int, int)
+     */
+    public void addRight(int num) throws DisallowOperationException {
+        if (num <= 0) return;
+    }
+
+    /**
+     * Вставляет строки сверху.
+     * 
+     * @param num Количество вставляемых строк.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #addBottom(int)
+     * @see #addRows(int, int)
+     */
+    public void addTop(int num) throws DisallowOperationException {
+        if (num <= 0) return;
+    }
+
+    /**
+     * Вставляет строки снизу.
+     * 
+     * @param num Количество вставляемых строк.
+     * @throws DisallowOperationException Если изменение размеров запрещено
+     *             конфигурацией класса или его потомков.
+     * @see #addTop(int)
+     * @see #addRows(int, int)
+     */
+    public void addBottom(int num) throws DisallowOperationException {
+        if (num <= 0) return;
     }
 }
