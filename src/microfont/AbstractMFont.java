@@ -4,6 +4,7 @@ package microfont;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.nio.charset.Charset;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import microfont.events.PixselMapEvent;
@@ -43,26 +44,16 @@ public class AbstractMFont extends Object implements PixselMapListener,
 
     public AbstractMFont(AbstractMFont src) {
         synchronized (src) {
-            fixsed = src.fixsed;
-            codePage = src.codePage;
-            width = src.width;
-            height = src.height;
-            validWidth = src.validWidth;
-            validHeight = src.validHeight;
+            setCodePage(src.getCodePage());
+            setFixsed(src.isFixsed());
+            setWidth(src.getWidth());
+            setHeight(src.getHeight());
             setSymbols(src.getSymbols());
         }
     }
 
-    public static Logger getLogger() {
+    public static Logger logger() {
         return log;
-    }
-
-    public static void setLogger(Logger l) {
-        if (l == null) {
-            log = Logger.getLogger(MFONT_LOGGER_NAME);
-        } else {
-            log = l;
-        }
     }
 
     /**
@@ -101,10 +92,11 @@ public class AbstractMFont extends Object implements PixselMapListener,
         AbstractMFont other = (AbstractMFont) obj;
         if (charSet == null) {
             if (other.charSet != null) return false;
+            else if (codePage == null) {
+                if (other.codePage != null) return false;
+            }
+            else if (!codePage.equals(other.codePage)) return false;
         } else if (!charSet.equals(other.charSet)) return false;
-        if (codePage == null) {
-            if (other.codePage != null) return false;
-        } else if (!codePage.equals(other.codePage)) return false;
         if (fixsed != other.fixsed) return false;
         if (height != other.height) return false;
         if (width != other.width) return false;
@@ -277,9 +269,9 @@ public class AbstractMFont extends Object implements PixselMapListener,
     public void copy(AbstractMFont font) {
         synchronized (getLock()) {
             removeAll();
+            setFixsed(font.fixsed);
             setWidth(font.width);
             setHeight(font.height);
-            setFixsed(font.fixsed);
             setSymbols(font.getSymbols());
             setCodePage(font.codePage);
         }
@@ -292,22 +284,9 @@ public class AbstractMFont extends Object implements PixselMapListener,
     public void setFixsed(boolean f) {
         synchronized (getLock()) {
             boolean old = fixsed;
-            int max = getMaxWidth();
             fixsed = f;
-
+            if (!old && fixsed) setWidth(getMaxWidth());
             firePropertyChange(PROPERTY_FIXSED, old, fixsed);
-
-            if (!old && fixsed) {
-                prepareWidth(max);
-                for (MSymbol sym : symbols) {
-                    try {
-                        sym.setWidth(max);
-                    } catch (DisallowOperationException e) {
-                        log.log(Level.SEVERE, "apply width in setFixsed", e);
-                    }
-                }
-                applyWidth();
-            }
         }
     }
 
@@ -325,7 +304,6 @@ public class AbstractMFont extends Object implements PixselMapListener,
                 log.log(Level.WARNING, "apply charset in setCodePage", e);
                 setCharset(null);
             }
-
             firePropertyChange(PROPERTY_CODE_PAGE, old, codePage);
         }
     }
@@ -344,15 +322,22 @@ public class AbstractMFont extends Object implements PixselMapListener,
         synchronized (getLock()) {
             Charset old = charSet;
             charSet = cs;
-
+            if (cs != null && !cs.aliases().contains(codePage))
+                setCodePage(charSet.name());
             firePropertyChange(PROPERTY_CODE_PAGE, old, charSet);
-            
-            
         }
     }
 
     public int getWidth() {
-        return width;
+        synchronized (getLock()) {
+            if (isFixsed()) return width;
+
+            long ret = 0;
+            for (MSymbol sym : symbols) {
+                ret += sym.getWidth();
+            }
+            return (int) (ret / symbols.length);
+        }
     }
 
     /**
@@ -368,9 +353,7 @@ public class AbstractMFont extends Object implements PixselMapListener,
      * @see #prepareWidth(int)
      */
     protected void applyWidth() {
-        int oldWidth;
-
-        oldWidth = width;
+        int oldWidth = width;
         width = validWidth;
 
         firePropertyChange(PROPERTY_WIDTH, oldWidth, width);
@@ -396,7 +379,7 @@ public class AbstractMFont extends Object implements PixselMapListener,
 
     public int getMinWidth() {
         synchronized (getLock()) {
-            if (symbols.length == 0) return getWidth();
+            if (isEmpty() || isFixsed()) return getWidth();
 
             int ret = Integer.MAX_VALUE;
             int w;
@@ -412,7 +395,7 @@ public class AbstractMFont extends Object implements PixselMapListener,
 
     public int getMaxWidth() {
         synchronized (getLock()) {
-            if (isEmpty()) return getWidth();
+            if (isEmpty() || isFixsed()) return getWidth();
 
             int ret = 0;
             int w;

@@ -50,6 +50,58 @@ public class MFont extends AbstractMFont implements PixselMapListener,
         }
     }
 
+    /* (non-Javadoc)
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ascent;
+        result = prime * result + ((author == null) ? 0 : author.hashCode());
+        result = prime * result + baseline;
+        result = prime * result + descent;
+        result = prime * result
+                        + ((description == null) ? 0 : description.hashCode());
+        result = prime * result + line;
+        result = prime * result + marginLeft;
+        result = prime * result + marginRight;
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        result = prime * result
+                        + ((prototype == null) ? 0 : prototype.hashCode());
+        return result;
+    }
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!super.equals(obj)) return false;
+        if (!(obj instanceof MFont)) return false;
+        MFont other = (MFont) obj;
+        if (ascent != other.ascent) return false;
+        if (author == null) {
+            if (other.author != null) return false;
+        } else if (!author.equals(other.author)) return false;
+        if (baseline != other.baseline) return false;
+        if (descent != other.descent) return false;
+        if (description == null) {
+            if (other.description != null) return false;
+        } else if (!description.equals(other.description)) return false;
+        if (line != other.line) return false;
+        if (marginLeft != other.marginLeft) return false;
+        if (marginRight != other.marginRight) return false;
+        if (name == null) {
+            if (other.name != null) return false;
+        } else if (!name.equals(other.name)) return false;
+        if (prototype == null) {
+            if (other.prototype != null) return false;
+        } else if (!prototype.equals(other.prototype)) return false;
+        return true;
+    }
+
     public void copy(MFont font) {
         super.copy(font);
 
