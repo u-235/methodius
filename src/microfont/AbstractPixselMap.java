@@ -401,11 +401,11 @@ public class AbstractPixselMap {
      */
     public AbstractPixselMap() {
     }
-    
+
     /**
      * Возвращает объект для синхронизации.
      */
-    protected Object getLock() {
+    protected Object writeLock() {
         return this;
     }
 
@@ -482,8 +482,8 @@ public class AbstractPixselMap {
      * Возвращает <code>true</code> если карта пуста. Это значит, что по крайней
      * мере один из размеров карты равен нулю.
      */
-    public boolean isEmpty() {
-        return width == 0 && height == 0;
+    public synchronized boolean isEmpty() {
+        return width == 0 || height == 0;
     }
 
     /**
@@ -493,7 +493,7 @@ public class AbstractPixselMap {
      * @return <code>true</code> если высота и ширина этой карты и
      *         <code>apm</code> совпадают.
      */
-    public boolean isSameSize(AbstractPixselMap apm) {
+    public synchronized boolean isSameSize(AbstractPixselMap apm) {
         return width == apm.width && height == apm.height;
     }
 
@@ -579,7 +579,7 @@ public class AbstractPixselMap {
     }
 
     @Override
-    public int hashCode() {
+    public synchronized int hashCode() {
         final int prime = 31;
         int result = 1;
         result = prime * result + width;
@@ -596,7 +596,7 @@ public class AbstractPixselMap {
      * @return <code>true</code> если карты равны.
      */
     @Override
-    public boolean equals(Object obj) {
+    public synchronized boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null) return false;
         if (!(obj instanceof AbstractPixselMap)) return false;
@@ -610,7 +610,7 @@ public class AbstractPixselMap {
     /**
      * Метод возвращает ширину и высоту карты.
      */
-    public Dimension getSize() {
+    public synchronized Dimension getSize() {
         return new Dimension(width, height);
     }
 
@@ -619,7 +619,7 @@ public class AbstractPixselMap {
      * 
      * @return Количество пикселей по горизонтали.
      */
-    public int getWidth() {
+    public synchronized int getWidth() {
         return width;
     }
 
@@ -628,7 +628,7 @@ public class AbstractPixselMap {
      * 
      * @return Количество пикселей по вертикали.
      */
-    public int getHeight() {
+    public synchronized int getHeight() {
         return height;
     }
 
@@ -725,7 +725,7 @@ public class AbstractPixselMap {
      *         <code>false</code> если пиксель сброшен, а так же если параметры
      *         <code>x</code> и <code>y</code> выходят за границы символа.
      */
-    public boolean getPixsel(int x, int y) {
+    public synchronized boolean getPixsel(int x, int y) {
         return get(pixsels, width, x, y);
     }
 
@@ -770,40 +770,46 @@ public class AbstractPixselMap {
      * @see #isValidWidth(int)
      * @see #isValidHeight(int)
      */
-    public void copy(AbstractPixselMap src)
+    public synchronized void copy(AbstractPixselMap src)
                     throws DisallowOperationException {
         if (src == null) throw (new NullPointerException());
 
-        if (!isValidWidth(src.width))
-            throw new DisallowOperationException("change width");
-        if (!isValidHeight(src.height))
-            throw new DisallowOperationException("change width");
+        synchronized (src) {
+            if (!isValidWidth(src.width))
+                throw new DisallowOperationException("change width "
+                                + src.width);
+            if (!isValidHeight(src.height))
+                throw new DisallowOperationException("change height "
+                                + src.height);
 
-        if (isSameSize(src)) {
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    changePixsel(x, y, src.getPixsel(x, y));
+            synchronized (writeLock()) {
+                if (isSameSize(src)) {
+                    for (int y = 0; y < height; y++) {
+                        for (int x = 0; x < width; x++) {
+                            changePixsel(x, y, src.getPixsel(x, y));
+                        }
+                    }
+                } else {
+                    pixsels = doPixselArray(src.width, src.height);
+
+                    if (pixsels != null) {
+                        System.arraycopy(src.pixsels, 0, pixsels, 0,
+                                        pixsels.length);
+                        fixChange(0, 0);
+                        fixChange(width - 1, height - 1);
+                    }
+                    width = src.width;
+                    height = src.height;
                 }
-            }
-        } else {
-
-            pixsels = doPixselArray(src.width, src.height);
-
-            if (pixsels != null) {
-                System.arraycopy(src.pixsels, 0, pixsels, 0, pixsels.length);
-                fixChange(0, 0);
-                fixChange(width - 1, height - 1);
-            }
-            width = src.width;
-            height = src.height;
-        }
+            } // end synchronized (writeLock())
+        } // end synchronized (this)
     }
 
     /**
      * Метод возвращает <b>копию</b> массива пикселей. Если символ имеет нулевую
      * ширину и/или высоту, то возвращается <code>null</code>.
      */
-    public boolean[] getArray() {
+    public synchronized boolean[] getArray() {
         if (pixsels == null) return null;
 
         boolean[] rv = new boolean[width * height];
@@ -826,7 +832,7 @@ public class AbstractPixselMap {
      * Пиксели заполняют возвращаемый массив последовательно начиная с младшего
      * бита самого первого элемента.
      */
-    public byte[] getByteArray() {
+    public synchronized byte[] getByteArray() {
         if (pixsels == null) return null;
 
         PixselIterator pi = new PixselIterator(this, 0, 0, width, height,

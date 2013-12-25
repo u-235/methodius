@@ -4,6 +4,7 @@ package microfont;
 import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.logging.Level;
 import microfont.events.PixselMapEvent;
 import microfont.events.PixselMapListener;
 import utils.event.ListenerChain;
@@ -129,6 +130,8 @@ public class PixselMap extends AbstractPixselMap {
              * Поскольку PixselMap не ограничивает изменение размеров, то
              * исключение невозможно.
              */
+            AbstractMFont.logger().log(Level.SEVERE,
+                            "copy in PixselMap(PixselMap)", e);
         }
     }
 
@@ -304,18 +307,13 @@ public class PixselMap extends AbstractPixselMap {
      * 
      * @param w Новая ширина символа.
      * @param h Новая высота символа.
+     * @throws IllegalArgumentException если хотя бы один из размеров меньше
+     *             нуля.
      * @throws DisallowOperationException Если изменение размеров запрещено
      *             конфигурацией класса или его потомков.
      */
-    public synchronized void setSize(int w, int h) throws DisallowOperationException {
-        Dimension oldValue = new Dimension(getWidth(), getHeight());
-
-        cleanChange();
-        super.changeSize(w, h);
-
-        Dimension newValue = new Dimension(getWidth(), getHeight());
-        firePropertyChange(PROPERTY_SIZE, oldValue, newValue);
-        firePixselEvent();
+    public void setSize(int w, int h) throws DisallowOperationException {
+        setSize(new Dimension(getWidth(), getHeight()));
     }
 
     /**
@@ -331,8 +329,14 @@ public class PixselMap extends AbstractPixselMap {
      * @throws DisallowOperationException Если изменение размеров запрещено
      *             конфигурацией класса или его потомков.
      */
-    public void setSize(Dimension sz) throws DisallowOperationException {
-        setSize(sz.width, sz.height);
+    public synchronized void setSize(Dimension sz)
+                    throws DisallowOperationException {
+        Dimension oldValue = new Dimension(getWidth(), getHeight());
+
+        cleanChange();
+        super.changeSize(sz.width, sz.height);
+        firePropertyChange(PROPERTY_SIZE, oldValue, sz);
+        firePixselEvent();
     }
 
     /**
@@ -345,7 +349,7 @@ public class PixselMap extends AbstractPixselMap {
      * @throws DisallowOperationException Если изменение размеров запрещено
      *             конфигурацией класса или его потомков.
      */
-    public void setWidth(int w) throws DisallowOperationException {
+    public synchronized void setWidth(int w) throws DisallowOperationException {
         setSize(w, getHeight());
     }
 
@@ -359,7 +363,7 @@ public class PixselMap extends AbstractPixselMap {
      * @throws DisallowOperationException Если изменение размеров запрещено
      *             конфигурацией класса или его потомков.
      */
-    public void setHeight(int h) throws DisallowOperationException {
+    public synchronized void setHeight(int h) throws DisallowOperationException {
         setSize(getWidth(), h);
     }
 
@@ -383,7 +387,8 @@ public class PixselMap extends AbstractPixselMap {
      * 
      * @param a Копируемый массив пикселей.
      */
-    public synchronized void setArray(boolean[] a) throws IllegalArgumentException {
+    public synchronized void setArray(boolean[] a)
+                    throws IllegalArgumentException {
         cleanChange();
         setBooleans(a);
         firePixselEvent();
@@ -609,8 +614,8 @@ public class PixselMap extends AbstractPixselMap {
             if (pos - num > w) num = pos - w;
         }
 
-        if (isValidWidth(w + num))
-            throw new DisallowOperationException("change width");
+        if (!isValidWidth(w + num))
+            throw new DisallowOperationException("change width " + (w + num));
 
         tMap = new PixselMap(w + num, h);
 
@@ -633,7 +638,7 @@ public class PixselMap extends AbstractPixselMap {
             dst.setNext(src.getNext());
         }
 
-        super.copy(tMap);
+        copy(tMap);
     }
 
     /**
@@ -685,8 +690,8 @@ public class PixselMap extends AbstractPixselMap {
             if (pos - num > h) num = pos - h;
         }
 
-        if (isValidHeight(h + num))
-            throw new DisallowOperationException("change height");
+        if (!isValidHeight(h + num))
+            throw new DisallowOperationException("change height" + (h + num));
 
         tMap = new PixselMap(w, h + num);
 
@@ -709,7 +714,7 @@ public class PixselMap extends AbstractPixselMap {
             dst.setNext(src.getNext());
         }
 
-        super.copy(tMap);
+        copy(tMap);
     }
 
     /**
@@ -898,7 +903,7 @@ public class PixselMap extends AbstractPixselMap {
      */
     public synchronized void rotate(int step) {
         AbstractPixselMap apm;
-        boolean resized, reqResize;
+        boolean resized;
         int w, h;
         PixselIterator spi, dpi;
 
@@ -910,9 +915,8 @@ public class PixselMap extends AbstractPixselMap {
         w = getWidth();
         h = getHeight();
         resized = isValidHeight(w) && isValidWidth(h);
-        reqResize = step != 2;
 
-        if (reqResize) apm = new AbstractPixselMap(h, w);
+        if (step != 2) apm = new AbstractPixselMap(h, w);
         else apm = new AbstractPixselMap(w, h);
 
         // Подготовка итераторов в зависимости от поворота.
@@ -921,14 +925,17 @@ public class PixselMap extends AbstractPixselMap {
         case 1:
             dpi = apm.getIterator(0, 0, apm.getWidth(), apm.getHeight(),
                             PixselIterator.DIR_TOP_RIGHT);
+            resized = isValidHeight(w) && isValidWidth(h);
             break;
         case 2:
             dpi = apm.getIterator(0, 0, apm.getWidth(), apm.getHeight(),
                             PixselIterator.DIR_RIGHT_BOTTOM);
+            resized = true;
             break;
         default: // i.e step == 3
             dpi = apm.getIterator(0, 0, apm.getWidth(), apm.getHeight(),
                             PixselIterator.DIR_BOTTOM_LEFT);
+            resized = isValidHeight(w) && isValidWidth(h);
         }
 
         // Заполнение вспомогательной карты.
@@ -937,13 +944,14 @@ public class PixselMap extends AbstractPixselMap {
         }
 
         // Изменения размера разрешены или не требуются.
-        if (resized || !reqResize) {
+        if (resized) {
             try {
                 copy(apm);
                 return;
             } catch (DisallowOperationException e) {
                 // Исключение никогда не может возникнуть исходя из условий
                 // блока.
+                AbstractMFont.logger().log(Level.SEVERE, "copy in rotate", e);
             }
         }
 
@@ -967,7 +975,8 @@ public class PixselMap extends AbstractPixselMap {
      * @return Карта с копией пикселей заданного фрагмента.
      * @see #overlay(int, int, AbstractPixselMap, int)
      */
-    public synchronized AbstractPixselMap getRectangle(int x, int y, int w, int h) {
+    public synchronized AbstractPixselMap getRectangle(int x, int y, int w,
+                    int h) {
         if (x < 0) {
             w += x;
             x = 0;
@@ -990,8 +999,6 @@ public class PixselMap extends AbstractPixselMap {
         PixselIterator dpi = apm.getIterator(x, y, w, h,
                         PixselIterator.DIR_LEFT_BOTTOM);
 
-        cleanChange();
-
         while (spi.hasNext() && dpi.hasNext()) {
             dpi.setNext(spi.getNext());
         }
@@ -1010,7 +1017,8 @@ public class PixselMap extends AbstractPixselMap {
      * @param state Устанавливаемое состояние пикселей.
      * @see #negRectangle(int, int, int, int)
      */
-    public synchronized void setRectangle(int x, int y, int w, int h, boolean state) {
+    public synchronized void setRectangle(int x, int y, int w, int h,
+                    boolean state) {
         PixselIterator pi = getIterator(x, y, w, h,
                         PixselIterator.DIR_LEFT_BOTTOM);
 

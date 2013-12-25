@@ -81,8 +81,8 @@ public class MSymbol extends PixselMap {
      * шрифта. Иначе возвращается объект синхронизации символа.
      */
     @Override
-    protected Object getLock() {
-        if (owner == null) return super.getLock();
+    protected Object writeLock() {
+        if (owner == null) return super.writeLock();
         return owner.getLock();
     }
 
@@ -221,7 +221,7 @@ public class MSymbol extends PixselMap {
      * @return <b>true</b> если символы равны.
      */
     @Override
-    public boolean equals(Object s) {
+    public synchronized boolean equals(Object s) {
         if (!(s instanceof MSymbol)) return false;
         MSymbol sym = (MSymbol) s;
         if (isUnicode() != sym.isUnicode()) return false;
