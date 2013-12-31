@@ -1,5 +1,5 @@
 What is Methodius
-=========
+======
 
 The Methodius is a simple and powerfull tool for create fonts for limited embedded systems. It has the following features:
 
