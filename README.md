@@ -6,3 +6,5 @@ The Methodius is a simple and powerfull tool for create fonts for limited embedd
   - Create and edit fonts
   - Export fonts in source code for programming languages
   - Import fonts from the system
+
+Current status: still in development.
