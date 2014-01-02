@@ -4,7 +4,6 @@ package microfont;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.nio.charset.Charset;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import microfont.events.PixselMapEvent;
@@ -14,9 +13,9 @@ import utils.event.ListenerChain;
 /**
  * 
  */
-public class AbstractMFont extends Object implements PixselMapListener,
+public class AbstractMFont implements PixselMapListener,
                 PropertyChangeListener {
-    public static final String MFONT_LOGGER_NAME  = "mf.logger";
+    public static final String MFONT_LOGGER_NAME  = "methodius.microfont";
     public static final String PROPERTY_CODE_PAGE = "mf.CodePage";
     public static final String PROPERTY_FIXSED    = "mf.fixsed";
     public static final String PROPERTY_HEIGHT    = "mf.height";
@@ -24,7 +23,7 @@ public class AbstractMFont extends Object implements PixselMapListener,
     public static final String PROPERTY_WIDTH     = "mf.width";
 
     private static Logger      log                = Logger.getLogger(MFONT_LOGGER_NAME);
-    private MSymbol[]          symbols            = new MSymbol[0];
+    private MSymbol[]          symbols;
     private boolean            fixsed;
     private String             codePage;
     private Charset            charSet;
@@ -32,26 +31,39 @@ public class AbstractMFont extends Object implements PixselMapListener,
     protected int              validWidth;
     protected int              height;
     protected int              validHeight;
-    protected ListenerChain    listeners          = new ListenerChain();
+    protected ListenerChain    listeners;
 
+    /**
+     * Конструктор для пустого шрифта.
+     */
     public AbstractMFont() {
-        codePage = null;
         width = 0;
         height = 0;
-        validWidth = 0;
-        validHeight = 0;
+        codePage = null;
+        charSet = null;
+        symbols = new MSymbol[0];
+        listeners = new ListenerChain();
     }
 
+    /**
+     * Конструктор копирования. Получатели событий не копируются.
+     * 
+     * @param src Копируемый шрифт. Если равен <code>null</code>, то создаётся
+     *            пустой шрифт.
+     * @see #copy(AbstractMFont)
+     */
     public AbstractMFont(AbstractMFont src) {
-        synchronized (src) {
-            setCodePage(src.getCodePage());
-            setFixsed(src.isFixsed());
-            setWidth(src.getWidth());
-            setHeight(src.getHeight());
-            setSymbols(src.getSymbols());
+        this();
+        if (src == null) return;
+        synchronized (src.getLock()) {
+            copy(src);
         }
     }
 
+    /**
+     * Возвращает объект для записи сообщений в журнал. Этот статичный объект,
+     * который создаётся при загрузке класса.
+     */
     public static Logger logger() {
         return log;
     }
@@ -63,12 +75,8 @@ public class AbstractMFont extends Object implements PixselMapListener,
         return this;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see java.lang.Object#hashCode()
-     */
     @Override
-    public int hashCode() {
+    public synchronized int hashCode() {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((charSet == null) ? 0 : charSet.hashCode());
@@ -77,15 +85,17 @@ public class AbstractMFont extends Object implements PixselMapListener,
         result = prime * result + (fixsed ? 1231 : 1237);
         result = prime * result + height;
         result = prime * result + width;
+        for (int i = 0; i < symbols.length; i++) {
+            result = prime + symbols[i].hashCode();
+        }
         return result;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see java.lang.Object#equals(java.lang.Object)
+    /**
+     * 
      */
     @Override
-    public boolean equals(Object obj) {
+    public synchronized boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null) return false;
         if (!(obj instanceof AbstractMFont)) return false;
@@ -100,51 +110,87 @@ public class AbstractMFont extends Object implements PixselMapListener,
         if (fixsed != other.fixsed) return false;
         if (height != other.height) return false;
         if (width != other.width) return false;
+
+        if (symbols.length != other.symbols.length) return false;
+        for (int i = 0; i < symbols.length; i++) {
+            if (!symbols[i].equals(other.symbols[i])) return false;
+        }
         return true;
     }
 
     /**
+     * Проверка допустимости ширины символа. Используется в
+     * {@link MSymbol#isValidWidth(int)}.
      * 
-     * @param width
-     * @return
+     * @param w тестируемая ширина.
+     * @return Для отрицательного <code>w</code> всегда возвращает
+     *         <code>false</code>.<br>
+     *         Если шрифт не моноширинный, то для положительного <code>w</code>
+     *         возвращает <code>true</code>.<br>
+     *         Если шрифт моноширинный, то возвращает <code>true</code> при
+     *         равенстве <code>w</code> значению, использованному при последнем
+     *         вызове {@link #prepareWidth(int)}.
+     * @see #isValidSymbolHeight(int)
      */
-    protected boolean isValidWidth(int width) {
+    protected boolean isValidSymbolWidth(int w) {
+        if (w < 0) return false;
         if (!fixsed) return true;
-        return width == validWidth;
+        return w == validWidth;
     }
 
     /**
+     * Проверка допустимости высоты символа. Используется в
+     * {@link MSymbol#isValidHeight(int)}.
      * 
-     * @param height
-     * @return
+     * @param h тестируемая ширина.
+     * @return Для отрицательного <code>h</code> всегда возвращает
+     *         <code>false</code>.<br>
+     *         При равенстве <code>h</code> значению, использованному при
+     *         последнем вызове {@link #prepareHeight(int)} возвращает
+     *         <code>true</code>.
+     * @see #isValidSymbolWidth(int)
      */
-    protected boolean isValidHeight(int height) {
-        return height == validHeight;
+    protected boolean isValidSymbolHeight(int h) {
+        if (h < 0) return false;
+        return h == validHeight;
     }
 
     /**
-     * Добавление получателя события изменения свойств символов.
+     * Добавление получателя события при изменении свойств шрифта или символов
+     * шрифта.
      * 
      * @param listener Добавляемый получатель события.
      * @see #removePropertyChangeListener(PropertyChangeListener)
-     * @see #propertyChange(PropertyChangeEvent)
+     * @see #firePropertyChange(PropertyChangeEvent)
      */
     public void addPropertyChangeListener(PropertyChangeListener listener) {
         listeners.add(PropertyChangeListener.class, listener);
     }
 
     /**
-     * Удаление получателя события изменения свойств символов.
+     * Удаление получателя события при изменении свойств шрифта или символов
+     * шрифта.
      * 
      * @param listener Удаляемый получатель события.
+     * @see #addPropertyChangeListener(PropertyChangeListener)
      */
     public void removePropertyChangeListener(PropertyChangeListener listener) {
         listeners.remove(PropertyChangeListener.class, listener);
     }
 
     /**
-     * Генерация события изменения свойств символов. Получатели добавляются
-     * функцией {@link #addPropertyChangeListener(PropertyChangeListener)}.
+     * Генерация события изменения свойств шрифта или символов шрифта.
+     * Получатели добавляются функцией
+     * {@link #addPropertyChangeListener(PropertyChangeListener)}.<br>
+     * Кроме случаев изменения свойств шрифта, генерация событий происходит и
+     * при изменении свойств символов, принадлежащих шрифту.
+     * 
+     * @param event событие при изменении свойств.
+     * @see #firePropertyChange(String, boolean, boolean)
+     * @see #firePropertyChange(String, int, int)
+     * @see #firePropertyChange(String, Object, Object)
+     * @see #firePropertyChange(String, String, String)
+     * @see #firePropertyChange(String, MSymbol, MSymbol)
      */
     protected void firePropertyChange(PropertyChangeEvent event) {
         Object[] listenerArray;
@@ -157,6 +203,16 @@ public class AbstractMFont extends Object implements PixselMapListener,
         }
     }
 
+    /**
+     * Генерация события изменения свойств шрифта. Метод события
+     * {@link PropertyChangeEvent#getSource()} вернёт указатель на этот шрифт.
+     * 
+     * @param property Название изменившегося свойства. Константы с названиями
+     *            начинаются на <code>PROPERTY_</code>.
+     * @param oldValue Старое значение свойства.
+     * @param newValue Новое значение свойства.
+     * @see #firePropertyChange(PropertyChangeEvent)
+     */
     protected void firePropertyChange(String property, Object oldValue,
                     Object newValue) {
         if (oldValue == newValue) return;
@@ -165,6 +221,16 @@ public class AbstractMFont extends Object implements PixselMapListener,
                         oldValue, newValue));
     }
 
+    /**
+     * Генерация события изменения свойств шрифта. Метод события
+     * {@link PropertyChangeEvent#getSource()} вернёт указатель на этот шрифт.
+     * 
+     * @param property Название изменившегося свойства. Константы с названиями
+     *            начинаются на <code>PROPERTY_</code>.
+     * @param oldValue Старое значение свойства.
+     * @param newValue Новое значение свойства.
+     * @see #firePropertyChange(PropertyChangeEvent)
+     */
     protected void firePropertyChange(String property, MSymbol oldValue,
                     MSymbol newValue) {
         if (oldValue == newValue) return;
@@ -173,6 +239,16 @@ public class AbstractMFont extends Object implements PixselMapListener,
                         oldValue, newValue));
     }
 
+    /**
+     * Генерация события изменения свойств шрифта. Метод события
+     * {@link PropertyChangeEvent#getSource()} вернёт указатель на этот шрифт.
+     * 
+     * @param property Название изменившегося свойства. Константы с названиями
+     *            начинаются на <code>PROPERTY_</code>.
+     * @param oldValue Старое значение свойства.
+     * @param newValue Новое значение свойства.
+     * @see #firePropertyChange(PropertyChangeEvent)
+     */
     protected void firePropertyChange(String property, String oldValue,
                     String newValue) {
         if (oldValue == null) {
@@ -185,6 +261,16 @@ public class AbstractMFont extends Object implements PixselMapListener,
                         newValue));
     }
 
+    /**
+     * Генерация события изменения свойств шрифта. Метод события
+     * {@link PropertyChangeEvent#getSource()} вернёт указатель на этот шрифт.
+     * 
+     * @param property Название изменившегося свойства. Константы с названиями
+     *            начинаются на <code>PROPERTY_</code>.
+     * @param oldValue Старое значение свойства.
+     * @param newValue Новое значение свойства.
+     * @see #firePropertyChange(PropertyChangeEvent)
+     */
     protected void firePropertyChange(String property, int oldValue,
                     int newValue) {
         if (oldValue == newValue) return;
@@ -193,6 +279,16 @@ public class AbstractMFont extends Object implements PixselMapListener,
                         oldValue), new Integer(newValue)));
     }
 
+    /**
+     * Генерация события изменения свойств шрифта. Метод события
+     * {@link PropertyChangeEvent#getSource()} вернёт указатель на этот шрифт.
+     * 
+     * @param property Название изменившегося свойства. Константы с названиями
+     *            начинаются на <code>PROPERTY_</code>.
+     * @param oldValue Старое значение свойства.
+     * @param newValue Новое значение свойства.
+     * @see #firePropertyChange(PropertyChangeEvent)
+     */
     protected void firePropertyChange(String property, boolean oldValue,
                     boolean newValue) {
         if (oldValue == newValue) return;
@@ -266,6 +362,12 @@ public class AbstractMFont extends Object implements PixselMapListener,
         firePropertyChange(event);
     }
 
+    /**
+     * Копирование шрифта. Получатели событий не копируются.
+     * 
+     * @param font Копируемый шрифт.
+     * @see #AbstractMFont(AbstractMFont)
+     */
     public void copy(AbstractMFont font) {
         synchronized (getLock()) {
             removeAll();
@@ -301,7 +403,7 @@ public class AbstractMFont extends Object implements PixselMapListener,
             try {
                 setCharset(Charset.forName(codePage));
             } catch (Exception e) {
-                log.log(Level.WARNING, "apply charset in setCodePage", e);
+                logger().log(Level.WARNING, "apply charset in setCodePage", e);
                 setCharset(null);
             }
             firePropertyChange(PROPERTY_CODE_PAGE, old, codePage);
@@ -316,7 +418,7 @@ public class AbstractMFont extends Object implements PixselMapListener,
     }
 
     /**
-     * @param charSet the charSet to set
+     * @param cs the charSet to set
      */
     public void setCharset(Charset cs) {
         synchronized (getLock()) {
@@ -330,7 +432,7 @@ public class AbstractMFont extends Object implements PixselMapListener,
 
     public int getWidth() {
         synchronized (getLock()) {
-            if (isFixsed()) return width;
+            if (isFixsed() || isEmpty()) return width;
 
             long ret = 0;
             for (MSymbol sym : symbols) {
@@ -363,7 +465,8 @@ public class AbstractMFont extends Object implements PixselMapListener,
                 try {
                     sym.setWidth(width);
                 } catch (DisallowOperationException e) {
-                    log.log(Level.SEVERE, "MSymbol.setWidth in applyWidth : ",
+                    logger().log(Level.SEVERE,
+                                    "MSymbol.setWidth in applyWidth : ",
                                     e);
                 }
             }
@@ -414,7 +517,7 @@ public class AbstractMFont extends Object implements PixselMapListener,
     }
 
     /**
-     * @param w
+     * @param h
      * @see #applyHeight()
      */
     protected void prepareHeight(int h) {
@@ -436,7 +539,7 @@ public class AbstractMFont extends Object implements PixselMapListener,
                 try {
                     sym.setHeight(height);
                 } catch (DisallowOperationException e) {
-                    log.log(Level.SEVERE,
+                    logger().log(Level.SEVERE,
                                     "MSymbol.setHeight in applyHeight : ", e);
                 }
             }

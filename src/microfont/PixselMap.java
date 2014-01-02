@@ -313,7 +313,7 @@ public class PixselMap extends AbstractPixselMap {
      *             конфигурацией класса или его потомков.
      */
     public void setSize(int w, int h) throws DisallowOperationException {
-        setSize(new Dimension(getWidth(), getHeight()));
+        setSize(new Dimension(w, h));
     }
 
     /**

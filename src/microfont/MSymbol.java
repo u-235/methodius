@@ -90,14 +90,14 @@ public class MSymbol extends PixselMap {
      * Результат проверки допустимости высоты зависит от того, принадлежит ли
      * символ шрифту или нет.<br>
      * Если символ принадлежит шрифту, то возвращается значение метода
-     * {@link MFont#isValidHeight(int)}. Фактически это значит, что высота может
+     * {@link MFont#isValidSymbolHeight(int)}. Фактически это значит, что высота может
      * быть изменена <b>только методами шрифта</b>.<br>
      * Если символ не принадлежит шрифту, то возвращается
      * {@link PixselMap#isValidHeight(int)}.
      */
     @Override
     protected boolean isValidHeight(int h) {
-        if (owner != null) return owner.isValidHeight(h);
+        if (owner != null) return owner.isValidSymbolHeight(h);
         return super.isValidHeight(h);
     }
 
@@ -105,13 +105,13 @@ public class MSymbol extends PixselMap {
      * Результат проверки допустимости ширины зависит от того, принадлежит ли
      * символ шрифту или нет.<br>
      * Если символ принадлежит шрифту, то возвращается значение метода
-     * {@link MFont#isValidWidth(int)}.<br>
+     * {@link MFont#isValidSymbolWidth(int)}.<br>
      * Если символ не принадлежит шрифту, то возвращается
      * {@link PixselMap#isValidWidth(int)}.
      */
     @Override
     protected boolean isValidWidth(int w) {
-        if (owner != null) return owner.isValidWidth(w);
+        if (owner != null) return owner.isValidSymbolWidth(w);
         return super.isValidWidth(w);
     }
 
@@ -127,7 +127,7 @@ public class MSymbol extends PixselMap {
     /**
      * Метод устанавливает индекс символа в шрифте.<br>
      * {@linkplain PixselMap#firePropertyChange(String, int, int) Выпускается
-     * сообщение} {@link PROPERTY_CODE}.
+     * сообщение} {@link #PROPERTY_CODE}.
      * 
      * @param c Новый индекс.
      * @see #getCode()
@@ -163,7 +163,7 @@ public class MSymbol extends PixselMap {
     /**
      * Метод устанавливает код символа в UTF-16.<br>
      * {@linkplain PixselMap#firePropertyChange(String, int, int) Выпускается
-     * сообщение} {@link PROPERTY_UNICODE}.
+     * сообщение} {@link #PROPERTY_UNICODE}.
      * 
      * @param u Новый код символа.
      * @see #isUnicode()
@@ -192,7 +192,8 @@ public class MSymbol extends PixselMap {
      * переменные {@link #code} и {@link #unicode}.<br>
      * Важно знать, что <b>списки получателей сообщений не копируются</b>.<br>
      * Могут {@linkplain PixselMap#firePropertyChange(String, int, int)
-     * выпускаться сообщения} {@link PROPERTY_CODE} и {@link PROPERTY_UNICODE}.
+     * выпускаться сообщения} {@link #PROPERTY_CODE} и {@link #PROPERTY_UNICODE}
+     * .
      * 
      * @param sym Источник копирования.
      * @throws DisallowOperationException Если изменение размеров запрещено
@@ -222,11 +223,13 @@ public class MSymbol extends PixselMap {
      */
     @Override
     public synchronized boolean equals(Object s) {
+        if (this == s) return true;
         if (!(s instanceof MSymbol)) return false;
         MSymbol sym = (MSymbol) s;
+        if (!super.equals(sym)) return false;
         if (isUnicode() != sym.isUnicode()) return false;
-        if (isUnicode()) return super.equals(sym) && unicode == sym.unicode;
-        return super.equals(sym) && code == sym.code;
+        if (isUnicode()) return unicode == sym.unicode;
+        return code == sym.code;
 
     }
 }

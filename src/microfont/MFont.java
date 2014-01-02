@@ -54,7 +54,7 @@ public class MFont extends AbstractMFont implements PixselMapListener,
      * @see java.lang.Object#hashCode()
      */
     @Override
-    public int hashCode() {
+    public synchronized int hashCode() {
         final int prime = 31;
         int result = super.hashCode();
         result = prime * result + ascent;
@@ -76,7 +76,7 @@ public class MFont extends AbstractMFont implements PixselMapListener,
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
-    public boolean equals(Object obj) {
+    public synchronized boolean equals(Object obj) {
         if (this == obj) return true;
         if (!super.equals(obj)) return false;
         if (!(obj instanceof MFont)) return false;
