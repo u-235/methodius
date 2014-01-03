@@ -11,7 +11,56 @@ import microfont.events.PixselMapListener;
 import utils.event.ListenerChain;
 
 /**
+ * Базовое представление шрифта.
  * 
+ * <h3>Набор символов и кодировка.</h3>
+ * <p>
+ * Шрифт имеет массив {@linkplain MSymbol символов}, отсортированных по
+ * {@linkplain MSymbol#getCode() коду} в порядке возрастания. Не допускается
+ * наличие символов с одинаковым кодом. При этом возможен "пропуск" символов.
+ * Это значит, что первым символом шрифта может быть символ с не нулевым кодом.
+ * Так же, разница между кодом последующего символа и предыдущего может быть
+ * больше единицы.
+ * <p>
+ * Шрифт имеет два взаимосвязанных свойства - <i>кодовую страницу</i> и
+ * <i>кодировку</i>. Кодовая страница - это название кодировки; как правило, она
+ * имеет стандартное название, например <code>cp1251</code>. Кодировка - это
+ * объект <code>Charset</code>, который соответствует кодовой странице. При
+ * изменении кодовой страницы происходит автоматическая смена кодировки и
+ * наоборот.
+ * <p>
+ * При смене кодировки шрифт может заново отсортировать символы. Это происходит,
+ * если старая и новая кодировка не равна <code>null</code>. В случае, если
+ * старая кодировка была <code>null</code>, символам просто присваивается
+ * свойство <code>Unicode</code>. Если новая кодировка равна <code>null</code>,
+ * то свойство символов <code>Unicode</code> сбрасывается.
+ * 
+ * <h3>Дополнительные свойства.</h3>
+ * <p>
+ * Шрифт имеет несколько дополнительных свойств: флаг моноширинного
+ * (фиксированного) шрифта, высоту символов и их ширину.
+ * <p>
+ * Моноширинный шрифт содержит символы одинаковой ширины. При попытки добавить к
+ * такому шрифту символ с другой шириной произойдёт коррекция ширины этого
+ * символа. При установке флага моноширинного шрифта символы шрифта будут
+ * приведены к ширине самого широкого символа. Сброс флага не меняет ширины
+ * символов.
+ * <p>
+ * Поведение свойства ширины зависит от типа шрифта.
+ * <ul>
+ * <li>Если шрифт моноширинный, то изменение ширины шрифта влечёт за собой
+ * изменение ширины символов.
+ * <li>Если шрифт не моноширинный, то изменение ширины шрифта не имеет никакого
+ * эффекта и возвращаемым значением является среднее арифметическое от ширин
+ * символов.
+ * </ul>
+ * <p>
+ * Высота шрифта влияет на высоту символов. При смене этого свойства меняется и
+ * высота всех символов.
+ * 
+ * <h3>Запись в журнал.</h3>
+ * <p>
+ * Для записи в журнал используйте статический метод {@link #logger()}.
  */
 public class AbstractMFont implements PixselMapListener,
                 PropertyChangeListener {
@@ -76,7 +125,7 @@ public class AbstractMFont implements PixselMapListener,
     }
 
     @Override
-    public synchronized int hashCode() {
+    public int hashCode() {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((charSet == null) ? 0 : charSet.hashCode());
@@ -95,7 +144,7 @@ public class AbstractMFont implements PixselMapListener,
      * 
      */
     @Override
-    public synchronized boolean equals(Object obj) {
+    public  boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null) return false;
         if (!(obj instanceof AbstractMFont)) return false;
@@ -379,10 +428,22 @@ public class AbstractMFont implements PixselMapListener,
         }
     }
 
+    /**
+     * Возвращает <code>true</code> если шрифт моноширинный.
+     * 
+     * @see #setFixsed(boolean)
+     */
     public boolean isFixsed() {
         return fixsed;
     }
 
+    /**
+     * Изменяет тип шрифта. Если <code>f==true</code>, то ширина символов
+     * выравнивается по самому широкому символу.
+     * 
+     * @param f Тип шрифта. Если равен <code>true</code>, то шрифт моноширинный.
+     * @see #isFixsed()
+     */
     public void setFixsed(boolean f) {
         synchronized (getLock()) {
             boolean old = fixsed;
@@ -392,33 +453,58 @@ public class AbstractMFont implements PixselMapListener,
         }
     }
 
+    /**
+     * Возвращает название кодовой страницы шрифта. Возвращаемое значение может
+     * быть <code>null</code>.
+     * 
+     * @see #setCodePage(String)
+     */
     public String getCodePage() {
         return codePage;
     }
 
+    /**
+     * Устанавливает кодовую страницу шрифта. Если новое название не является
+     * названием или синонимом текущей кодировки, то кодировка меняется в
+     * соответствии с новым названием. В этом случае символы могут быть
+     * отсортированы заново, возможно с частичной потерей символов.
+     * 
+     * @param cp Название кодовой страницы шрифта.
+     * @see #getCodePage()
+     * @see #setCharset(Charset)
+     */
     public void setCodePage(String cp) {
         synchronized (getLock()) {
             String old = codePage;
             codePage = cp;
-            try {
-                setCharset(Charset.forName(codePage));
-            } catch (Exception e) {
-                logger().log(Level.WARNING, "apply charset in setCodePage", e);
-                setCharset(null);
+
+            if (charSet == null || !charSet.aliases().contains(codePage)) {
+                try {
+                    setCharset(Charset.forName(codePage));
+                } catch (Exception e) {
+                    logger().log(Level.WARNING, "apply charset in setCodePage",
+                                    e);
+                    setCharset(null);
+                }
             }
             firePropertyChange(PROPERTY_CODE_PAGE, old, codePage);
         }
     }
 
     /**
-     * @return the charSet
+     * Возвращает кодировку шрифта. Возвращаемое значение может быть
+     * <code>null</code>.
+     * 
+     * @see #setCharset(String)
      */
     public Charset getCharset() {
         return charSet;
     }
 
     /**
-     * @param cs the charSet to set
+     * @param cs Новая кодировка.
+     * @see #getCharset()
+     * @see #setCodePage(String)
      */
     public void setCharset(Charset cs) {
         synchronized (getLock()) {
@@ -426,6 +512,21 @@ public class AbstractMFont implements PixselMapListener,
             charSet = cs;
             if (cs != null && !cs.aliases().contains(codePage))
                 setCodePage(charSet.name());
+
+            if (charSet == null) {
+                // TODO Сброс unicode для всех символов.
+                for (MSymbol sym : symbols) {
+                    sym.clearUnicode();
+                }
+            } else if (old == null) {
+                // TODO Установить unicode для всех символов.
+                for (MSymbol sym : symbols) {
+                    sym.setUnicode();
+                }
+            } else if (old != null) {
+                // TODO Поменять unicode для всех символов и отсортировать.
+            }
+
             firePropertyChange(PROPERTY_CODE_PAGE, old, charSet);
         }
     }
