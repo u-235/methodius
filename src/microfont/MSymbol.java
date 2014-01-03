@@ -40,13 +40,13 @@ public class MSymbol extends PixselMap {
      * 
      * @see #firePropertyChange(String, int, int)
      */
-    public final static String PROPERTY_CODE    = "MSymbolCode";
+    public final static String PROPERTY_CODE    = "MSymbol.code";
     /**
      * Название свойства size.
      * 
      * @see #firePropertyChange(String, int, int)
      */
-    public final static String PROPERTY_UNICODE = "MSymbolUnicode";
+    public final static String PROPERTY_UNICODE = "MSymbol.unicode";
 
     /**
      * Конструктор символа с заданными размерами, индексом и копированием
@@ -90,8 +90,8 @@ public class MSymbol extends PixselMap {
      * Результат проверки допустимости высоты зависит от того, принадлежит ли
      * символ шрифту или нет.<br>
      * Если символ принадлежит шрифту, то возвращается значение метода
-     * {@link MFont#isValidSymbolHeight(int)}. Фактически это значит, что высота может
-     * быть изменена <b>только методами шрифта</b>.<br>
+     * {@link MFont#isValidSymbolHeight(int)}. Фактически это значит, что высота
+     * может быть изменена <b>только методами шрифта</b>.<br>
      * Если символ не принадлежит шрифту, то возвращается
      * {@link PixselMap#isValidHeight(int)}.
      */
@@ -120,7 +120,7 @@ public class MSymbol extends PixselMap {
      * 
      * @see #setCode(int)
      */
-    public synchronized int getCode() {
+    public int getCode() {
         return code;
     }
 
@@ -132,12 +132,13 @@ public class MSymbol extends PixselMap {
      * @param c Новый индекс.
      * @see #getCode()
      */
-    public synchronized void setCode(int c) {
+    public void setCode(int c) {
         if (code == c) return;
-
-        int old = code;
-        code = c;
-        firePropertyChange(PROPERTY_CODE, old, code);
+        synchronized (writeLock()) {
+            int old = code;
+            code = c;
+            firePropertyChange(PROPERTY_CODE, old, code);
+        }
     }
 
     /**
@@ -156,8 +157,17 @@ public class MSymbol extends PixselMap {
      * @see #isUnicode()
      * @see #setUnicode(int)
      */
-    public synchronized int getUnicode() {
+    public int getUnicode() {
         return code;
+    }
+
+    /**
+     * Сбрасывает признак, что символ имеет действительный unicode.
+     */
+    public void clearUnicode() {
+        synchronized (writeLock()) {
+            hasUnicode = false;
+        }
     }
 
     /**
@@ -169,12 +179,13 @@ public class MSymbol extends PixselMap {
      * @see #isUnicode()
      * @see #getUnicode()
      */
-    public synchronized void setUnicode(int u) {
+    public void setUnicode(int u) {
         if (unicode == u) return;
-
-        int old = unicode;
-        unicode = u;
-        firePropertyChange(PROPERTY_UNICODE, old, unicode);
+        synchronized (writeLock()) {
+            int old = unicode;
+            unicode = u;
+            firePropertyChange(PROPERTY_UNICODE, old, unicode);
+        }
     }
 
     /**
@@ -205,13 +216,11 @@ public class MSymbol extends PixselMap {
      *             <code>null</code>.
      * @see #clone()
      */
-    public synchronized void copy(MSymbol sym)
+    public void copy(MSymbol sym)
                     throws DisallowOperationException {
         super.copy(sym);
-        synchronized (sym) {
-            if (sym.isUnicode()) setUnicode(sym.getUnicode());
-            setCode(sym.getCode());
-        }
+        if (sym.isUnicode()) setUnicode(sym.getUnicode());
+        setCode(sym.getCode());
     }
 
     /**
@@ -222,7 +231,7 @@ public class MSymbol extends PixselMap {
      * @return <b>true</b> если символы равны.
      */
     @Override
-    public synchronized boolean equals(Object s) {
+    public boolean equals(Object s) {
         if (this == s) return true;
         if (!(s instanceof MSymbol)) return false;
         MSymbol sym = (MSymbol) s;
@@ -230,6 +239,5 @@ public class MSymbol extends PixselMap {
         if (isUnicode() != sym.isUnicode()) return false;
         if (isUnicode()) return unicode == sym.unicode;
         return code == sym.code;
-
     }
 }

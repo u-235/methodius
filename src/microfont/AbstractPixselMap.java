@@ -579,7 +579,7 @@ public class AbstractPixselMap {
     }
 
     @Override
-    public synchronized int hashCode() {
+    public int hashCode() {
         final int prime = 31;
         int result = 1;
         result = prime * result + width;
@@ -596,7 +596,7 @@ public class AbstractPixselMap {
      * @return <code>true</code> если карты равны.
      */
     @Override
-    public synchronized boolean equals(Object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null) return false;
         if (!(obj instanceof AbstractPixselMap)) return false;
@@ -610,7 +610,7 @@ public class AbstractPixselMap {
     /**
      * Метод возвращает ширину и высоту карты.
      */
-    public synchronized Dimension getSize() {
+    public Dimension getSize() {
         return new Dimension(width, height);
     }
 
@@ -619,7 +619,7 @@ public class AbstractPixselMap {
      * 
      * @return Количество пикселей по горизонтали.
      */
-    public synchronized int getWidth() {
+    public int getWidth() {
         return width;
     }
 
@@ -628,7 +628,7 @@ public class AbstractPixselMap {
      * 
      * @return Количество пикселей по вертикали.
      */
-    public synchronized int getHeight() {
+    public int getHeight() {
         return height;
     }
 
@@ -725,7 +725,7 @@ public class AbstractPixselMap {
      *         <code>false</code> если пиксель сброшен, а так же если параметры
      *         <code>x</code> и <code>y</code> выходят за границы символа.
      */
-    public synchronized boolean getPixsel(int x, int y) {
+    public boolean getPixsel(int x, int y) {
         return get(pixsels, width, x, y);
     }
 
@@ -770,11 +770,11 @@ public class AbstractPixselMap {
      * @see #isValidWidth(int)
      * @see #isValidHeight(int)
      */
-    public synchronized void copy(AbstractPixselMap src)
+    public void copy(AbstractPixselMap src)
                     throws DisallowOperationException {
         if (src == null) throw (new NullPointerException());
 
-        synchronized (src) {
+        synchronized (src.writeLock()) {
             if (!isValidWidth(src.width))
                 throw new DisallowOperationException("change width "
                                 + src.width);
@@ -802,14 +802,14 @@ public class AbstractPixselMap {
                     height = src.height;
                 }
             } // end synchronized (writeLock())
-        } // end synchronized (this)
+        } // end synchronized (src.writeLock())
     }
 
     /**
      * Метод возвращает <b>копию</b> массива пикселей. Если символ имеет нулевую
      * ширину и/или высоту, то возвращается <code>null</code>.
      */
-    public synchronized boolean[] getArray() {
+    public boolean[] getArray() {
         if (pixsels == null) return null;
 
         boolean[] rv = new boolean[width * height];
@@ -832,7 +832,7 @@ public class AbstractPixselMap {
      * Пиксели заполняют возвращаемый массив последовательно начиная с младшего
      * бита самого первого элемента.
      */
-    public synchronized byte[] getByteArray() {
+    public byte[] getByteArray() {
         if (pixsels == null) return null;
 
         PixselIterator pi = new PixselIterator(this, 0, 0, width, height,
