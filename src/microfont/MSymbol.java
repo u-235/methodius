@@ -158,7 +158,7 @@ public class MSymbol extends PixselMap {
      * @see #setUnicode(int)
      */
     public int getUnicode() {
-        return code;
+        return unicode;
     }
 
     /**
@@ -180,8 +180,8 @@ public class MSymbol extends PixselMap {
      * @see #getUnicode()
      */
     public void setUnicode(int u) {
-        if (unicode == u) return;
         synchronized (writeLock()) {
+            hasUnicode = true;
             int old = unicode;
             unicode = u;
             firePropertyChange(PROPERTY_UNICODE, old, unicode);

@@ -3,7 +3,13 @@ package microfont;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.CodingErrorAction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import microfont.events.PixselMapEvent;
@@ -144,7 +150,7 @@ public class AbstractMFont implements PixselMapListener,
      * 
      */
     @Override
-    public  boolean equals(Object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null) return false;
         if (!(obj instanceof AbstractMFont)) return false;
@@ -454,6 +460,57 @@ public class AbstractMFont implements PixselMapListener,
     }
 
     /**
+     * Преобразование из уникода в код символа для текущей кодировки.
+     * 
+     * @throws UnsupportedOperationException Текущая кодировка не поддерживает
+     *             преобразований уникода в код.
+     * @throws CharacterCodingException Если символ с таким <code>unicode</code>
+     *             не входит в шрифт.
+     */
+    int toCode(int unicode) throws UnsupportedOperationException,
+                    CharacterCodingException {
+        int ret = 0;
+        CharBuffer cb = CharBuffer.wrap(Character.toChars(unicode));
+        CharsetEncoder cse = charSet.newEncoder();
+        cse.onUnmappableCharacter(CodingErrorAction.REPORT);
+        byte[] bts = cse.encode(cb).array();
+
+        for (int i = bts.length - 1; i >= 0; i--) {
+            ret = (ret << 8) | bts[i];
+        }
+        return ret;
+    }
+
+    /**
+     * Преобразование из кода символа в уникод для текущей кодировки.
+     * 
+     * @throws CharacterCodingException Если символ с таким <code>code</code> не
+     *             входит в шрифт.
+     */
+    int toUnicode(int code) throws CharacterCodingException {
+        byte[] bts = new byte[4];
+        /*
+         * Это место доставило мне немало хлопот. А всё из-за попытки сделать
+         * CharBuffer.putInt(code), такой способ не работал.
+         */
+        int byteNum = 1;
+        for (int i = 0; i < 4; i++) {
+            bts[i] = (byte) code;
+            if (bts[i] != 0) byteNum = i + 1;
+            code >>= 8;
+        }
+
+        ByteBuffer bb = ByteBuffer.wrap(bts, 0, byteNum);
+        CharsetDecoder csd = charSet.newDecoder();
+        csd.onMalformedInput(CodingErrorAction.REPORT);
+        csd.onUnmappableCharacter(CodingErrorAction.REPORT);
+        
+        char[] chars=csd.decode(bb).array();
+
+        return Character.codePointAt(chars, 0);
+    }
+
+    /**
      * Возвращает название кодовой страницы шрифта. Возвращаемое значение может
      * быть <code>null</code>.
      * 
@@ -465,9 +522,10 @@ public class AbstractMFont implements PixselMapListener,
 
     /**
      * Устанавливает кодовую страницу шрифта. Если новое название не является
-     * названием или синонимом текущей кодировки, то кодировка меняется в
-     * соответствии с новым названием. В этом случае символы могут быть
-     * отсортированы заново, возможно с частичной потерей символов.
+     * названием или синонимом текущей кодировки, то
+     * {@linkplain #setCharset(Charset) кодировка} меняется в соответствии с
+     * новым названием. В этом случае символы могут быть отсортированы заново,
+     * возможно с частичной потерей символов.
      * 
      * @param cp Название кодовой страницы шрифта.
      * @see #getCodePage()
@@ -502,6 +560,19 @@ public class AbstractMFont implements PixselMapListener,
     }
 
     /**
+     * Устанавливает новую кодировку шрифта. Результатом может быть:
+     * <ul>
+     * <li>Если <code>cs == null</code>, то у символов шрифта сбрасывается
+     * признак {@linkplain MSymbol#isUnicode() уникода}.
+     * <li>Если <code>cs</code> не <code>null</code> и старое значение кодировки
+     * было <code>null</code>, то символам присваивается значение уникода.
+     * Символы, к которым невозможно получить уникод, удаляются из шрифта.
+     * <li>Если <code>cs</code> не <code>null</code> и старое значение кодировки
+     * тоже было не <code>null</code>, то символам присваивается новое значение
+     * кода. Символы, к которым невозможно получить код, удаляются из шрифта.
+     * Оставшиеся символы сортируются.
+     * </ul>
+     * 
      * @param cs Новая кодировка.
      * @see #getCharset()
      * @see #setCodePage(String)
@@ -514,17 +585,39 @@ public class AbstractMFont implements PixselMapListener,
                 setCodePage(charSet.name());
 
             if (charSet == null) {
-                // TODO Сброс unicode для всех символов.
+                // Сброс unicode для всех символов.
                 for (MSymbol sym : symbols) {
                     sym.clearUnicode();
                 }
             } else if (old == null) {
-                // TODO Установить unicode для всех символов.
+                // Установить unicode для всех символов.
                 for (MSymbol sym : symbols) {
-                    sym.setUnicode();
+                    try {
+                        sym.setUnicode(toUnicode(sym.getCode()));
+                    } catch (CharacterCodingException e) {
+                        // Символ не входит в новую кодировку.
+                        remove(sym);
+                    }
                 }
-            } else if (old != null) {
-                // TODO Поменять unicode для всех символов и отсортировать.
+            } else {
+                // Поменять code для всех символов и отсортировать.
+                MSymbol[] st = new MSymbol[symbols.length];
+                System.arraycopy(symbols, 0, st, 0, symbols.length);
+
+                try {
+                    for (MSymbol sym : st) {
+                        try {
+                            sym.setCode(toCode(sym.getUnicode()));
+                            if (!isBelong(sym)) add(sym);
+                        } catch (CharacterCodingException e) {
+                            // Символ не входит в новую кодировку.
+                            remove(sym);
+                        }
+                    }
+                } catch (UnsupportedOperationException ex) {
+                    logger().log(Level.WARNING,
+                                    "This charset does not support encoding");
+                }
             }
 
             firePropertyChange(PROPERTY_CODE_PAGE, old, charSet);
@@ -715,6 +808,16 @@ public class AbstractMFont implements PixselMapListener,
 
             if (symbol == null) return;
             if (isBelong(symbol)) return;
+            if (charSet == null) {
+                symbol.clearUnicode();
+            } else {
+                try {
+                    symbol.setUnicode(toUnicode(symbol.getCode()));
+                } catch (CharacterCodingException e) {
+                    // TODO Auto-generated catch block
+                    return;
+                }
+            }
 
             symbol.removePropertyChangeListener(symbol.owner);
             symbol.removePixselMapListener(symbol.owner);
