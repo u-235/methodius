@@ -504,8 +504,8 @@ public class AbstractMFont implements PixselMapListener,
         CharsetDecoder csd = charSet.newDecoder();
         csd.onMalformedInput(CodingErrorAction.REPORT);
         csd.onUnmappableCharacter(CodingErrorAction.REPORT);
-        
-        char[] chars=csd.decode(bb).array();
+
+        char[] chars = csd.decode(bb).array();
 
         return Character.codePointAt(chars, 0);
     }
@@ -624,6 +624,15 @@ public class AbstractMFont implements PixselMapListener,
         }
     }
 
+    /**
+     * Возвращает ширину символов для моноширинного шрифта и среднее
+     * арифметическое значение ширин символов для не моноширинного шрифта.<br>
+     * Для {@linkplain #isEmpty() пустого} шрифта возвращает значение,
+     * установленное последним вызовом {@link #setWidth(int)}.
+     * 
+     * @see #getMinWidth()
+     * @see #getMaxWidth()
+     */
     public int getWidth() {
         synchronized (getLock()) {
             if (isFixsed() || isEmpty()) return width;
@@ -637,8 +646,14 @@ public class AbstractMFont implements PixselMapListener,
     }
 
     /**
-     * @param w
+     * Подготавливает шрифт к изменению ширины. С момента вызова этого метода
+     * {@link #isValidSymbolWidth(int)} вернёт <code>true</code> с параметром,
+     * равным <code>w</code>, однако метод {@link #getWidth()} всё ещё будет
+     * возвращать старое значение.
+     * 
+     * @param w Будущая ширина шрифта. Должна быть не отрицательным числом.
      * @see #applyWidth()
+     * @throws IllegalArgumentException Если <code>w</code> меньше нуля.
      */
     protected void prepareWidth(int w) {
         if (w < 0) throw new IllegalArgumentException("invalid width " + w);
@@ -646,13 +661,15 @@ public class AbstractMFont implements PixselMapListener,
     }
 
     /**
+     * Завершает изменение ширины шрифта. Если шрифт моноширинный, то при
+     * необходимости корректируется ширина всех символов. Метод
+     * {@link #getWidth()} будет возвращать новое значение.
+     * 
      * @see #prepareWidth(int)
      */
     protected void applyWidth() {
         int oldWidth = width;
         width = validWidth;
-
-        firePropertyChange(PROPERTY_WIDTH, oldWidth, width);
 
         if (isFixsed()) {
             for (MSymbol sym : symbols) {
@@ -665,8 +682,19 @@ public class AbstractMFont implements PixselMapListener,
                 }
             }
         }
+
+        firePropertyChange(PROPERTY_WIDTH, oldWidth, width);
     }
 
+    /**
+     * Устанавливает новую ширину символов шрифта. Для моноширинного шрифта
+     * символы корректируются в соответствии с новой шириной.<br>
+     * Для не моноширинного шрифта имеет эффект только на результат,
+     * возвращаемый методом {@link #getWidth()}.
+     * 
+     * @param w Новая ширина шрифта. Должна быть не отрицательным числом.
+     * @throws IllegalArgumentException Если <code>w</code> меньше нуля.
+     */
     public void setWidth(int w) {
         synchronized (getLock()) {
             prepareWidth(w);
@@ -674,6 +702,11 @@ public class AbstractMFont implements PixselMapListener,
         }
     }
 
+    /**
+     * Для моноширинного или {@linkplain #isEmpty() пустого} шрифта эквивалентно
+     * вызову {@link #getWidth()}.<br>
+     * Для не моноширинного шрифта возвращает ширину самого узкого символа.
+     */
     public int getMinWidth() {
         synchronized (getLock()) {
             if (isEmpty() || isFixsed()) return getWidth();
@@ -690,6 +723,11 @@ public class AbstractMFont implements PixselMapListener,
         }
     }
 
+    /**
+     * Для моноширинного или {@linkplain #isEmpty() пустого} шрифта эквивалентно
+     * вызову {@link #getWidth()}.<br>
+     * Для не моноширинного шрифта возвращает ширину самого широкого символа.
+     */
     public int getMaxWidth() {
         synchronized (getLock()) {
             if (isEmpty() || isFixsed()) return getWidth();
@@ -706,13 +744,22 @@ public class AbstractMFont implements PixselMapListener,
         }
     }
 
+    /**
+     * Возвращает высоту символов шрифта.
+     */
     public int getHeight() {
         return height;
     }
 
     /**
-     * @param h
+     * Подготавливает шрифт к изменению высоты. С момента вызова этого метода
+     * {@link #isValidSymbolHeight(int)} вернёт <code>true</code> с параметром,
+     * равным <code>h</code>, однако метод {@link #getHeight()} всё ещё будет
+     * возвращать старое значение.
+     * 
+     * @param h Будущая высота шрифта. Должна быть не отрицательным числом.
      * @see #applyHeight()
+     * @throws IllegalArgumentException Если <code>h</code> меньше нуля.
      */
     protected void prepareHeight(int h) {
         if (h < 0) throw new IllegalArgumentException("invalid height " + h);
@@ -720,6 +767,10 @@ public class AbstractMFont implements PixselMapListener,
     }
 
     /**
+     * Завершает изменение высоты шрифта. При необходимости корректируется
+     * высота всех символов. Метод {@link #getHeight()} будет возвращать новое
+     * значение.
+     * 
      * @see #prepareHeight(int)
      */
     protected void applyHeight() {
@@ -740,6 +791,14 @@ public class AbstractMFont implements PixselMapListener,
         }
     }
 
+    /**
+     * Устанавливает новую высоту символов. При необходимости корректируется
+     * высота всех символов.
+     * 
+     * @param h Новая высота символов шрифта. Должна быть не отрицательным
+     *            числом.
+     * @throws IllegalArgumentException Если <code>h</code> меньше нуля.
+     */
     public void setHeight(int h) {
         synchronized (getLock()) {
             prepareHeight(h);
@@ -748,7 +807,8 @@ public class AbstractMFont implements PixselMapListener,
     }
 
     /**
-     * Return <code>true</code> if <code>ref</code> belong to font.
+     * Возвращает <code>true</code> если символ <code>ref</code> принадлежит
+     * шрифту.
      */
     public boolean isBelong(MSymbol ref) {
         if (ref == null) return false;
@@ -756,7 +816,7 @@ public class AbstractMFont implements PixselMapListener,
     }
 
     /**
-     * Return <code>true</code> if font has not symbols.
+     * Возвращает <code>true</code> если шрифт не имеет символов.
      * 
      * @see #length()
      */
@@ -765,7 +825,7 @@ public class AbstractMFont implements PixselMapListener,
     }
 
     /**
-     * Return number of symbols, that contain font.
+     * Возвращает число символов, которые содержит шрифт.
      * 
      * @see #isEmpty()
      */
@@ -773,16 +833,30 @@ public class AbstractMFont implements PixselMapListener,
         return symbols.length;
     }
 
+    /**
+     * Возвращает символ по порядковому номеру внутреннего хранилища шрифта.
+     * 
+     * @param index Индекс символа во внутреннем хранилище шрифта.
+     * @return Символ или <code>null</code> если <code>index</code> меньше нуля
+     *         или больше или равен {@link #length()}.
+     * @see #symbolByCode(int)
+     * @see #symbolByUnicode(int)
+     */
     public MSymbol symbolByIndex(int index) {
         synchronized (getLock()) {
-            if (index >= symbols.length) return null;
-
+            if (index >= length() || index < 0) return null;
             return symbols[index];
         }
     }
 
+    /**
+     * Возвращает символ по его коду в кодировке шрифта.
+     * @param code Код символа.
+     * @return Символ или <code>null</code> если символа с таким кодом нет.
+     */
     public MSymbol symbolByCode(int code) {
         synchronized (getLock()) {
+            //XXX Здесь лучше использовать метод золотого сечения!!!
             for (MSymbol sym : symbols) {
                 if (sym.getCode() == code) return sym;
             }
@@ -790,6 +864,11 @@ public class AbstractMFont implements PixselMapListener,
         }
     }
 
+    /**
+     * Возвращает символ по его уникоду.
+     * @param code Уникод символа.
+     * @return Символ или <code>null</code> если символа с таким уникодом нет.
+     */
     public MSymbol symbolByUnicode(int code) {
         synchronized (getLock()) {
             if (charSet == null) return null;
