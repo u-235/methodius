@@ -1,6 +1,7 @@
 
 package microfont;
 
+
 /**
  * Класс MSymbol для хранения и изменения символа {@link MFont шрифта}.<br>
  * Важно знать, что хотя символ и является разделяемым ресурсом, но один и тот
@@ -36,17 +37,23 @@ public class MSymbol extends PixselMap {
     private boolean            hasUnicode;
 
     /**
-     * Название свойства size.
+     * Название свойства кода символа.
      * 
      * @see #firePropertyChange(String, int, int)
      */
-    public final static String PROPERTY_CODE    = "MSymbol.code";
+    public final static String PROPERTY_CODE        = "MSymbol.code";
     /**
-     * Название свойства size.
+     * Название свойства уникода символа.
      * 
      * @see #firePropertyChange(String, int, int)
      */
-    public final static String PROPERTY_UNICODE = "MSymbol.unicode";
+    public final static String PROPERTY_UNICODE     = "MSymbol.unicode";
+    /**
+     * Название свойства символа "есть ли уникод".
+     * 
+     * @see #firePropertyChange(String, boolean, boolean)
+     */
+    public final static String PROPERTY_HAS_UNICODE = "MSymbol.HasUnicode";
 
     /**
      * Конструктор символа с заданными размерами, индексом и копированием
@@ -73,6 +80,7 @@ public class MSymbol extends PixselMap {
      */
     public MSymbol(MSymbol src) {
         super(src);
+        if (src.isUnicode()) setUnicode(src.getUnicode());
         code = src.code;
     }
 
@@ -123,6 +131,10 @@ public class MSymbol extends PixselMap {
     public int getCode() {
         return code;
     }
+    
+    void changeCode(int c) {
+        code = c;
+    }
 
     /**
      * Метод устанавливает индекс символа в шрифте.<br>
@@ -133,11 +145,17 @@ public class MSymbol extends PixselMap {
      * @see #getCode()
      */
     public void setCode(int c) {
-        if (code == c) return;
         synchronized (writeLock()) {
-            int old = code;
-            code = c;
-            firePropertyChange(PROPERTY_CODE, old, code);
+            if (code == c) return;
+            int oldCode=code;
+            int oldUnicode=unicode;
+            boolean oldHasUnicode=hasUnicode;
+            // Первым об изменении должен узнать шрифт.
+            if (owner != null) owner.preChangeCode(this, c);
+            changeCode(c);
+            firePropertyChange(PROPERTY_CODE, oldCode, code);
+            firePropertyChange(PROPERTY_HAS_UNICODE, oldHasUnicode, hasUnicode);
+            firePropertyChange(PROPERTY_UNICODE, oldUnicode, unicode);
         }
     }
 
@@ -167,7 +185,13 @@ public class MSymbol extends PixselMap {
     public void clearUnicode() {
         synchronized (writeLock()) {
             hasUnicode = false;
+            firePropertyChange(PROPERTY_HAS_UNICODE, true, false);
         }
+    }
+
+    void changeUnicode(int u) {
+        unicode = u;
+        hasUnicode = true;
     }
 
     /**
@@ -181,10 +205,16 @@ public class MSymbol extends PixselMap {
      */
     public void setUnicode(int u) {
         synchronized (writeLock()) {
-            hasUnicode = true;
-            int old = unicode;
-            unicode = u;
-            firePropertyChange(PROPERTY_UNICODE, old, unicode);
+            if (u == unicode && hasUnicode) return;
+            int oldCode=code;
+            int oldUnicode=unicode;
+            boolean oldHasUnicode=hasUnicode;
+            // Первым об изменении должен узнать шрифт.
+            if (owner != null) owner.preChangeUnicode(this, u);
+            changeUnicode(u);
+            firePropertyChange(PROPERTY_HAS_UNICODE, oldHasUnicode, hasUnicode);
+            firePropertyChange(PROPERTY_UNICODE, oldUnicode, unicode);
+            firePropertyChange(PROPERTY_CODE, oldCode, code);
         }
     }
 

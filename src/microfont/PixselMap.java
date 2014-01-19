@@ -185,6 +185,7 @@ public class PixselMap extends AbstractPixselMap {
      * Выпуск события изменения свойств карты. Получатели добавляются функцией
      * {@link #addPropertyChangeListener(PropertyChangeListener)}.
      * 
+     * @see #firePropertyChange(String, boolean, boolean)
      * @see #firePropertyChange(String, int, int)
      * @see #firePropertyChange(String, Dimension, Dimension)
      */
@@ -198,6 +199,21 @@ public class PixselMap extends AbstractPixselMap {
                                 .propertyChange(event);
             }
         }
+    }
+
+    /**
+     * Выпуск события изменения свойств карты.
+     * 
+     * @param prop Название свойства.
+     * @param oldValue Старое значение.
+     * @param newValue Новое значение.
+     * @see #firePropertyChange(PropertyChangeEvent)
+     */
+    protected void firePropertyChange(String prop, boolean oldValue,
+                    boolean newValue) {
+        if (oldValue == newValue) return;
+        firePropertyChange(new PropertyChangeEvent(this, prop, new Boolean(
+                        oldValue), new Boolean(newValue)));
     }
 
     /**

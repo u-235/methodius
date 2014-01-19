@@ -72,6 +72,7 @@ public class AbstractMFont implements PixselMapListener,
                 PropertyChangeListener {
     public static final String MFONT_LOGGER_NAME  = "methodius.microfont";
     public static final String PROPERTY_CODE_PAGE = "mf.CodePage";
+    public static final String PROPERTY_CHARSET   = "mf.CharSet";
     public static final String PROPERTY_FIXSED    = "mf.fixsed";
     public static final String PROPERTY_HEIGHT    = "mf.height";
     public static final String PROPERTY_SYMBOLS   = "mf.symbols";
@@ -414,48 +415,6 @@ public class AbstractMFont implements PixselMapListener,
      */
     @Override
     public void propertyChange(PropertyChangeEvent event) {
-        String prop = event.getPropertyName();
-        Object src = event.getSource();
-        if (src instanceof MSymbol) {
-            MSymbol sym = (MSymbol) src;
-
-            if (MSymbol.PROPERTY_UNICODE.equals(prop)) {
-                // Если изменился уникод символа нужно изменить и его код.
-                if (!isUnicode()) {
-                    sym.clearUnicode();
-                } else {
-                    try {
-                        sym.setCode(toCode(sym.getUnicode()));
-                    } catch (UnsupportedOperationException e) {
-                        logger().log(Level.WARNING,
-                                        "This charset does not support encoding");
-                    } catch (CharacterCodingException e) {
-                        logger().log(Level.WARNING,
-                                        "unmapped simbol's code : "
-                                                        + sym.getCode(), e);
-                        // XXX Спорный момент - оставлять ли символ шрифте.
-                        remove(sym);
-                    }
-                }
-            } else if (MSymbol.PROPERTY_CODE.equals(prop)) {
-                // Если изменился код символа нужно изменить и уникод.
-                int code = sym.getCode();
-                if (isUnicode()) {
-                    try {
-                        sym.setUnicode(toUnicode(code));
-                    } catch (CharacterCodingException e) {
-                        logger().log(Level.WARNING,
-                                        "unmapped simbol's code : "
-                                                        + sym.getCode(), e);
-                        // XXX Спорный момент - оставлять ли символ шрифте.
-                        remove(sym);
-                    }
-                }
-                //TODO Так же надо переместить символ в массиве символов.
-
-                int index = indexByCode(code);
-            }
-        }
         firePropertyChange(event);
     }
 
@@ -467,12 +426,20 @@ public class AbstractMFont implements PixselMapListener,
      */
     public void copy(AbstractMFont font) {
         synchronized (getLock()) {
-            removeAll();
+            for (MSymbol sym : symbols) {
+                remove(sym);
+            }
+
             setFixsed(font.fixsed);
             setWidth(font.width);
             setHeight(font.height);
-            setCodePage(font.codePage);
-            setSymbols(font.getSymbols());
+            // setCodePage(font.codePage);
+            // setCharset(font.getCharset());
+
+            for (int i = 0; i < font.length(); i++) {
+                add(new MSymbol(font.symbolByIndex(i)));
+            }
+            setCharset(font.getCharset());
         }
     }
 
@@ -518,7 +485,9 @@ public class AbstractMFont implements PixselMapListener,
         byte[] bts = cse.encode(cb).array();
 
         for (int i = bts.length - 1; i >= 0; i--) {
-            ret = (ret << 8) | bts[i];
+            // byte bts[i] расширяется до int с учётом знака!!! Поэтому надо
+            // у этого значения обнулить старшие три байта.
+            ret = (ret << 8) | (bts[i] & 0xff);
         }
         return ret;
     }
@@ -551,6 +520,47 @@ public class AbstractMFont implements PixselMapListener,
         return Character.codePointAt(chars, 0);
     }
 
+    private void replace(MSymbol sym, int code) {
+        int oldIndex = indexByCode(sym.getCode());
+    }
+
+    void preChangeCode(MSymbol sym, int newCode) {
+        // Если изменился код символа нужно изменить и уникод.
+        if (isUnicode()) {
+            try {
+                sym.changeUnicode(toUnicode(newCode));
+            } catch (CharacterCodingException e) {
+                logger().log(Level.WARNING,
+                                "unmapped simbol's code : "
+                                                + sym.getCode(), e);
+                // XXX Спорный момент - оставлять ли символ шрифте.
+                remove(sym);
+                return;
+            }
+        }
+
+        replace(sym, newCode);
+    }
+
+    void preChangeUnicode(MSymbol sym, int newUnicode) {
+        if (!isUnicode()) return;
+
+        try {
+            int code = toCode(newUnicode);
+            replace(sym, code);
+            sym.changeCode(code);
+        } catch (UnsupportedOperationException e) {
+            logger().log(Level.WARNING,
+                            "This charset does not support encoding");
+        } catch (CharacterCodingException e) {
+            logger().log(Level.WARNING,
+                            "unmapped simbol's code : "
+                                            + sym.getCode(), e);
+            // XXX Спорный момент - оставлять ли символ шрифте.
+            remove(sym);
+        }
+    }
+
     /**
      * Возвращает название кодовой страницы шрифта. Возвращаемое значение может
      * быть <code>null</code>.
@@ -574,19 +584,71 @@ public class AbstractMFont implements PixselMapListener,
      */
     public void setCodePage(String cp) {
         synchronized (getLock()) {
-            String old = codePage;
+            String oldCP = codePage;
+            Charset oldCS = charSet;
             codePage = cp;
 
-            if (!isUnicode() || !charSet.aliases().contains(codePage)) {
-                try {
-                    setCharset(Charset.forName(codePage));
-                } catch (Exception e) {
-                    logger().log(Level.WARNING, "apply charset in setCodePage",
-                                    e);
-                    setCharset(null);
+            if (codePage == null) {
+                charSet = null;
+            } else {
+                // if (cp.equals(codePage)) return;
+                if (charSet == null || (!charSet.name().equals(codePage))
+                                || (!charSet.aliases().contains(codePage)))
+                {
+                    try {
+                        charSet = Charset.forName(codePage);
+                    } catch (Exception e) {
+                        logger().log(Level.WARNING,
+                                        "apply charset in setCodePage",
+                                        e);
+                        charSet = null;
+                    }
                 }
             }
-            firePropertyChange(PROPERTY_CODE_PAGE, old, codePage);
+
+            applyCharset(oldCS);
+            firePropertyChange(PROPERTY_CODE_PAGE, oldCP, codePage);
+            firePropertyChange(PROPERTY_CHARSET, oldCS, charSet);
+        }
+    }
+
+    void applyCharset(Charset old) {
+        if (!isUnicode()) {
+            // Сброс unicode для всех символов.
+            for (MSymbol sym : symbols) {
+                sym.clearUnicode();
+            }
+        } else if (old == null) {
+            // Установить unicode для всех символов.
+            for (MSymbol sym : symbols) {
+                try {
+                    sym.setUnicode(toUnicode(sym.getCode()));
+                } catch (CharacterCodingException e) {
+                    // Символ не входит в новую кодировку.
+                    // XXX Спорный момент - оставлять ли символ шрифте.
+                    remove(sym);
+                }
+            }
+        } else {
+            // Поменять code для всех символов и отсортировать.
+            MSymbol[] st = new MSymbol[symbols.length];
+            System.arraycopy(symbols, 0, st, 0, symbols.length);
+
+            try {
+                for (MSymbol sym : st) {
+                    try {
+                        if (sym.isUnicode())
+                            sym.setCode(toCode(sym.getUnicode()));
+                        if (!isBelong(sym)) add(sym);
+                    } catch (CharacterCodingException e) {
+                        // Символ не входит в новую кодировку.
+                        remove(sym);
+                    }
+                }
+            } catch (UnsupportedOperationException ex) {
+                logger().log(Level.WARNING,
+                                "This charset does not support encoding");
+            }
         }
     }
 
@@ -602,7 +664,7 @@ public class AbstractMFont implements PixselMapListener,
      * Возвращает кодировку шрифта. Возвращаемое значение может быть
      * <code>null</code>.
      * 
-     * @see #setCharset(String)
+     * @see #setCharset(Charset)
      */
     public Charset getCharset() {
         return charSet;
@@ -628,50 +690,20 @@ public class AbstractMFont implements PixselMapListener,
      */
     public void setCharset(Charset cs) {
         synchronized (getLock()) {
-            Charset old = charSet;
+            String oldCP = codePage;
+            Charset oldCS = charSet;
             charSet = cs;
-            if (cs != null && !cs.aliases().contains(codePage))
-                setCodePage(charSet.name());
 
-            if (!isUnicode()) {
-                // Сброс unicode для всех символов.
-                for (MSymbol sym : symbols) {
-                    sym.clearUnicode();
-                }
-            } else if (old == null) {
-                // Установить unicode для всех символов.
-                for (MSymbol sym : symbols) {
-                    try {
-                        sym.setUnicode(toUnicode(sym.getCode()));
-                    } catch (CharacterCodingException e) {
-                        // Символ не входит в новую кодировку.
-                        // XXX Спорный момент - оставлять ли символ шрифте.
-                        remove(sym);
-                    }
-                }
-            } else {
-                // Поменять code для всех символов и отсортировать.
-                MSymbol[] st = new MSymbol[symbols.length];
-                System.arraycopy(symbols, 0, st, 0, symbols.length);
-
-                try {
-                    for (MSymbol sym : st) {
-                        try {
-                            if (sym.isUnicode())
-                                sym.setCode(toCode(sym.getUnicode()));
-                            if (!isBelong(sym)) add(sym);
-                        } catch (CharacterCodingException e) {
-                            // Символ не входит в новую кодировку.
-                            remove(sym);
-                        }
-                    }
-                } catch (UnsupportedOperationException ex) {
-                    logger().log(Level.WARNING,
-                                    "This charset does not support encoding");
-                }
+            if (charSet == null) {
+                codePage = null;
+            } else if (!charSet.name().equals(codePage)
+                            || !charSet.aliases().contains(codePage)) {
+                codePage = charSet.name();
             }
 
-            firePropertyChange(PROPERTY_CODE_PAGE, old, charSet);
+            applyCharset(oldCS);
+            firePropertyChange(PROPERTY_CHARSET, oldCS, charSet);
+            firePropertyChange(PROPERTY_CODE_PAGE, oldCP, codePage);
         }
     }
 
@@ -895,7 +927,7 @@ public class AbstractMFont implements PixselMapListener,
         if (isEmpty()) return -1;
         // Подготовка к поиску методом последовательного приближения.
         int len = length();
-        int step = len/2;
+        int step = len / 2;
         int index = step;
         // Реализация последовательного приближения.
         while (index >= 0 && index < len) {
@@ -1110,36 +1142,6 @@ public class AbstractMFont implements PixselMapListener,
     public void removeByCode(int index) {
         synchronized (getLock()) {
             remove(symbolByCode(index));
-        }
-    }
-
-    public void removeAll() {
-        synchronized (getLock()) {
-            for (MSymbol sym : symbols) {
-                remove(sym);
-            }
-        }
-    }
-
-    public MSymbol[] getSymbols() {
-        synchronized (getLock()) {
-            MSymbol[] ret = new MSymbol[symbols.length];
-
-            for (int i = 0; i < symbols.length; i++) {
-                ret[i] = new MSymbol(symbols[i]);
-            }
-
-            return ret;
-        }
-    }
-
-    public void setSymbols(MSymbol[] ss) {
-        synchronized (getLock()) {
-            removeAll();
-
-            for (MSymbol sym : ss) {
-                add(new MSymbol(sym));
-            }
         }
     }
 
