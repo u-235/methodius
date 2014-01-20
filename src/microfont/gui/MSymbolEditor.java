@@ -124,9 +124,12 @@ public class MSymbolEditor extends MAbstractComponent implements MouseListener,
         if (count < 3) count = 3;
         if (count > 25) count = 25;
 
-        pixselSize = count;
-        pixselSize = count;
-        revalidate();
+        try {
+            setPixselSize(count);
+        } catch (RenderError e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
     }
 
     /**

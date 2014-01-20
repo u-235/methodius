@@ -433,13 +433,12 @@ public class AbstractMFont implements PixselMapListener,
             setFixsed(font.fixsed);
             setWidth(font.width);
             setHeight(font.height);
-            // setCodePage(font.codePage);
-            // setCharset(font.getCharset());
+            setCodePage(font.codePage);
+            setCharset(font.getCharset());
 
             for (int i = 0; i < font.length(); i++) {
                 add(new MSymbol(font.symbolByIndex(i)));
             }
-            setCharset(font.getCharset());
         }
     }
 
@@ -520,10 +519,25 @@ public class AbstractMFont implements PixselMapListener,
         return Character.codePointAt(chars, 0);
     }
 
+    /**
+     * Перемещает символ в соответствии с новым кодом.
+     * 
+     * @param sym Перемещаемый символ
+     * @param code Код, который будет присвоен символу.
+     */
     private void replace(MSymbol sym, int code) {
-        int oldIndex = indexByCode(sym.getCode());
+        if (sym.getCode() == code) return;
+        // FIXME метод не реализован!
     }
 
+    /**
+     * Метод вызывается из {@link MSymbol#setCode(int)} для уведомления о
+     * предстоящих изменениях. Это позволяет шрифту попытаться изменить и уникод
+     * символа.
+     * 
+     * @param sym Символ, в котором будет изменение.
+     * @param newCode Новый код символа.
+     */
     void preChangeCode(MSymbol sym, int newCode) {
         // Если изменился код символа нужно изменить и уникод.
         if (isUnicode()) {
@@ -542,6 +556,14 @@ public class AbstractMFont implements PixselMapListener,
         replace(sym, newCode);
     }
 
+    /**
+     * Метод вызывается из {@link MSymbol#setUnicode(int)} для уведомления о
+     * предстоящих изменениях. Это позволяет шрифту попытаться изменить и код
+     * символа.
+     * 
+     * @param sym Символ, в котором будет изменение.
+     * @param newUnicode Новый уникод символа.
+     */
     void preChangeUnicode(MSymbol sym, int newUnicode) {
         if (!isUnicode()) return;
 
@@ -612,6 +634,11 @@ public class AbstractMFont implements PixselMapListener,
         }
     }
 
+    /**
+     * Распространяет изменение кодировки на символы шрифта.
+     * 
+     * @param old Старое значение кодировки.
+     */
     void applyCharset(Charset old) {
         if (!isUnicode()) {
             // Сброс unicode для всех символов.
@@ -1028,8 +1055,8 @@ public class AbstractMFont implements PixselMapListener,
     }
 
     /**
-     * 
-     * @param symbol
+     * Добавляет символ в шрифт.
+     * @param symbol Добавляемый символ.
      */
     public void add(MSymbol symbol) {
         synchronized (getLock()) {
@@ -1038,6 +1065,7 @@ public class AbstractMFont implements PixselMapListener,
 
             if (symbol == null) return;
             if (isBelong(symbol)) return;
+            if (symbol.owner != null) symbol.owner.remove(symbol);
             // Преобразования свойств код и уникод символа.
             if (charSet == null) {
                 symbol.clearUnicode();
@@ -1066,7 +1094,6 @@ public class AbstractMFont implements PixselMapListener,
                 }
             }
 
-            if (symbol.owner != null) symbol.owner.remove(symbol);
             symbol.addPropertyChangeListener(this);
             symbol.addPixselMapListener(this);
             symbol.owner = this;
@@ -1113,6 +1140,10 @@ public class AbstractMFont implements PixselMapListener,
         }
     }
 
+    /**
+     * Удаляет указанный символ из шрифта.
+     * @param symbol Удаляемый символ.
+     */
     public void remove(MSymbol symbol) {
         synchronized (getLock()) {
             int i;

@@ -225,7 +225,7 @@ public class MAbstractComponent extends ScrollableWindow implements
 
         if (old != pixselSize) {
             revalidate();
-            validate();
+            //validate();
             repaint();
         }
     }

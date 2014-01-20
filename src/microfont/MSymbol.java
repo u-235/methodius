@@ -1,7 +1,6 @@
 
 package microfont;
 
-
 /**
  * Класс MSymbol для хранения и изменения символа {@link MFont шрифта}.<br>
  * Важно знать, что хотя символ и является разделяемым ресурсом, но один и тот
@@ -131,7 +130,10 @@ public class MSymbol extends PixselMap {
     public int getCode() {
         return code;
     }
-    
+
+    /**
+     * Метод изменяет код символа. Никаких других действий не производится.
+     */
     void changeCode(int c) {
         code = c;
     }
@@ -147,9 +149,9 @@ public class MSymbol extends PixselMap {
     public void setCode(int c) {
         synchronized (writeLock()) {
             if (code == c) return;
-            int oldCode=code;
-            int oldUnicode=unicode;
-            boolean oldHasUnicode=hasUnicode;
+            int oldCode = code;
+            int oldUnicode = unicode;
+            boolean oldHasUnicode = hasUnicode;
             // Первым об изменении должен узнать шрифт.
             if (owner != null) owner.preChangeCode(this, c);
             changeCode(c);
@@ -189,6 +191,9 @@ public class MSymbol extends PixselMap {
         }
     }
 
+    /**
+     * Метод изменяет уникод символа. Никаких других действий не производится.
+     */
     void changeUnicode(int u) {
         unicode = u;
         hasUnicode = true;
@@ -206,9 +211,9 @@ public class MSymbol extends PixselMap {
     public void setUnicode(int u) {
         synchronized (writeLock()) {
             if (u == unicode && hasUnicode) return;
-            int oldCode=code;
-            int oldUnicode=unicode;
-            boolean oldHasUnicode=hasUnicode;
+            int oldCode = code;
+            int oldUnicode = unicode;
+            boolean oldHasUnicode = hasUnicode;
             // Первым об изменении должен узнать шрифт.
             if (owner != null) owner.preChangeUnicode(this, u);
             changeUnicode(u);
