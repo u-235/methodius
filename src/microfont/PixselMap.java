@@ -848,7 +848,7 @@ public class PixselMap extends AbstractPixselMap {
      * Вставляет заданный столбец.
      * 
      * @param pos Позиция первого вставляемого столбца.
-     * @param num Количество удаляемых столбцов.
+     * @param num Количество вставляемых столбцов.
      * @throws DisallowOperationException Если изменение размеров запрещено
      *             конфигурацией класса или его потомков.
      * @see #addLeft(int)

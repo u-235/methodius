@@ -298,6 +298,7 @@ public class MFontLoadSave {
                     int n = 0;
                     boolean space=true;
                     for (int i = 0; i < value.length(); i++) {
+                            if (n >= bytes.length) break;
                         char c = value.charAt(i);
                         if (c >= '0' && c <= '9') {
                             bytes[n] = (byte) (bytes[n] * 16 + c - '0');

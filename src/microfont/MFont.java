@@ -2,6 +2,7 @@
 package microfont;
 
 import java.beans.PropertyChangeListener;
+import java.util.logging.Level;
 import microfont.events.PixselMapListener;
 
 /**
@@ -19,7 +20,7 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     public static final String PROPERTY_MARGIN_RIGHT = "mf.margin.right";
     public static final String PROPERTY_NAME         = "mf.name";
     public static final String PROPERTY_PROTOTYPE    = "mf.prototype";
-    
+
     private String             name;
     private String             prototype;
     private String             description;
@@ -36,7 +37,7 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     }
 
     public MFont(MFont src) {
-            super(src);
+        super(src);
         synchronized (src.getLock()) {
             name = src.name;
             prototype = src.prototype;
@@ -50,7 +51,8 @@ public class MFont extends AbstractMFont implements PixselMapListener,
         }
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
      * @see java.lang.Object#hashCode()
      */
     @Override
@@ -72,33 +74,51 @@ public class MFont extends AbstractMFont implements PixselMapListener,
         return result;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
     public synchronized boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (!super.equals(obj)) return false;
-        if (!(obj instanceof MFont)) return false;
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        if (!(obj instanceof MFont))
+            return false;
         MFont other = (MFont) obj;
-        if (ascent != other.ascent) return false;
+        if (ascent != other.ascent)
+            return false;
         if (author == null) {
-            if (other.author != null) return false;
-        } else if (!author.equals(other.author)) return false;
-        if (baseline != other.baseline) return false;
-        if (descent != other.descent) return false;
+            if (other.author != null)
+                return false;
+        } else if (!author.equals(other.author))
+            return false;
+        if (baseline != other.baseline)
+            return false;
+        if (descent != other.descent)
+            return false;
         if (description == null) {
-            if (other.description != null) return false;
-        } else if (!description.equals(other.description)) return false;
-        if (line != other.line) return false;
-        if (marginLeft != other.marginLeft) return false;
-        if (marginRight != other.marginRight) return false;
+            if (other.description != null)
+                return false;
+        } else if (!description.equals(other.description))
+            return false;
+        if (line != other.line)
+            return false;
+        if (marginLeft != other.marginLeft)
+            return false;
+        if (marginRight != other.marginRight)
+            return false;
         if (name == null) {
-            if (other.name != null) return false;
-        } else if (!name.equals(other.name)) return false;
+            if (other.name != null)
+                return false;
+        } else if (!name.equals(other.name))
+            return false;
         if (prototype == null) {
-            if (other.prototype != null) return false;
-        } else if (!prototype.equals(other.prototype)) return false;
+            if (other.prototype != null)
+                return false;
+        } else if (!prototype.equals(other.prototype))
+            return false;
         return true;
     }
 
@@ -225,7 +245,8 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     public void setBaseline(int bl) {
         int old = baseline;
 
-        if (bl < 0) throw (new IllegalArgumentException("invalid baseline"));
+        if (bl < 0)
+            throw (new IllegalArgumentException("invalid baseline"));
         baseline = checkBaseline(bl);
 
         firePropertyChange(PROPERTY_BASELINE, old, baseline);
@@ -248,7 +269,8 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     public void setAscent(int asc) {
         int old = ascent;
 
-        if (asc < 0) throw (new IllegalArgumentException("invalid ascent"));
+        if (asc < 0)
+            throw (new IllegalArgumentException("invalid ascent"));
         ascent = checkAscent(asc);
 
         firePropertyChange(PROPERTY_ASCENT, old, ascent);
@@ -270,7 +292,8 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     public void setLine(int ln) {
         int old = line;
 
-        if (ln < 0) throw (new IllegalArgumentException("invalid line"));
+        if (ln < 0)
+            throw (new IllegalArgumentException("invalid line"));
         line = checkLine(ln);
 
         firePropertyChange(PROPERTY_LINE, old, line);
@@ -290,7 +313,8 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     public void setDescent(int dsc) {
         int old = descent;
 
-        if (dsc < 0) throw (new IllegalArgumentException("invalid descent"));
+        if (dsc < 0)
+            throw (new IllegalArgumentException("invalid descent"));
         descent = checkDescent(dsc);
 
         firePropertyChange(PROPERTY_DESCENT, old, descent);
@@ -325,52 +349,42 @@ public class MFont extends AbstractMFont implements PixselMapListener,
             if (property.equals(PROPERTY_ASCENT)) {
                 setAscent(i);
                 return;
-            }
-            else if (property.equals(PROPERTY_BASELINE)) {
+            } else if (property.equals(PROPERTY_BASELINE)) {
                 setBaseline(i);
                 return;
-            }
-            else if (property.equals(PROPERTY_DESCENT)) {
+            } else if (property.equals(PROPERTY_DESCENT)) {
                 setDescent(i);
                 return;
-            }
-            else if (property.equals(PROPERTY_LINE)) {
+            } else if (property.equals(PROPERTY_LINE)) {
                 setLine(i);
                 return;
-            }
-            else if (property.equals(PROPERTY_MARGIN_LEFT)) {
+            } else if (property.equals(PROPERTY_MARGIN_LEFT)) {
                 setMarginLeft(i);
                 return;
-            }
-            else if (property.equals(PROPERTY_MARGIN_RIGHT)) {
+            } else if (property.equals(PROPERTY_MARGIN_RIGHT)) {
                 setMarginRight(i);
                 return;
             }
-        }else if (value instanceof String) {
+        } else if (value instanceof String) {
             String s = (String) value;
 
             if (property.equals(PROPERTY_AUTHOR)) {
                 setAuthor(s);
                 return;
-            }
-            else if (property.equals(PROPERTY_DESCRIPTION)) {
+            } else if (property.equals(PROPERTY_DESCRIPTION)) {
                 setDescriptin(s);
                 return;
-            }
-            else if (property.equals(PROPERTY_NAME)) {
+            } else if (property.equals(PROPERTY_NAME)) {
                 setName(s);
                 return;
-            }
-            else if (property.equals(PROPERTY_PROTOTYPE)) {
+            } else if (property.equals(PROPERTY_PROTOTYPE)) {
                 setPrototype(s);
                 return;
             }
         }
-        
+
         super.setProperty(property, value);
     }
-    
-
 
     /**
      * Возвращает количество пустых колонок слева.
@@ -380,7 +394,15 @@ public class MFont extends AbstractMFont implements PixselMapListener,
      * @see #emptyRight()
      */
     public int emptyLeft() {
-        return width;
+        synchronized (getLock()) {
+            int ret = getWidth();
+
+            for (int i = 0; i < length(); i++) {
+                int t = symbolByIndex(i).emptyLeft();
+                ret = ret < t ? ret : t;
+            }
+            return ret;
+        }
     }
 
     /**
@@ -391,7 +413,15 @@ public class MFont extends AbstractMFont implements PixselMapListener,
      * @see #emptyLeft()
      */
     public int emptyRight() {
-        return width;
+        synchronized (getLock()) {
+            int ret = getWidth();
+
+            for (int i = 0; i < length(); i++) {
+                int t = symbolByIndex(i).emptyRight();
+                ret = ret < t ? ret : t;
+            }
+            return ret;
+        }
     }
 
     /**
@@ -402,7 +432,15 @@ public class MFont extends AbstractMFont implements PixselMapListener,
      * @see #emptyRight()
      */
     public int emptyTop() {
-        return height;
+        synchronized (getLock()) {
+            int ret = getHeight();
+
+            for (int i = 0; i < length(); i++) {
+                int t = symbolByIndex(i).emptyTop();
+                ret = ret < t ? ret : t;
+            }
+            return ret;
+        }
     }
 
     /**
@@ -413,142 +451,224 @@ public class MFont extends AbstractMFont implements PixselMapListener,
      * @see #emptyRight()
      */
     public int emptyBottom() {
-        return height;
-    }
-    
+        synchronized (getLock()) {
+            int ret = getHeight();
 
+            for (int i = 0; i < length(); i++) {
+                int t = symbolByIndex(i).emptyBottom();
+                ret = ret < t ? ret : t;
+            }
+            return ret;
+        }
+    }
 
     /**
      * Удаляет столбец слева.
      * 
      * @param num Количество удаляемых столбцов.
-     * @throws DisallowOperationException Если изменение размеров запрещено
-     *             конфигурацией класса или его потомков.
      * @see #removeRight(int)
-     * @see #removeColumns(int, int)
      */
-    public void removeLeft(int num) throws DisallowOperationException {
+    public void removeLeft(int num) {
         if (num <= 0) return;
+
+        synchronized (getLock()) {
+            int w;
+            if (isFixsed()) {
+                w = getWidth();
+            } else {
+                w = getMinWidth();
+            }
+            if (num > w) num = w;
+            prepareWidth(getWidth() - num);
+
+            for (int i = 0; i < length(); i++) {
+                try {
+                    symbolByIndex(i).removeLeft(num);
+                } catch (DisallowOperationException e) {
+                    // Это исключение не должно возникнуть никогда.
+                    logger().log(Level.SEVERE, "fail remove left", e);
+                }
+            }
+            applyWidth();
+        }
     }
 
     /**
      * Удаляет столбец справа.
      * 
      * @param num Количество удаляемых столбцов.
-     * @throws DisallowOperationException Если изменение размеров запрещено
-     *             конфигурацией класса или его потомков.
      * @see #removeLeft(int)
-     * @see #removeColumns(int, int)
      */
-    public void removeRight(int num) throws DisallowOperationException {
+    public void removeRight(int num) {
         if (num <= 0) return;
+
+        synchronized (getLock()) {
+            int w;
+            if (isFixsed()) {
+                w = getWidth();
+            } else {
+                w = getMinWidth();
+            }
+            if (num > w) num = w;
+            prepareWidth(getWidth() - num);
+
+            for (int i = 0; i < length(); i++) {
+                try {
+                    symbolByIndex(i).removeRight(num);
+                } catch (DisallowOperationException e) {
+                    // Это исключение не должно возникнуть никогда.
+                    logger().log(Level.SEVERE, "fail remove right", e);
+                }
+            }
+            applyWidth();
+        }
     }
 
     /**
      * Удаляет строки сверху.
      * 
      * @param num Количество удаляемых строк.
-     * @throws DisallowOperationException Если изменение размеров запрещено
-     *             конфигурацией класса или его потомков.
      * @see #removeBottom(int)
-     * @see #removeRows(int, int)
      */
-    public void removeTop(int num) throws DisallowOperationException {
+    public void removeTop(int num) {
         if (num <= 0) return;
+
+        synchronized (getLock()) {
+            int h = getHeight();
+            if (num > h) num = h;
+            prepareHeight(h - num);
+
+            for (int i = 0; i < length(); i++) {
+                try {
+                    symbolByIndex(i).removeTop(num);
+                } catch (DisallowOperationException e) {
+                    // Это исключение не должно возникнуть никогда.
+                    logger().log(Level.SEVERE, "fail remove top", e);
+                }
+            }
+            applyHeight();
+        }
     }
 
     /**
      * Удаляет строки снизу.
      * 
      * @param num Количество удаляемых строк.
-     * @throws DisallowOperationException Если изменение размеров запрещено
-     *             конфигурацией класса или его потомков.
      * @see #removeTop(int)
-     * @see #removeRows(int, int)
      */
-    public void removeBottom(int num) throws DisallowOperationException {
+    public void removeBottom(int num) {
         if (num <= 0) return;
-    }
 
-    /**
-     * Вставляет заданный столбец.
-     * 
-     * @param pos Позиция первого вставляемого столбца.
-     * @param num Количество удаляемых столбцов.
-     * @throws DisallowOperationException Если изменение размеров запрещено
-     *             конфигурацией класса или его потомков.
-     * @see #addLeft(int)
-     * @see #addRight(int)
-     * @see #addRows(int, int)
-     */
-    public void addColumns(int pos, int num) throws DisallowOperationException {
-        if (num <= 0) return;
-    }
+        synchronized (getLock()) {
+            int h = getHeight();
+            if (num > h) num = h;
+            prepareHeight(h - num);
 
-    /**
-     * Вставляет заданные строки.
-     * 
-     * @param pos Позиция первой вставляемой строки.
-     * @param num Количество вставляемых строк.
-     * @throws DisallowOperationException Если изменение размеров запрещено
-     *             конфигурацией класса или его потомков.
-     * @see #addBottom(int)
-     * @see #addTop(int)
-     * @see #addColumns(int, int)
-     */
-    public void addRows(int pos, int num) throws DisallowOperationException {
-        if (num <= 0) return;
+            for (int i = 0; i < length(); i++) {
+                try {
+                    symbolByIndex(i).removeBottom(num);
+                } catch (DisallowOperationException e) {
+                    // Это исключение не должно возникнуть никогда.
+                    logger().log(Level.SEVERE, "fail remove bottom", e);
+                }
+            }
+            applyHeight();
+        }
     }
 
     /**
      * Вставляет столбец слева.
      * 
      * @param num Количество вставляемых столбцов.
-     * @throws DisallowOperationException Если изменение размеров запрещено
-     *             конфигурацией класса или его потомков.
      * @see #addRight(int)
-     * @see #addColumns(int, int)
      */
-    public void addLeft(int num) throws DisallowOperationException {
+    public void addLeft(int num) {
         if (num <= 0) return;
+
+        synchronized (getLock()) {
+            prepareWidth(getWidth() + num);
+
+            for (int i = 0; i < length(); i++) {
+                try {
+                    symbolByIndex(i).addLeft(num);
+                } catch (DisallowOperationException e) {
+                    // Это исключение не должно возникнуть никогда.
+                    logger().log(Level.SEVERE, "fail add left", e);
+                }
+            }
+            applyWidth();
+        }
     }
 
     /**
      * Вставляет столбец справа.
      * 
      * @param num Количество вставляемых столбцов.
-     * @throws DisallowOperationException Если изменение размеров запрещено
-     *             конфигурацией класса или его потомков.
      * @see #addLeft(int)
-     * @see #addColumns(int, int)
      */
-    public void addRight(int num) throws DisallowOperationException {
+    public void addRight(int num) {
         if (num <= 0) return;
+
+        synchronized (getLock()) {
+            prepareWidth(getWidth() + num);
+
+            for (int i = 0; i < length(); i++) {
+                try {
+                    symbolByIndex(i).addRight(num);
+                } catch (DisallowOperationException e) {
+                    // Это исключение не должно возникнуть никогда.
+                    logger().log(Level.SEVERE, "fail add right", e);
+                }
+            }
+            applyWidth();
+        }
     }
 
     /**
      * Вставляет строки сверху.
      * 
      * @param num Количество вставляемых строк.
-     * @throws DisallowOperationException Если изменение размеров запрещено
-     *             конфигурацией класса или его потомков.
      * @see #addBottom(int)
-     * @see #addRows(int, int)
      */
-    public void addTop(int num) throws DisallowOperationException {
+    public void addTop(int num) {
         if (num <= 0) return;
+
+        synchronized (getLock()) {
+            prepareHeight(getHeight() + num);
+
+            for (int i = 0; i < length(); i++) {
+                try {
+                    symbolByIndex(i).addTop(num);
+                } catch (DisallowOperationException e) {
+                    // Это исключение не должно возникнуть никогда.
+                    logger().log(Level.SEVERE, "fail add top", e);
+                }
+            }
+            applyHeight();
+        }
     }
 
     /**
      * Вставляет строки снизу.
      * 
      * @param num Количество вставляемых строк.
-     * @throws DisallowOperationException Если изменение размеров запрещено
-     *             конфигурацией класса или его потомков.
      * @see #addTop(int)
-     * @see #addRows(int, int)
      */
-    public void addBottom(int num) throws DisallowOperationException {
+    public void addBottom(int num) {
         if (num <= 0) return;
+
+        synchronized (getLock()) {
+            prepareHeight(getHeight() + num);
+
+            for (int i = 0; i < length(); i++) {
+                try {
+                    symbolByIndex(i).addBottom(num);
+                } catch (DisallowOperationException e) {
+                    // Это исключение не должно возникнуть никогда.
+                    logger().log(Level.SEVERE, "fail add bottom", e);
+                }
+            }
+            applyHeight();
+        }
     }
 }

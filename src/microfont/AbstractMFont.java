@@ -68,8 +68,7 @@ import utils.event.ListenerChain;
  * <p>
  * Для записи в журнал используйте статический метод {@link #logger()}.
  */
-public class AbstractMFont implements PixselMapListener,
-                PropertyChangeListener {
+public class AbstractMFont implements PixselMapListener, PropertyChangeListener {
     public static final String MFONT_LOGGER_NAME  = "methodius.microfont";
     public static final String PROPERTY_CODE_PAGE = "mf.CodePage";
     public static final String PROPERTY_CHARSET   = "mf.CharSet";
@@ -110,7 +109,8 @@ public class AbstractMFont implements PixselMapListener,
      */
     public AbstractMFont(AbstractMFont src) {
         this();
-        if (src == null) return;
+        if (src == null)
+            return;
         synchronized (src.getLock()) {
             copy(src);
         }
@@ -152,24 +152,34 @@ public class AbstractMFont implements PixselMapListener,
      */
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (!(obj instanceof AbstractMFont)) return false;
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (!(obj instanceof AbstractMFont))
+            return false;
         AbstractMFont other = (AbstractMFont) obj;
         if (charSet == null) {
             if (other.charSet != null) return false;
             else if (codePage == null) {
-                if (other.codePage != null) return false;
-            }
-            else if (!codePage.equals(other.codePage)) return false;
-        } else if (!charSet.equals(other.charSet)) return false;
-        if (fixsed != other.fixsed) return false;
-        if (height != other.height) return false;
-        if (width != other.width) return false;
+                if (other.codePage != null)
+                    return false;
+            } else if (!codePage.equals(other.codePage))
+                return false;
+        } else if (!charSet.equals(other.charSet))
+            return false;
+        if (fixsed != other.fixsed)
+            return false;
+        if (height != other.height)
+            return false;
+        if (width != other.width)
+            return false;
 
-        if (symbols.length != other.symbols.length) return false;
+        if (symbols.length != other.symbols.length)
+            return false;
         for (int i = 0; i < symbols.length; i++) {
-            if (!symbols[i].equals(other.symbols[i])) return false;
+            if (!symbols[i].equals(other.symbols[i]))
+                return false;
         }
         return true;
     }
@@ -189,8 +199,10 @@ public class AbstractMFont implements PixselMapListener,
      * @see #isValidSymbolHeight(int)
      */
     protected boolean isValidSymbolWidth(int w) {
-        if (w < 0) return false;
-        if (!fixsed) return true;
+        if (w < 0)
+            return false;
+        if (!fixsed)
+            return true;
         return w == validWidth;
     }
 
@@ -207,7 +219,8 @@ public class AbstractMFont implements PixselMapListener,
      * @see #isValidSymbolWidth(int)
      */
     protected boolean isValidSymbolHeight(int h) {
-        if (h < 0) return false;
+        if (h < 0)
+            return false;
         return h == validHeight;
     }
 
@@ -271,10 +284,11 @@ public class AbstractMFont implements PixselMapListener,
      */
     protected void firePropertyChange(String property, Object oldValue,
                     Object newValue) {
-        if (oldValue == newValue) return;
+        if (oldValue == newValue)
+            return;
 
-        firePropertyChange(new PropertyChangeEvent(this, property,
-                        oldValue, newValue));
+        firePropertyChange(new PropertyChangeEvent(this, property, oldValue,
+                        newValue));
     }
 
     /**
@@ -289,10 +303,11 @@ public class AbstractMFont implements PixselMapListener,
      */
     protected void firePropertyChange(String property, MSymbol oldValue,
                     MSymbol newValue) {
-        if (oldValue == newValue) return;
+        if (oldValue == newValue)
+            return;
 
-        firePropertyChange(new PropertyChangeEvent(this, property,
-                        oldValue, newValue));
+        firePropertyChange(new PropertyChangeEvent(this, property, oldValue,
+                        newValue));
     }
 
     /**
@@ -308,9 +323,11 @@ public class AbstractMFont implements PixselMapListener,
     protected void firePropertyChange(String property, String oldValue,
                     String newValue) {
         if (oldValue == null) {
-            if (newValue == null) return;
+            if (newValue == null)
+                return;
         } else {
-            if (newValue != null && oldValue.equals(newValue)) return;
+            if (newValue != null && oldValue.equals(newValue))
+                return;
         }
 
         firePropertyChange(new PropertyChangeEvent(this, property, oldValue,
@@ -329,7 +346,8 @@ public class AbstractMFont implements PixselMapListener,
      */
     protected void firePropertyChange(String property, int oldValue,
                     int newValue) {
-        if (oldValue == newValue) return;
+        if (oldValue == newValue)
+            return;
 
         firePropertyChange(new PropertyChangeEvent(this, property, new Integer(
                         oldValue), new Integer(newValue)));
@@ -347,7 +365,8 @@ public class AbstractMFont implements PixselMapListener,
      */
     protected void firePropertyChange(String property, boolean oldValue,
                     boolean newValue) {
-        if (oldValue == newValue) return;
+        if (oldValue == newValue)
+            return;
 
         firePropertyChange(new PropertyChangeEvent(this, property, new Boolean(
                         oldValue), new Boolean(newValue)));
@@ -462,7 +481,8 @@ public class AbstractMFont implements PixselMapListener,
         synchronized (getLock()) {
             boolean old = fixsed;
             fixsed = f;
-            if (!old && fixsed) setWidth(getMaxWidth());
+            if (!old && fixsed)
+                setWidth(getMaxWidth());
             firePropertyChange(PROPERTY_FIXSED, old, fixsed);
         }
     }
@@ -506,7 +526,8 @@ public class AbstractMFont implements PixselMapListener,
         int byteNum = 1;
         for (int i = 0; i < 4; i++) {
             bts[i] = (byte) code;
-            if (bts[i] != 0) byteNum = i + 1;
+            if (bts[i] != 0)
+                byteNum = i + 1;
             code >>= 8;
         }
 
@@ -526,7 +547,8 @@ public class AbstractMFont implements PixselMapListener,
      * @param code Код, который будет присвоен символу.
      */
     private void replace(MSymbol sym, int code) {
-        if (sym.getCode() == code) return;
+        if (sym.getCode() == code)
+            return;
         // FIXME метод не реализован!
     }
 
@@ -545,8 +567,7 @@ public class AbstractMFont implements PixselMapListener,
                 sym.changeUnicode(toUnicode(newCode));
             } catch (CharacterCodingException e) {
                 logger().log(Level.WARNING,
-                                "unmapped simbol's code : "
-                                                + sym.getCode(), e);
+                                "unmapped simbol's code : " + sym.getCode(), e);
                 // XXX Спорный момент - оставлять ли символ шрифте.
                 remove(sym);
                 return;
@@ -565,7 +586,8 @@ public class AbstractMFont implements PixselMapListener,
      * @param newUnicode Новый уникод символа.
      */
     void preChangeUnicode(MSymbol sym, int newUnicode) {
-        if (!isUnicode()) return;
+        if (!isUnicode())
+            return;
 
         try {
             int code = toCode(newUnicode);
@@ -576,8 +598,7 @@ public class AbstractMFont implements PixselMapListener,
                             "This charset does not support encoding");
         } catch (CharacterCodingException e) {
             logger().log(Level.WARNING,
-                            "unmapped simbol's code : "
-                                            + sym.getCode(), e);
+                            "unmapped simbol's code : " + sym.getCode(), e);
             // XXX Спорный момент - оставлять ли символ шрифте.
             remove(sym);
         }
@@ -615,14 +636,12 @@ public class AbstractMFont implements PixselMapListener,
             } else {
                 // if (cp.equals(codePage)) return;
                 if (charSet == null || (!charSet.name().equals(codePage))
-                                || (!charSet.aliases().contains(codePage)))
-                {
+                                || (!charSet.aliases().contains(codePage))) {
                     try {
                         charSet = Charset.forName(codePage);
                     } catch (Exception e) {
                         logger().log(Level.WARNING,
-                                        "apply charset in setCodePage",
-                                        e);
+                                        "apply charset in setCodePage", e);
                         charSet = null;
                     }
                 }
@@ -666,7 +685,8 @@ public class AbstractMFont implements PixselMapListener,
                     try {
                         if (sym.isUnicode())
                             sym.setCode(toCode(sym.getUnicode()));
-                        if (!isBelong(sym)) add(sym);
+                        if (!isBelong(sym))
+                            add(sym);
                     } catch (CharacterCodingException e) {
                         // Символ не входит в новую кодировку.
                         remove(sym);
@@ -745,7 +765,8 @@ public class AbstractMFont implements PixselMapListener,
      */
     public int getWidth() {
         synchronized (getLock()) {
-            if (isFixsed() || isEmpty()) return width;
+            if (isFixsed() || isEmpty())
+                return width;
 
             long ret = 0;
             for (MSymbol sym : symbols) {
@@ -766,7 +787,8 @@ public class AbstractMFont implements PixselMapListener,
      * @throws IllegalArgumentException Если <code>w</code> меньше нуля.
      */
     protected void prepareWidth(int w) {
-        if (w < 0) throw new IllegalArgumentException("invalid width " + w);
+        if (w < 0)
+            throw new IllegalArgumentException("invalid width " + w);
         validWidth = w;
     }
 
@@ -783,12 +805,12 @@ public class AbstractMFont implements PixselMapListener,
 
         if (isFixsed()) {
             for (MSymbol sym : symbols) {
+                if (sym.getWidth() == width) continue;
                 try {
                     sym.setWidth(width);
                 } catch (DisallowOperationException e) {
                     logger().log(Level.SEVERE,
-                                    "MSymbol.setWidth in applyWidth : ",
-                                    e);
+                                    "MSymbol.setWidth in applyWidth : ", e);
                 }
             }
         }
@@ -819,7 +841,8 @@ public class AbstractMFont implements PixselMapListener,
      */
     public int getMinWidth() {
         synchronized (getLock()) {
-            if (isEmpty() || isFixsed()) return getWidth();
+            if (isEmpty() || isFixsed())
+                return getWidth();
 
             int ret = Integer.MAX_VALUE;
             int w;
@@ -840,7 +863,8 @@ public class AbstractMFont implements PixselMapListener,
      */
     public int getMaxWidth() {
         synchronized (getLock()) {
-            if (isEmpty() || isFixsed()) return getWidth();
+            if (isEmpty() || isFixsed())
+                return getWidth();
 
             int ret = 0;
             int w;
@@ -872,7 +896,8 @@ public class AbstractMFont implements PixselMapListener,
      * @throws IllegalArgumentException Если <code>h</code> меньше нуля.
      */
     protected void prepareHeight(int h) {
-        if (h < 0) throw new IllegalArgumentException("invalid height " + h);
+        if (h < 0)
+            throw new IllegalArgumentException("invalid height " + h);
         validHeight = h;
     }
 
@@ -889,6 +914,7 @@ public class AbstractMFont implements PixselMapListener,
 
         if (old != height) {
             for (MSymbol sym : symbols) {
+                if (sym.getHeight() == height) continue;
                 try {
                     sym.setHeight(height);
                 } catch (DisallowOperationException e) {
@@ -921,7 +947,8 @@ public class AbstractMFont implements PixselMapListener,
      * шрифту.
      */
     public boolean isBelong(MSymbol ref) {
-        if (ref == null) return false;
+        if (ref == null)
+            return false;
         return ref.owner == this;
     }
 
@@ -951,7 +978,8 @@ public class AbstractMFont implements PixselMapListener,
      *         нет.
      */
     protected int indexByCode(int code) {
-        if (isEmpty()) return -1;
+        if (isEmpty())
+            return -1;
         // Подготовка к поиску методом последовательного приближения.
         int len = length();
         int step = len / 2;
@@ -959,9 +987,11 @@ public class AbstractMFont implements PixselMapListener,
         // Реализация последовательного приближения.
         while (index >= 0 && index < len) {
             int scd = symbols[index].getCode();
-            if (scd == code) return index;
+            if (scd == code)
+                return index;
             step /= 2;
-            if (step == 0) step = 1;
+            if (step == 0)
+                step = 1;
 
             if (scd < code) index += step;
             else index -= step;
@@ -977,8 +1007,10 @@ public class AbstractMFont implements PixselMapListener,
      *         шрифте нет.
      */
     protected int indexByUnicode(int unicode) {
-        if (!isUnicode()) return -1;
-        if (isEmpty()) return -1;
+        if (!isUnicode())
+            return -1;
+        if (isEmpty())
+            return -1;
 
         int code;
         try {
@@ -987,7 +1019,8 @@ public class AbstractMFont implements PixselMapListener,
             // Если получение уникода невозможно, то приходится искать
             // перебором.
             for (int i = 0; i < length(); i++) {
-                if (symbols[i].getUnicode() == unicode) return i;
+                if (symbols[i].getUnicode() == unicode)
+                    return i;
             }
             return -1;
         } catch (CharacterCodingException e) {
@@ -1007,8 +1040,10 @@ public class AbstractMFont implements PixselMapListener,
      */
     public int indexAt(MSymbol sym) {
         synchronized (getLock()) {
-            if (sym == null) return -1;
-            if (!isBelong(sym)) return -1;
+            if (sym == null)
+                return -1;
+            if (!isBelong(sym))
+                return -1;
             return indexByCode(sym.getCode());
         }
     }
@@ -1024,7 +1059,8 @@ public class AbstractMFont implements PixselMapListener,
      */
     public MSymbol symbolByIndex(int index) {
         synchronized (getLock()) {
-            if (index >= length() || index < 0) return null;
+            if (index >= length() || index < 0)
+                return null;
             return symbols[index];
         }
     }
@@ -1049,13 +1085,15 @@ public class AbstractMFont implements PixselMapListener,
      */
     public MSymbol symbolByUnicode(int unicode) {
         synchronized (getLock()) {
-            if (!isUnicode()) return null;
+            if (!isUnicode())
+                return null;
             return symbolByIndex(indexByUnicode(unicode));
         }
     }
 
     /**
      * Добавляет символ в шрифт.
+     * 
      * @param symbol Добавляемый символ.
      */
     public void add(MSymbol symbol) {
@@ -1063,9 +1101,12 @@ public class AbstractMFont implements PixselMapListener,
             MSymbol old = null;
             int i;
 
-            if (symbol == null) return;
-            if (isBelong(symbol)) return;
-            if (symbol.owner != null) symbol.owner.remove(symbol);
+            if (symbol == null)
+                return;
+            if (isBelong(symbol))
+                return;
+            if (symbol.owner != null)
+                symbol.owner.remove(symbol);
             // Преобразования свойств код и уникод символа.
             if (charSet == null) {
                 symbol.clearUnicode();
@@ -1102,15 +1143,14 @@ public class AbstractMFont implements PixselMapListener,
                 symbol.setHeight(height);
             } catch (DisallowOperationException e) {
                 // Это исключение не должно возникнуть никогда.
-                logger().log(Level.SEVERE,
-                                "fail apply height", e);
+                logger().log(Level.SEVERE, "fail apply height", e);
             }
-            if (fixsed) try {
-                symbol.setWidth(width);
-            } catch (DisallowOperationException e) {
-                // Это исключение не должно возникнуть никогда.
-                logger().log(Level.SEVERE,
-                                "fail apply width", e);
+            if (fixsed)
+                try {
+                    symbol.setWidth(width);
+                } catch (DisallowOperationException e) {
+                    // Это исключение не должно возникнуть никогда.
+                logger().log(Level.SEVERE, "fail apply width", e);
             }
 
             i = 0;
@@ -1119,7 +1159,8 @@ public class AbstractMFont implements PixselMapListener,
                     old = sym;
                     break;
                 }
-                if (sym.getCode() > symbol.getCode()) break;
+                if (sym.getCode() > symbol.getCode())
+                    break;
                 i++;
             }
 
@@ -1142,13 +1183,15 @@ public class AbstractMFont implements PixselMapListener,
 
     /**
      * Удаляет указанный символ из шрифта.
+     * 
      * @param symbol Удаляемый символ.
      */
     public void remove(MSymbol symbol) {
         synchronized (getLock()) {
             int i;
 
-            if (!isBelong(symbol)) return;
+            if (!isBelong(symbol))
+                return;
 
             i = 0;
             for (MSymbol sym : symbols) {
@@ -1192,15 +1235,18 @@ public class AbstractMFont implements PixselMapListener,
             int i = ((Integer) value).intValue();
 
             if (property.equals(PROPERTY_HEIGHT)) setHeight(i);
-            else if (property.equals(PROPERTY_WIDTH)) setWidth(i);
+            else if (property.equals(PROPERTY_WIDTH))
+                setWidth(i);
         } else if (value instanceof Boolean) {
             boolean b = ((Boolean) value).booleanValue();
 
-            if (property.equals(PROPERTY_FIXSED)) setFixsed(b);
+            if (property.equals(PROPERTY_FIXSED))
+                setFixsed(b);
         } else if (value instanceof String) {
             String s = (String) value;
 
-            if (property.equals(PROPERTY_CODE_PAGE)) setCodePage(s);
+            if (property.equals(PROPERTY_CODE_PAGE))
+                setCodePage(s);
         }
     }
 }
