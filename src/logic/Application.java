@@ -74,7 +74,7 @@ public class Application {
     static JFileChooser                   chooserOpen;
     static FontProperties                 fpf;
 
-    //private static MFont                  font;
+    // private static MFont font;
     private static Document               doc;
     private static PropertyChangeListener atFontChange;
     private static int                    mode;
@@ -109,9 +109,9 @@ public class Application {
 
     public static void doWorkShop() {
         if (work != null) return;
-        
-        doc=new Document();
-        
+
+        doc = new Document();
+
         res = new Resource("locale/MainForm");
         atFontChange = new OnFontChange();
 
@@ -207,7 +207,7 @@ public class Application {
     }
 
     static synchronized void setMFont(MFont newFont) {
-        MFont font=doc.getFont();
+        MFont font = doc.getFont();
         if (font != null) {
             font.removePropertyChangeListener(atFontChange);
             uManager.discardAllEdits();
@@ -275,7 +275,7 @@ public class Application {
 
     private static boolean saveFontFile(boolean saveAs) {
         File file;
-        MFont font=doc.getFont();
+        MFont font = doc.getFont();
 
         if (font == null) return false;
 
@@ -629,7 +629,7 @@ public class Application {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            MFont font=doc.getFont();
+            MFont font = doc.getFont();
             MFont c;
             if (fpf == null) fpf = new FontProperties(work, res);
 

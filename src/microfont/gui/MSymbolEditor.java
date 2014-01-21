@@ -20,7 +20,7 @@ public class MSymbolEditor extends MAbstractComponent implements MouseListener,
 
     MSymbolHit                symbolHit        = null;
     int                       prevX, prevY;
-    private Document document;
+    private Document          document;
 
     public MSymbolEditor(MSymbol symbol) {
         super(symbol);
@@ -57,16 +57,15 @@ public class MSymbolEditor extends MAbstractComponent implements MouseListener,
             else return;
 
             changeEnable = true;
-            if (symbol != null && document != null) document.symbolEdit("paint");
+            if (symbol != null && document != null)
+                document.symbolEdit("paint");
 
             symbolHit = hit(symbolHit, e.getX(), e.getY());
-            if ((symbolHit.flags & symbolHit.PIXSEL) != 0)
-                try {
-                    symbol.setPixsel(symbolHit.column, symbolHit.row,
-                                    changeSet);
-                } catch (IllegalArgumentException e1) {
-                    e1.printStackTrace();
-                }
+            if ((symbolHit.flags & symbolHit.PIXSEL) != 0) try {
+                symbol.setPixsel(symbolHit.column, symbolHit.row, changeSet);
+            } catch (IllegalArgumentException e1) {
+                e1.printStackTrace();
+            }
         }
     }
 
@@ -98,13 +97,11 @@ public class MSymbolEditor extends MAbstractComponent implements MouseListener,
         if ((symbolHit.flags & symbolHit.PIXSEL) != 0
                         && (symbolHit.flags & symbolHit.DEAD_ZONE) == 0
                         && changeEnable) {
-            if ((symbolHit.column != prevX) || (symbolHit.row != prevY))
-                try {
-                    symbol.setPixsel(symbolHit.column, symbolHit.row,
-                                    changeSet);
-                } catch (IllegalArgumentException e1) {
-                    e1.printStackTrace();
-                }
+            if ((symbolHit.column != prevX) || (symbolHit.row != prevY)) try {
+                symbol.setPixsel(symbolHit.column, symbolHit.row, changeSet);
+            } catch (IllegalArgumentException e1) {
+                e1.printStackTrace();
+            }
             prevX = symbolHit.column;
             prevY = symbolHit.row;
         }
@@ -144,35 +141,35 @@ public class MSymbolEditor extends MAbstractComponent implements MouseListener,
         drawMargins(g, X, Y);
         drawGrid(g, X, Y);
     }
-    
+
     public Document getDocument() {
         return document;
     }
-    
+
     public void setDocument(Document doc) {
         if (document != null) {
             document.addPropertyChangeListener(this);
         }
-        
-        document=doc;
-        
+
+        document = doc;
+
         if (document != null) {
             document.removePropertyChangeListener(this);
         }
     }
-    
+
     @Override
     public void setSymbol(MSymbol sym) {
         super.setSymbol(sym);
         if (document != null) document.setEditedSymbol(sym);
     }
-    
+
     @Override
     public void propertyChange(PropertyChangeEvent event) {
         super.propertyChange(event);
-        if(document != null && event.getSource() == document) {
+        if (document != null && event.getSource() == document) {
             if (event.getPropertyName().equals(Document.PROPERTY_EDITED_SYMBOL))
-                super.setSymbol((MSymbol)event.getNewValue());
+                super.setSymbol((MSymbol) event.getNewValue());
         }
     }
 }

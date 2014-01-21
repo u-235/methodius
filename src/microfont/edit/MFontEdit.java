@@ -32,13 +32,13 @@ public class MFontEdit extends AbstractEdit {
 
         owner.copy(after);
     }
-    
+
     @Override
     public void die() {
         super.die();
-        owner=null;
-        before=null;
-        after=null;
+        owner = null;
+        before = null;
+        after = null;
     }
 
     @Override

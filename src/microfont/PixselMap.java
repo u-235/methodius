@@ -296,8 +296,7 @@ public class PixselMap extends AbstractPixselMap {
      *             <code>null</code>.
      */
     @Override
-    public void copy(AbstractPixselMap src)
-                    throws DisallowOperationException {
+    public void copy(AbstractPixselMap src) throws DisallowOperationException {
         if (src == null) throw (new NullPointerException());
 
         synchronized (writeLock()) {
@@ -345,8 +344,7 @@ public class PixselMap extends AbstractPixselMap {
      * @throws DisallowOperationException Если изменение размеров запрещено
      *             конфигурацией класса или его потомков.
      */
-    public void setSize(Dimension sz)
-                    throws DisallowOperationException {
+    public void setSize(Dimension sz) throws DisallowOperationException {
         Dimension oldValue = new Dimension(getWidth(), getHeight());
 
         synchronized (writeLock()) {
@@ -407,8 +405,7 @@ public class PixselMap extends AbstractPixselMap {
      * 
      * @param a Копируемый массив пикселей.
      */
-    public void setArray(boolean[] a)
-                    throws IllegalArgumentException {
+    public void setArray(boolean[] a) throws IllegalArgumentException {
         synchronized (writeLock()) {
             cleanChange();
             setBooleans(a);
@@ -1016,8 +1013,7 @@ public class PixselMap extends AbstractPixselMap {
      * @return Карта с копией пикселей заданного фрагмента.
      * @see #overlay(int, int, AbstractPixselMap, int)
      */
-    public AbstractPixselMap getRectangle(int x, int y, int w,
-                    int h) {
+    public AbstractPixselMap getRectangle(int x, int y, int w, int h) {
         if (x < 0) {
             w += x;
             x = 0;
@@ -1058,8 +1054,7 @@ public class PixselMap extends AbstractPixselMap {
      * @param state Устанавливаемое состояние пикселей.
      * @see #negRectangle(int, int, int, int)
      */
-    public void setRectangle(int x, int y, int w, int h,
-                    boolean state) {
+    public void setRectangle(int x, int y, int w, int h, boolean state) {
         PixselIterator pi = getIterator(x, y, w, h,
                         PixselIterator.DIR_LEFT_BOTTOM);
 

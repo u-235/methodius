@@ -770,8 +770,7 @@ public class AbstractPixselMap {
      * @see #isValidWidth(int)
      * @see #isValidHeight(int)
      */
-    public void copy(AbstractPixselMap src)
-                    throws DisallowOperationException {
+    public void copy(AbstractPixselMap src) throws DisallowOperationException {
         if (src == null) throw (new NullPointerException());
 
         synchronized (src.writeLock()) {

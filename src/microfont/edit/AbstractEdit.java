@@ -61,7 +61,7 @@ public class AbstractEdit implements UndoableEdit {
     @Override
     public void die() {
         if (isEmpty) return;
-        
+
         isEmpty = true;
         end();
     }
@@ -111,7 +111,7 @@ public class AbstractEdit implements UndoableEdit {
         if (operation != null) return redoName + " " + operation;
         return redoName;
     }
-    
+
     /**
      * 
      * Устанавливает название повтора операций.

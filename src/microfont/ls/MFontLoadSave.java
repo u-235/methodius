@@ -240,9 +240,9 @@ public class MFontLoadSave {
 
             if (section.compareToIgnoreCase(AUTHOR) == 0) {
                 if (key.compareToIgnoreCase(AUTHOR_CONTACT) == 0)
-                    ret.setAuthor(ret.getAuthor()+value);
+                    ret.setAuthor(ret.getAuthor() + value);
                 if (key.compareToIgnoreCase(AUTHOR_NAME) == 0)
-                    ret.setAuthor(value+ret.getAuthor());
+                    ret.setAuthor(value + ret.getAuthor());
                 continue;
             }
 
@@ -296,9 +296,9 @@ public class MFontLoadSave {
                     bytes = new byte[(width * height + 7) / 8];
 
                     int n = 0;
-                    boolean space=true;
+                    boolean space = true;
                     for (int i = 0; i < value.length(); i++) {
-                            if (n >= bytes.length) break;
+                        if (n >= bytes.length) break;
                         char c = value.charAt(i);
                         if (c >= '0' && c <= '9') {
                             bytes[n] = (byte) (bytes[n] * 16 + c - '0');
@@ -309,12 +309,12 @@ public class MFontLoadSave {
                         } else if (c >= 'A' && c <= 'F') {
                             bytes[n] = (byte) (bytes[n] * 16 + c - 'A' + 10);
                             space = false;
-                        }else if (!space) {
-                            space=true;
+                        } else if (!space) {
+                            space = true;
                             n++;
                         }
                     }
-                    
+
                     ret.add(new MSymbol(index, width, height, bytes));
                     index++;
                 }

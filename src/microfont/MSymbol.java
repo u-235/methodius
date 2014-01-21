@@ -251,8 +251,7 @@ public class MSymbol extends PixselMap {
      *             <code>null</code>.
      * @see #clone()
      */
-    public void copy(MSymbol sym)
-                    throws DisallowOperationException {
+    public void copy(MSymbol sym) throws DisallowOperationException {
         super.copy(sym);
         if (sym.isUnicode()) setUnicode(sym.getUnicode());
         setCode(sym.getCode());

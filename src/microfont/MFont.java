@@ -80,45 +80,28 @@ public class MFont extends AbstractMFont implements PixselMapListener,
      */
     @Override
     public synchronized boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (!super.equals(obj))
-            return false;
-        if (!(obj instanceof MFont))
-            return false;
+        if (this == obj) return true;
+        if (!super.equals(obj)) return false;
+        if (!(obj instanceof MFont)) return false;
         MFont other = (MFont) obj;
-        if (ascent != other.ascent)
-            return false;
+        if (ascent != other.ascent) return false;
         if (author == null) {
-            if (other.author != null)
-                return false;
-        } else if (!author.equals(other.author))
-            return false;
-        if (baseline != other.baseline)
-            return false;
-        if (descent != other.descent)
-            return false;
+            if (other.author != null) return false;
+        } else if (!author.equals(other.author)) return false;
+        if (baseline != other.baseline) return false;
+        if (descent != other.descent) return false;
         if (description == null) {
-            if (other.description != null)
-                return false;
-        } else if (!description.equals(other.description))
-            return false;
-        if (line != other.line)
-            return false;
-        if (marginLeft != other.marginLeft)
-            return false;
-        if (marginRight != other.marginRight)
-            return false;
+            if (other.description != null) return false;
+        } else if (!description.equals(other.description)) return false;
+        if (line != other.line) return false;
+        if (marginLeft != other.marginLeft) return false;
+        if (marginRight != other.marginRight) return false;
         if (name == null) {
-            if (other.name != null)
-                return false;
-        } else if (!name.equals(other.name))
-            return false;
+            if (other.name != null) return false;
+        } else if (!name.equals(other.name)) return false;
         if (prototype == null) {
-            if (other.prototype != null)
-                return false;
-        } else if (!prototype.equals(other.prototype))
-            return false;
+            if (other.prototype != null) return false;
+        } else if (!prototype.equals(other.prototype)) return false;
         return true;
     }
 
@@ -245,8 +228,7 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     public void setBaseline(int bl) {
         int old = baseline;
 
-        if (bl < 0)
-            throw (new IllegalArgumentException("invalid baseline"));
+        if (bl < 0) throw (new IllegalArgumentException("invalid baseline"));
         baseline = checkBaseline(bl);
 
         firePropertyChange(PROPERTY_BASELINE, old, baseline);
@@ -269,8 +251,7 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     public void setAscent(int asc) {
         int old = ascent;
 
-        if (asc < 0)
-            throw (new IllegalArgumentException("invalid ascent"));
+        if (asc < 0) throw (new IllegalArgumentException("invalid ascent"));
         ascent = checkAscent(asc);
 
         firePropertyChange(PROPERTY_ASCENT, old, ascent);
@@ -292,8 +273,7 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     public void setLine(int ln) {
         int old = line;
 
-        if (ln < 0)
-            throw (new IllegalArgumentException("invalid line"));
+        if (ln < 0) throw (new IllegalArgumentException("invalid line"));
         line = checkLine(ln);
 
         firePropertyChange(PROPERTY_LINE, old, line);
@@ -313,8 +293,7 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     public void setDescent(int dsc) {
         int old = descent;
 
-        if (dsc < 0)
-            throw (new IllegalArgumentException("invalid descent"));
+        if (dsc < 0) throw (new IllegalArgumentException("invalid descent"));
         descent = checkDescent(dsc);
 
         firePropertyChange(PROPERTY_DESCENT, old, descent);

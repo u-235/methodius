@@ -121,7 +121,7 @@ public class MAbstractComponent extends ScrollableWindow implements
         this.addKeyListener(new KeyAdapter() {
             @Override
             public void keyTyped(KeyEvent e) {
-                //XXX print
+                // XXX print
                 System.out.println("typed");
                 if (e.getKeyChar() == '-') ScalleMinus();
                 if (e.getKeyChar() == '+') ScallePlus();
@@ -183,11 +183,11 @@ public class MAbstractComponent extends ScrollableWindow implements
         MFont owner;
 
         if (symbol == null) return;
-        AbstractMFont amf=symbol.getOwner();
+        AbstractMFont amf = symbol.getOwner();
         if (amf == null) return;
         if (!(amf instanceof MFont)) return;
-        
-        owner = (MFont)symbol.getOwner();
+
+        owner = (MFont) symbol.getOwner();
 
         marginLeft = owner.getMarginLeft();
         marginRight = owner.getMarginRight();
@@ -225,7 +225,7 @@ public class MAbstractComponent extends ScrollableWindow implements
 
         if (old != pixselSize) {
             revalidate();
-            //validate();
+            // validate();
             repaint();
         }
     }

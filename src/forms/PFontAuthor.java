@@ -17,9 +17,9 @@ import microfont.MFont;
 
 @SuppressWarnings("serial")
 public class PFontAuthor extends JPanel implements PropertyChangeListener {
-    Resource           res;
-    MFont              mFont;
-    boolean            readOnly=false;
+    Resource          res;
+    MFont             mFont;
+    boolean           readOnly = false;
     private JTextArea vName;
 
     public PFontAuthor(Resource res) {
@@ -29,7 +29,7 @@ public class PFontAuthor extends JPanel implements PropertyChangeListener {
 
         setResource(res);
 
-        vName = new JTextArea(2,24);
+        vName = new JTextArea(2, 24);
         vName.addFocusListener(new FocusListener() {
             @Override
             public void focusLost(FocusEvent e) {
@@ -74,7 +74,7 @@ public class PFontAuthor extends JPanel implements PropertyChangeListener {
     }
 
     public void setReadOnly(boolean readOnly) {
-        //this.readOnly = readOnly;
+        // this.readOnly = readOnly;
         updateReadOnly();
     }
 
