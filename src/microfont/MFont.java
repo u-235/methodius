@@ -451,14 +451,9 @@ public class MFont extends AbstractMFont implements PixselMapListener,
         if (num <= 0) return;
 
         synchronized (getLock()) {
-            int w;
-            if (isFixsed()) {
-                w = getWidth();
-            } else {
-                w = getMinWidth();
-            }
+            int w = getMinWidth();
             if (num > w) num = w;
-            prepareWidth(getWidth() - num);
+            prepareWidth(w - num);
 
             for (int i = 0; i < length(); i++) {
                 try {
@@ -482,14 +477,9 @@ public class MFont extends AbstractMFont implements PixselMapListener,
         if (num <= 0) return;
 
         synchronized (getLock()) {
-            int w;
-            if (isFixsed()) {
-                w = getWidth();
-            } else {
-                w = getMinWidth();
-            }
+            int w = getMinWidth();
             if (num > w) num = w;
-            prepareWidth(getWidth() - num);
+            prepareWidth(w - num);
 
             for (int i = 0; i < length(); i++) {
                 try {
