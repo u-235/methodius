@@ -83,6 +83,7 @@ public class PixselMapRender implements ColorIndex {
     public void paint(Graphics g, int x, int y) {
         if (pixmap == null || pixmap.isEmpty()) return;
         Graphics2D g2d = (Graphics2D) g;
+        Rectangle oldCl=g2d.getClipBounds(null);
         // TODO Auto-generated method stub
     }
 
