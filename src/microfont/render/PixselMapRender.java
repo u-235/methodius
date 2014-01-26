@@ -12,17 +12,40 @@ import microfont.AbstractPixselMap;
 public class PixselMapRender implements ColorIndex, StylePropertyName {
     /** Карта пикселей для отрисовки. */
     private AbstractPixselMap pixmap;
-    private RenderStyle       style;
     /** Высота карты пикселей как картинки. */
     private int               width;
     /** Ширина карты пикселей как картинки. */
     private int               height;
+    /** Набор цветов для отрисовки пикселей. */
+    private Color[]           colors;
     /** Набор картинок для быстрой отрисовки пикселя. */
     private Image[]           images;
+    /** Размер пикселя. */
+    private int               pixselSize;
+    /** Соотношение высоты пикселя к его ширине. */
+    private float             pixselRatio;
+    /** Зазор между пикселями. */
+    private int               space;
     /** Отрисовывать только закрашенные пиксели. */
     private boolean           drawOnlyInk;
+    /** Толщина сетки. */
+    private int               gridThickness;
+    /** Размер сетки. */
+    private int               gridSize;
     /** Отрисовывать сетку. */
     private boolean           drawGrid;
+    /** Размер левого поля. */
+    private int               marginLeft;
+    /** Размер правого поля. */
+    private int               marginRight;
+    /** Расстояние до базовой линии строки. */
+    private int               base;
+    /** Высота строчных букв. */
+    private int               line;
+    /** Подъём (прописных) букв. */
+    private int               ascent;
+    /** Понижение букв. */
+    private int               descent;
     /** Отрисовывать поля своими цветами. */
     private boolean           drawMargins;
 
@@ -31,7 +54,11 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
      */
     public PixselMapRender(AbstractPixselMap apm) {
         pixmap = apm;
+        colors = new Color[COLOR_MAX + 1];
         images = new Image[COLOR_MAX + 1];
+        pixselSize = 1;
+        pixselRatio = 1.0f;
+        space = 0;
         updateSize();
     }
 
@@ -73,14 +100,106 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
         updateSize();
     }
 
-    public RenderStyle getStyle() {
-        return style;
+    public Color getColor(int cInd) {
+        if (cInd < 0 || cInd > COLOR_MAX) return null;
+        return colors[cInd];
     }
 
-    public void setStyle(RenderStyle rs) {
-        style = rs;
+    public void setColor(int cInd, Color c) {
+        if (cInd < 0 || cInd > COLOR_MAX) return;
+        colors[cInd] = c;
+        images[cInd] = doPixselImage(c);
+    }
+
+    public int getPixselSize() {
+        return pixselSize;
+    }
+
+    public void setPixselSize(int size) {
+        pixselSize = size;
         updateSize();
-        updatePixselImages();
+    }
+
+    public float getPixselRatio() {
+        return pixselRatio;
+    }
+
+    public void setPixselRatio(float ratio) {
+        pixselRatio = ratio;
+        updateSize();
+    }
+
+    public int getSpace() {
+        return space;
+    }
+
+    public void setSpace(int sp) {
+        space = sp;
+        updateSize();
+    }
+
+    public int getGridThickness() {
+        return gridThickness;
+    }
+
+    public void getGridThickness(int gt) {
+        gridThickness = gt;
+    }
+
+    public int getGridSize() {
+        return gridSize;
+    }
+
+    public void setGridSize(int gs) {
+        gridSize = gs;
+    }
+
+    public int getMarginLeft() {
+        return marginLeft;
+    }
+
+    public void setMarginLeft(int m) {
+        marginLeft = m;
+    }
+
+    public int getMarginRight() {
+        return marginRight;
+    }
+
+    public void setMarginRight(int m) {
+        marginRight = m;
+    }
+
+    public int getBase() {
+        return base;
+    }
+
+    public void setBase(int b) {
+        base = b;
+    }
+
+    public int getLine() {
+        return line;
+    }
+
+    public void setLine(int l) {
+        line = l;
+    }
+
+    public int getAscent() {
+        return ascent;
+    }
+
+    public void setAscent(int a) {
+        ascent = a;
+    }
+
+    public int getDescent() {
+        return descent;
+    }
+
+    public void setDescent(int d) {
+        descent = d;
     }
 
     public boolean isDrawOnlyInk() {
@@ -132,29 +251,29 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
     }
 
     protected void updateSize() {
+        int oldW = width;
+        int oldH = height;
 
-    }
+        if (pixmap == null) {
+            width = 0;
+            height = 0;
+        } else {
+            int c = pixmap.getWidth();
+            int r = pixmap.getHeight();
+            width = pixselSize * c + space * (c - 1);
+            height = (int) (pixselSize * pixselRatio * r) + space * (r - 1);
+        }
 
-    protected int pixselWidth() {
-        if (style == null) return 1;
-        return style.getPixselSize();
-    }
-
-    protected int pixselHeight() {
-        if (style == null) return 1;
-        return (int) (style.getPixselSize() * style.getPixselRatio());
-    }
-
-    protected Color pixselColor(int index) {
-        if (style == null) return null;
-        return style.getColor(index);
+        if (oldW != width || oldH != height) {
+            invalidateRequest();
+        }
     }
 
     protected Image doPixselImage(Color c) {
         if (c == null) return null;
 
-        int w = pixselWidth();
-        int h = pixselHeight();
+        int w = pixselSize;
+        int h = (int) (w * pixselRatio);
 
         Image img = new BufferedImage(w, h, BufferedImage.TYPE_4BYTE_ABGR);
         Graphics g = img.getGraphics();
@@ -167,13 +286,25 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
         for (int i = 0; i <= COLOR_MAX; i++) {
             if (i == COLOR_SPACE) continue;
             if (i == COLOR_GRID) continue;
-            Color c = pixselColor(i);
+            Color c = colors[i];
             if (c == null) images[i] = null;
             else images[i] = doPixselImage(c);
         }
     }
 
     protected void drawPixsel(int x, int y, int cInd, Color bg, Color fg) {
+
+    }
+
+    protected void repaintRequest(Rectangle rect) {
+
+    }
+
+    protected void repaintRequest() {
+        repaintRequest(new Rectangle(0, 0, width, height));
+    }
+
+    protected void invalidateRequest() {
 
     }
 }
