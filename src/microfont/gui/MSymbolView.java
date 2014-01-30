@@ -13,7 +13,6 @@ import java.lang.String;
 import java.nio.charset.Charset;
 import javax.swing.Timer;
 import microfont.MSymbol;
-import microfont.events.PixselMapEvent;
 
 /**
  */
@@ -54,7 +53,7 @@ public class MSymbolView extends MAbstractComponent {
 
     public MSymbolView(MSymbol symbol) {
         super(symbol);
-        super.pixselSize = 1;
+        super.render.setPixselSize(1);
         sampleFont = new Font("Courier", Font.BOLD, 16);
         numberFont = new Font("Courier New", Font.PLAIN, 16);
         setBackground(new Color(247, 247, 255));
@@ -77,22 +76,6 @@ public class MSymbolView extends MAbstractComponent {
 
     public MSymbolView() {
         this(null);
-    }
-
-    private void delayUpdate(int x, int y, int width, int height) {
-        int bottom;
-        int right;
-
-        right = width + x - 1;
-        bottom = height + y - 1;
-        synchronized (delay) {
-            delLeft = delLeft > x ? x : delLeft;
-            delRight = delRight < right ? right : delRight;
-            delTop = delTop > y ? y : delTop;
-            delBottom = delBottom < bottom ? bottom : delBottom;
-
-            if (!delay.isRunning()) delay.start();
-        }
     }
 
     protected String getSample(int ind, Charset lang) {
@@ -139,7 +122,7 @@ public class MSymbolView extends MAbstractComponent {
     protected void checkCellSize() {
         FontMetrics fm;
 
-        symbolSize = getSymbolSize(symbolSize, symbol);
+        symbolSize = getSymbolSize(symbolSize);
 
         fm = getFontMetrics(sampleFont);
         sampleSize.height = fm.getHeight();
@@ -218,7 +201,7 @@ public class MSymbolView extends MAbstractComponent {
         // g.setColor(numberColor);
         g.setFont(getFont());
         g.drawString(number, X + numberPos.x, Y + numberPos.y);
-        drawSymbol(g, X + symbolPos.x, Y + symbolPos.y);
+        render.paint(g, X + symbolPos.x, Y + symbolPos.y);
 
         g.setColor(oldColor);
     }
@@ -227,13 +210,5 @@ public class MSymbolView extends MAbstractComponent {
     public void paint(Graphics g, int X, int Y) {
         if (symbol == null) return;
         drawCell(g, X, Y);
-    }
-
-    @Override
-    public void pixselChanged(PixselMapEvent change) {
-        delayUpdate(symbolPos.x + change.x() * pixselSize,
-                        symbolPos.y + change.y() * pixselSize, change.width()
-                                        * pixselSize, change.height()
-                                        * pixselSize);
     }
 }
