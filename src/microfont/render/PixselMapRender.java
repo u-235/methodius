@@ -7,6 +7,7 @@ import java.awt.Rectangle;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import microfont.AbstractPixselMap;
+import microfont.AbstractPixselMap.PixselIterator;
 import microfont.PixselMap;
 import microfont.events.PixselMapEvent;
 import microfont.events.PixselMapListener;
@@ -17,7 +18,9 @@ import microfont.events.PixselMapListener;
 public class PixselMapRender implements ColorIndex, StylePropertyName {
     /** Карта пикселей для отрисовки. */
     private AbstractPixselMap pixmap;
+    /** Интерфейс для отправки запросов о перерисовки и изменении размеров. */
     private ComponentRequest  req;
+    /** Получатель сообщений от карты пикселей. */
     private PixselListener    listener;
     /** Высота карты пикселей как картинки. */
     private int               width;
@@ -33,6 +36,8 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
     private float             pixselRatio;
     /** Зазор между пикселями. */
     private int               space;
+    private int               stepX;
+    private int               stepY;
     /** Отрисовывать только закрашенные пиксели. */
     private boolean           drawOnlyInk;
     /** Толщина сетки. */
@@ -86,13 +91,61 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
      */
     public void paint(Graphics g, int x, int y) {
         if (pixmap == null || pixmap.isEmpty()) return;
-        Rectangle oldCl = g.getClipBounds(null);
-        Rectangle clip = new Rectangle(0, 0, getWidth(), getHeight())
-                        .intersection(oldCl);
-        g.setClip(clip.x, clip.y, clip.width, clip.height);
-        // TODO Auto-generated method stub
 
-        g.setClip(oldCl.x, oldCl.y, oldCl.width, oldCl.height);
+        int startX = 0;
+        int startY = 0;
+        int countX = width;
+        int countY = height;
+        Color gefCol = g.getColor();
+        // Коррекция области отрисовки с учётом ограничения контекстом.
+        Rectangle clip = g.getClipBounds();
+        if (clip != null) {
+            if (x < clip.x) {
+                startX = clip.x - x;
+                countX -= startX;
+            }
+
+            countX = countX < clip.width ? countX : clip.width;
+
+            if (y < clip.y) {
+                startY = clip.y - y;
+                countY -= startY;
+            }
+
+            countY = countY < clip.height ? countY : clip.height;
+
+            if (countX <= 0 || countY <= 0) return;
+        }
+
+        // Коррекция области отрисовки по границам краёв пикселей.
+        countX += startX;
+        countX = pointToPixselX(countX + pixselWidth + space - 1);
+        startX = pointToPixselX(startX);
+        countX -= startX;
+        countY += startY;
+        countY = pointToPixselY(countY + pixselHeight + space - 1);
+        startY = pointToPixselY(startY);
+        countY -= startY;
+
+        PixselIterator pi = pixmap.getIterator(startX, startY, countX, countY,
+                        PixselIterator.DIR_TOP_LEFT);
+
+        startX = startX * (stepX) - space;
+        startY = startY * (stepY) - space;
+
+        int posX = startX;
+        int posY;
+        for (int i = 0; i < countX; i++) {
+            posY = startY;
+            for (int j = 0; j < countY; j++) {
+                drawPixsel(g, posX, posY,
+                                indexAt(pi.getX(), pi.getY(), pi.getNext()),
+                                gefCol);
+                posY += stepY;
+            }
+            posX += stepX;
+        }
+
     }
 
     /**
@@ -138,6 +191,7 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
         }
 
         updateSize();
+        requestRepaint();
     }
 
     /**
@@ -227,9 +281,12 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
         if (size <= 0)
             throw new IllegalArgumentException("pixsel size =" + size);
 
+        int old = pixselWidth;
         pixselWidth = size;
         pixselHeight = (int) (pixselWidth * pixselRatio);
+
         updateSize();
+        if (old != pixselWidth && pixmap != null) requestRepaint();
     }
 
     /**
@@ -250,9 +307,12 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
         if (ratio <= 0f)
             throw new IllegalArgumentException("pixsel ratio =" + ratio);
 
+        float old = pixselRatio;
         pixselRatio = ratio;
         pixselHeight = (int) (pixselWidth * pixselRatio);
+
         updateSize();
+        if (old != pixselRatio && pixmap != null) requestRepaint();
     }
 
     /**
@@ -271,8 +331,11 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
     public void setSpace(int sp) {
         if (sp < 0) throw new IllegalArgumentException("space =" + sp);
 
+        int old = space;
         space = sp;
+
         updateSize();
+        if (old != space && pixmap != null) requestRepaint();
     }
 
     /**
@@ -569,7 +632,7 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
             ret.space = false;
         }
 
-        // XXX calculate dead zone!!!
+        // XXX calculate dead zone is not complete!!!
         ret.deadZone = false;
         if (ret.pixsel) {
             if (px > pixselWidth / 2) px = pixselWidth - px;
@@ -586,92 +649,160 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
     }
 
     /**
+     * Преобразует горизонтальную координату карты пикселей в координату
+     * изображения. Координата изображения берётся для левого края указанного
+     * пикселя.
      * 
-     * @param x
-     * @return
+     * @param x Горизонтальная координата карты пикселей.
+     * @return Горизонтальная координата изображения.
      */
-    public int pixselToX(int x) {
-        return x * (pixselWidth + space);
+    public int pixselToPointX(int x) {
+        return x * stepX;
     }
 
     /**
+     * Преобразует вертикальную координату карты пикселей в координату
+     * изображения. Координата изображения берётся для верхнего края указанного
+     * пикселя.
      * 
-     * @param y
-     * @return
+     * @param y Вертикальная координата карты пикселей.
+     * @return Вертикальная координата изображения.
      */
-    public int pixselToY(int y) {
-        return y * (pixselHeight + space);
+    public int pixselToPointY(int y) {
+        return y * stepY;
     }
 
     /**
+     * Преобразует горизонтальную координату изображения в координату карты
+     * пикселей. Координата карты пикселей соответствует пикселю, которому
+     * принадлежит точка изображения или пикселю левее зазора, если точка
+     * изображения приходится на зазор между пикселями.
      * 
-     * @param x
-     * @return
+     * @param x Горизонтальная координата изображения.
+     * @return Горизонтальная координата карты пикселей.
      */
-    public int pointToX(int x) {
-        return x / (pixselWidth + space);
+    public int pointToPixselX(int x) {
+        return x / stepX;
     }
 
     /**
+     * Преобразует вертикальную координату изображения в координату карты
+     * пикселей. Координата карты пикселей соответствует пикселю, которому
+     * принадлежит точка изображения или пикселю выше зазора, если точка
+     * изображения приходится на зазор между пикселями.
      * 
-     * @param y
-     * @return
+     * @param y Вертикальная координата изображения.
+     * @return Вертикальная координата карты пикселей.
      */
-    public int pointToY(int y) {
-        return y / (pixselHeight + space);
+    public int pointToPixselY(int y) {
+        return y / stepY;
     }
 
+    /**
+     * Преобразует координаты прямоугольника изображения в координаты карты
+     * пикселей.
+     * 
+     * @param points Координаты прямоугольника изображения.
+     * @param pixsels Объект для результата преобразования. Может быть
+     *            {@code null}, в этом случае создаётся и возвращается новый
+     *            объект. Так же может быть {@code points}, если координаты
+     *            изображения в дальнейшем не нужны.
+     * @return {@code pixsels} или новый объект с результатом преобразования.
+     * @throws NullPointerException Если {@code points} равен {@code null}.
+     */
     public Rectangle toPixselRect(Rectangle points, Rectangle pixsels) {
+        if (points == null) throw new NullPointerException("points is null");
+
         Rectangle ret;
         if (pixsels == null) ret = new Rectangle();
         else ret = pixsels;
 
-        ret.width = pointToX(points.width + points.x + pixselWidth + space - 1);
-        ret.height = pointToY(points.height + points.y + pixselHeight + space
-                        - 1);
-        ret.x = pointToX(points.x);
-        ret.y = pointToY(points.y);
+        ret.width = pointToPixselX(points.width + points.x + pixselWidth
+                        + space - 1);
+        ret.height = pointToPixselY(points.height + points.y + pixselHeight
+                        + space - 1);
+        ret.x = pointToPixselX(points.x);
+        ret.y = pointToPixselY(points.y);
         ret.width -= ret.x;
         ret.height -= ret.y;
 
         return ret;
     }
 
+    /**
+     * Преобразует координаты прямоугольника карты пикселей в координаты
+     * изображения.
+     * 
+     * @param pixsels Координаты прямоугольника карты пикселей.
+     * @param points Объект для результата преобразования. Может быть
+     *            {@code null}, в этом случае создаётся и возвращается новый
+     *            объект. Так же может быть {@code pixsels}, если координаты
+     *            карты пикселей в дальнейшем не нужны.
+     * @return {@code points} или новый объект с результатом преобразования.
+     * @throws NullPointerException Если {@code pixsels} равен {@code null}.
+     */
     public Rectangle toPointRect(Rectangle pixsels, Rectangle points) {
+        if (pixsels == null) throw new NullPointerException("pixsels is null");
+
         Rectangle ret;
         if (points == null) ret = new Rectangle();
         else ret = points;
 
-        ret.x = pixselToX(pixsels.x);
-        ret.y = pixselToY(pixsels.y);
-        ret.width = pixselToX(pixsels.width);
-        ret.height = pixselToY(pixsels.height);
+        ret.x = pixselToPointX(pixsels.x);
+        ret.y = pixselToPointY(pixsels.y);
+        ret.width = pixselToPointX(pixsels.width);
+        ret.height = pixselToPointY(pixsels.height);
 
         return ret;
     }
 
+    /**
+     * Обновляет размеры изображения. При необходимости делает запрос о
+     * изменении размеров.
+     */
     protected void updateSize() {
         int oldW = width;
         int oldH = height;
 
-        if (pixmap == null) {
-            width = 0;
-            height = 0;
-        } else {
+        stepX = pixselWidth + space;
+        stepY = pixselHeight + space;
+        width = 0;
+        height = 0;
+        if (pixmap != null) {
             int c = pixmap.getWidth();
             int r = pixmap.getHeight();
-            width = pixselWidth * c + (c > 0 ? ((c - 1) * space) : 0);
-            height = pixselHeight * r + (r > 0 ? ((r - 1) * space) : 0);
+            if (c != 0) width = pixselToPointX(c) - space;
+            if (r != 0) height = pixselToPointY(r) - space;
         }
 
-        if (oldW != width || oldH != height) {
-            requestInvalidate();
-            requestRepaint();
-        }
+        if (oldW != width || oldH != height) requestInvalidate();
     }
 
-    protected int indexAt(boolean ink, int x, int y) {
-        return 0;
+    /**
+     * Возвращает индекс цвета для заданного пикселя.
+     * 
+     * @param x Горизонтальная позиция пикселя.
+     * @param y Вертикальная позиция пикселя.
+     * @param ink {@code true} если пиксель должен быть закрашен.
+     * 
+     * @return Индекс цвета.
+     */
+    protected int indexAt(int x, int y, boolean ink) {
+        if (pixmap == null) return COLOR_PAPER;
+
+        if (drawMargins) {
+            if (x < marginLeft || pixmap.getWidth() - x <= marginRight)
+                return ink ? COLOR_INK_MARGINS : COLOR_PAPER_MARGINS;
+            if (y < base - ascent || y > base + descent)
+                return ink ? COLOR_INK_MARGINS : COLOR_PAPER_MARGINS;
+            if (y < base - line)
+                return ink ? COLOR_INK_ASCENT : COLOR_PAPER_ASCENT;
+            if (y < base + descent)
+                return ink ? COLOR_INK_DESCENT : COLOR_PAPER_DESCENT;
+        }
+
+        // Значения по умолчанию.
+        return ink ? COLOR_INK : COLOR_PAPER;
     }
 
     /**
@@ -679,9 +810,10 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
      * 
      * @param index Индекс цвета.
      * @param fg Цвет рисования по умолчанию.
-     * @return Цвет для заданного индекса.
+     * @return Цвет для заданного индекса. Для индексов, соответствующих бумаге,
+     *         сетке или зазору возможен возврат {@code null}
      */
-    protected Color color(int index, Color fg) {
+    protected Color colorAt(int index, Color fg) {
         Color ret;
 
         switch (index) {
@@ -726,15 +858,43 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
         return ret;
     }
 
+    /**
+     * Отрисовка пикселя.
+     * 
+     * @param g Графический контекст отрисовки.
+     * @param x Горизонтальная координата начала отрисовки в точках изображения.
+     * @param y Вертикальная координата начала отрисовки в точках изображения.
+     * @param cInd Индекс цвета пикселя.
+     * @param fg Цвет чернил по умолчанию.
+     */
     protected void drawPixsel(Graphics g, int x, int y, int cInd, Color fg) {
-
-        Color c = color(cInd, fg);
+        Color c = colorAt(cInd, fg);
         if (c == null) {
             if (!drawOnlyInk) g.clearRect(x, y, pixselWidth, pixselHeight);
         } else {
-            g.setColor(color(cInd, fg));
+            g.setColor(c);
             g.fillRect(x, y, pixselWidth, pixselHeight);
         }
+    }
+
+    /**
+     * Отрисовка одного перекрестия сетки. Координаты начала отрисовки
+     * соответствуют центру сетки.
+     * 
+     * @param g Графический контекст.
+     * @param x Горизонтальная координата центра перекрестия.
+     * @param y Вертикальная координата центра перекрестия.
+     * @param c Цвет сетки.
+     */
+    protected void drawGrid(Graphics g, int x, int y, Color c) {
+        if (c == null) return;
+
+        int halfT = gridThickness / 2;
+        int halfS = gridSize / 2;
+
+        g.setColor(c);
+        g.fillRect(x - halfT, y - halfS, gridThickness, gridSize);
+        g.fillRect(x - halfS, y - halfT, gridSize, gridThickness);
     }
 
     /**
@@ -780,6 +940,5 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
             rect = toPointRect(rect, rect);
             requestRepaint(rect);
         }
-
     }
 }
