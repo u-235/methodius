@@ -272,14 +272,14 @@ public class AbstractPixselMap {
          * Возвращает горизонтальную позицию области сканирования.
          */
         public int getX() {
-            return startX;
+            return posX;
         }
 
         /**
          * Возвращает вертикальную позицию области сканирования.
          */
         public int getY() {
-            return startY;
+            return posY;
         }
 
         /**
