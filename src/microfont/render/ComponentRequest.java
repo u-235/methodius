@@ -9,14 +9,20 @@ import java.awt.Rectangle;
  * 
  * <pre>
  * public SomeComponent extends JComponent{
+ *     // Горизонтальная позиция начала отрисовки карты пикселей.
+ *     int renderX;
+ *     // Вертикальная позиция начала отрисовки карты пикселей.
+ *     int renderY;
  * 
  *     // Класс для получения запросов от PixselMapRender.
- *     protected Listener implements ComponentRequest{
+ *     protected class Listener implements ComponentRequest{
  *         public void requestRepaint(){
  *             repaint();
  *         }
  *         
  *         public void requestRepaint(Rectangle rect){
+ *             rect.x += renderX;
+ *             rect.y += renderY;
  *             repaint(rect);
  *         }
  *         
