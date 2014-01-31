@@ -94,58 +94,100 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
 
         int startX = 0;
         int startY = 0;
-        int countX = width;
-        int countY = height;
-        Color gefCol = g.getColor();
+        int width = this.width;
+        int height = this.height;
+        Color defCol = g.getColor();
         // Коррекция области отрисовки с учётом ограничения контекстом.
         Rectangle clip = g.getClipBounds();
         if (clip != null) {
             if (x < clip.x) {
                 startX = clip.x - x;
-                countX -= startX;
+                width -= startX;
             }
 
-            countX = countX < clip.width ? countX : clip.width;
+            width = width < clip.width ? width : clip.width;
 
             if (y < clip.y) {
                 startY = clip.y - y;
-                countY -= startY;
+                height -= startY;
             }
 
-            countY = countY < clip.height ? countY : clip.height;
+            height = height < clip.height ? height : clip.height;
 
-            if (countX <= 0 || countY <= 0) return;
+            if (height <= 0 || height <= 0) return;
         }
 
+        int pixselCountX;
+        int pixselCountY;
+        int renderStartX = startX;
+        int renderStartY = startY;
+
         // Коррекция области отрисовки по границам краёв пикселей.
-        countX += startX;
-        countX = pointToPixselX(countX + pixselWidth + space - 1);
-        startX = pointToPixselX(startX);
-        countX -= startX;
-        countY += startY;
-        countY = pointToPixselY(countY + pixselHeight + space - 1);
-        startY = pointToPixselY(startY);
-        countY -= startY;
+        pixselCountX = width + renderStartX;
+        pixselCountX = pointToPixselX(pixselCountX + stepX - 1);
+        renderStartX = pointToPixselX(renderStartX);
+        pixselCountX -= renderStartX;
+        pixselCountY = height + renderStartY;
+        pixselCountY = pointToPixselY(pixselCountY + stepY - 1);
+        renderStartY = pointToPixselY(renderStartY);
+        pixselCountY -= renderStartY;
 
-        PixselIterator pi = pixmap.getIterator(startX, startY, countX, countY,
-                        PixselIterator.DIR_TOP_LEFT);
+        PixselIterator pi = pixmap
+                        .getIterator(renderStartX, renderStartY, pixselCountX,
+                                        pixselCountY,
+                                        PixselIterator.DIR_TOP_LEFT);
 
-        startX = startX * (stepX) - space;
-        startY = startY * (stepY) - space;
+        renderStartX = pixselToPointX(renderStartX) + x;
+        renderStartY = pixselToPointY(renderStartY) + y;
 
-        int posX = startX;
+        int posX = renderStartX;
         int posY;
-        for (int i = 0; i < countX; i++) {
-            posY = startY;
-            for (int j = 0; j < countY; j++) {
+        for (int i = 0; i < pixselCountX; i++) {
+            posY = renderStartY;
+            for (int j = 0; j < pixselCountY; j++) {
                 drawPixsel(g, posX, posY,
                                 indexAt(pi.getX(), pi.getY(), pi.getNext()),
-                                gefCol);
+                                defCol);
                 posY += stepY;
             }
             posX += stepX;
         }
 
+        if (!drawOnlyInk) {
+            if (pixselCountX <= 0 && pixselCountY <= 0) return;
+
+            Color c = colorAt(COLOR_SPACE, defCol);
+            if (c != null && space != 0) {
+                g.setColor(c);
+
+                posX = renderStartX + pixselWidth;
+                for (int i = 0; i < pixselCountX - 1; i++) {
+                    g.fillRect(posX, startY + y, space, height);
+                    posX += stepX;
+                }
+
+                posY = renderStartY + pixselHeight;
+                for (int i = 0; i < pixselCountY - 1; i++) {
+                    g.fillRect(startX + x, posY, width, space);
+                    posY += stepY;
+                }
+            }
+
+            c = colorAt(COLOR_GRID, defCol);
+            if (c != null && gridThickness != 0) {
+                g.setColor(c);
+
+                posX = renderStartX;
+                for (int i = 0; i < pixselCountX + 1; i++) {
+                    posY = renderStartY;
+                    for (int j = 0; j < pixselCountY + 1; j++) {
+                        drawGrid(g, posX, posY, c);
+                        posY += stepY;
+                    }
+                    posX += stepX;
+                }
+            }
+        }
     }
 
     /**
@@ -283,7 +325,6 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
 
         int old = pixselWidth;
         pixselWidth = size;
-        pixselHeight = (int) (pixselWidth * pixselRatio);
 
         updateSize();
         if (old != pixselWidth && pixmap != null) requestRepaint();
@@ -309,7 +350,6 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
 
         float old = pixselRatio;
         pixselRatio = ratio;
-        pixselHeight = (int) (pixselWidth * pixselRatio);
 
         updateSize();
         if (old != pixselRatio && pixmap != null) requestRepaint();
@@ -351,7 +391,7 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
      * @param gt Толщина сетки.
      * @throws IllegalArgumentException Если {@code gt} меньше нуля.
      */
-    public void getGridThickness(int gt) {
+    public void setGridThickness(int gt) {
         if (gt < 0)
             throw new IllegalArgumentException("grid thickness =" + gt);
 
@@ -613,11 +653,11 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
         if (info == null) ret = new PointInfo();
         else ret = info;
 
-        ret.x = x / (pixselWidth + space);
-        ret.y = y / (pixselHeight + space);
+        ret.x = x / stepX;
+        ret.y = y / stepY;
 
-        int px = x % (pixselWidth + space);
-        int py = y % (pixselHeight + space);
+        int px = x % stepX;
+        int py = y % stepY;
 
         if (px > pixselWidth || py > pixselHeight) {
             ret.space = true;
@@ -750,6 +790,7 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
 
         ret.x = pixselToPointX(pixsels.x);
         ret.y = pixselToPointY(pixsels.y);
+
         ret.width = pixselToPointX(pixsels.width);
         ret.height = pixselToPointY(pixsels.height);
 
@@ -764,6 +805,9 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
         int oldW = width;
         int oldH = height;
 
+        // Округлённое значение высоты.
+        pixselHeight = (int) (pixselWidth * 2 * pixselRatio) / 2;
+        if (pixselHeight < 1) pixselHeight = 1;
         stepX = pixselWidth + space;
         stepY = pixselHeight + space;
         width = 0;
@@ -793,11 +837,11 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
         if (drawMargins) {
             if (x < marginLeft || pixmap.getWidth() - x <= marginRight)
                 return ink ? COLOR_INK_MARGINS : COLOR_PAPER_MARGINS;
-            if (y < base - ascent || y > base + descent)
+            if (y < base - ascent || y >= base + descent)
                 return ink ? COLOR_INK_MARGINS : COLOR_PAPER_MARGINS;
             if (y < base - line)
                 return ink ? COLOR_INK_ASCENT : COLOR_PAPER_ASCENT;
-            if (y < base + descent)
+            if (y >= base)
                 return ink ? COLOR_INK_DESCENT : COLOR_PAPER_DESCENT;
         }
 
@@ -887,12 +931,9 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
      * @param c Цвет сетки.
      */
     protected void drawGrid(Graphics g, int x, int y, Color c) {
-        if (c == null) return;
+        int halfT = ( space + gridThickness) / 2;
+        int halfS = ( space + gridSize) / 2;
 
-        int halfT = gridThickness / 2;
-        int halfS = gridSize / 2;
-
-        g.setColor(c);
         g.fillRect(x - halfT, y - halfS, gridThickness, gridSize);
         g.fillRect(x - halfS, y - halfT, gridSize, gridThickness);
     }
