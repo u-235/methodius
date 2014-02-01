@@ -472,7 +472,7 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
 
         if (old != marginRight && drawMargins && pixmap != null) {
             int w = old < marginRight ? marginRight : old;
-            Rectangle rect = new Rectangle(0, pixmap.getWidth() - w, w,
+            Rectangle rect = new Rectangle(pixmap.getWidth() - w, 0, w,
                             pixmap.getHeight());
             rect = toPointRect(rect, rect);
             requestRepaint(rect);
@@ -791,8 +791,11 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
         ret.x = pixselToPointX(pixsels.x);
         ret.y = pixselToPointY(pixsels.y);
 
-        ret.width = pixselToPointX(pixsels.width);
-        ret.height = pixselToPointY(pixsels.height);
+        if (pixsels.width == 0) ret.width = 0;
+        else ret.width = pixselToPointX(pixsels.width) - space;
+
+        if (pixsels.height == 0) ret.height = 0;
+        else ret.height = pixselToPointY(pixsels.height) - space;
 
         return ret;
     }
@@ -931,8 +934,8 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
      * @param c Цвет сетки.
      */
     protected void drawGrid(Graphics g, int x, int y, Color c) {
-        int halfT = ( space + gridThickness) / 2;
-        int halfS = ( space + gridSize) / 2;
+        int halfT = (space + gridThickness) / 2;
+        int halfS = (space + gridSize) / 2;
 
         g.fillRect(x - halfT, y - halfS, gridThickness, gridSize);
         g.fillRect(x - halfS, y - halfT, gridSize, gridThickness);
