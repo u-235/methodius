@@ -86,7 +86,7 @@ public class FontPanel extends JPanel {
 
         act.actionPerformed(new ActionEvent(list, ActionEvent.ACTION_PERFORMED,
                         ""));
-        view.setSymbol(selectedSymbol);
+        view.setPixselMap(selectedSymbol);
     }
 
     public MSymbol getSelectedSymbol() {

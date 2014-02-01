@@ -43,11 +43,11 @@ public class EditPanel extends JPanel {
     }
 
     public MSymbol getMSymbol() {
-        return edit.getSymbol();
+        return (MSymbol) edit.getPixselMap();
     }
 
     public void setMSymbol(MSymbol symbol) {
-        edit.setSymbol(symbol);
+        edit.setPixselMap(symbol);
     }
 
     public void setDocument(Document doc) {

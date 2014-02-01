@@ -917,7 +917,7 @@ public class PixselMapRender implements ColorIndex, StylePropertyName {
     protected void drawPixsel(Graphics g, int x, int y, int cInd, Color fg) {
         Color c = colorAt(cInd, fg);
         if (c == null) {
-            if (!drawOnlyInk) g.clearRect(x, y, pixselWidth, pixselHeight);
+            //if (!drawOnlyInk) g.clearRect(x, y, pixselWidth, pixselHeight);
         } else {
             g.setColor(c);
             g.fillRect(x, y, pixselWidth, pixselHeight);

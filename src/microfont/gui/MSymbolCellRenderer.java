@@ -14,15 +14,11 @@ public class MSymbolCellRenderer extends MSymbolView implements
                 ListCellRenderer<MSymbol> {
     private static final long serialVersionUID = 1L;
 
-    /**
-     * @inheritDoc
-     */
-
     @Override
     public Component getListCellRendererComponent(
                     JList<? extends MSymbol> list, MSymbol value, int index,
                     boolean isSelected, boolean cellHasFocus) {
-        super.setSymbol(value);
+        super.setPixselMap(value);
         if (isSelected) {
             setBackground(list.getSelectionBackground());
             setForeground(list.getSelectionForeground());
@@ -31,25 +27,5 @@ public class MSymbolCellRenderer extends MSymbolView implements
             setForeground(list.getForeground());
         }
         return this;
-    }
-
-    @Override
-    public void setSymbol(MSymbol s) {
-    }
-
-    @Override
-    public void invalidate() {
-        sizeValid = false;
-    }
-
-    @Override
-    public void validate() {
-        doLayout();
-    }
-
-    @Override
-    public void revalidate() {
-        invalidate();
-        validate();
     }
 }

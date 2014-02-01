@@ -1,29 +1,39 @@
 
 package microfont.gui;
 
-import java.awt.Graphics;
+import java.awt.Color;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import microfont.Document;
-import microfont.MSymbol;
+import microfont.render.ColorIndex;
+import microfont.render.PixselMapRender;
 
-public class MSymbolEditor extends MAbstractComponent implements MouseListener,
+public class MSymbolEditor extends AbstractView implements MouseListener,
                 MouseMotionListener, MouseWheelListener {
     /**  */
     private static final long serialVersionUID = 1L;
     boolean                   changeEnable     = false;
-    boolean                   changeSet        = false;
-    int                       prevX, prevY;
     private Document          document;
 
-    public MSymbolEditor(MSymbol symbol) {
-        super(symbol);
+    public MSymbolEditor() {
+        super(1);
+        setLayout(new MSymbolEditorLayout(this));
 
-        render.setPixselSize(12);
+        PixselMapRender   render=render();
+        render.setPixselSize(16);
         render.setSpace(1);
+        render.setColor(ColorIndex.COLOR_PAPER_MARGINS, Color.LIGHT_GRAY);
+        render.setColor(ColorIndex.COLOR_INK, new Color(0, 0, 0));
+        render.setColor(ColorIndex.COLOR_INK_MARGINS, new Color(60, 0, 0));
+        render.setColor(ColorIndex.COLOR_PAPER_ASCENT, new Color(224, 224, 224));
+        render.setColor(ColorIndex.COLOR_PAPER, Color.WHITE);
+        render.setColor(ColorIndex.COLOR_SPACE, new Color(208, 208, 208));
+        render.setColor(ColorIndex.COLOR_GRID, new Color(128, 128, 128));
+        render.setGridSize(5);
+        render.setGridThickness(1);
         render.setDrawGrid(true);
         render.setDrawMargins(true);
 
@@ -32,16 +42,12 @@ public class MSymbolEditor extends MAbstractComponent implements MouseListener,
         this.addMouseWheelListener(this);
     }
 
-    public MSymbolEditor() {
-        this(null);
-    }
-
     /** {@inheritDoc} */
 
     @Override
     public void mouseClicked(MouseEvent e) {
         requestFocus();
-        //hit(null, e.getX(), e.getY());
+        // hit(null, e.getX(), e.getY());
     }
 
     /** {@inheritDoc} */
@@ -49,7 +55,7 @@ public class MSymbolEditor extends MAbstractComponent implements MouseListener,
     @Override
     public void mousePressed(MouseEvent e) {
         if (!changeEnable) {
-            
+
         }
     }
 
@@ -57,7 +63,7 @@ public class MSymbolEditor extends MAbstractComponent implements MouseListener,
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        if (symbol != null && document != null) document.endEdit();
+        // if (symbol != null && document != null) document.endEdit();
         if (changeEnable) changeEnable = false;
     }
 
@@ -89,19 +95,11 @@ public class MSymbolEditor extends MAbstractComponent implements MouseListener,
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
         int count;
-        count = render.getPixselSize() + e.getWheelRotation();
+        count = render().getPixselSize() + e.getWheelRotation();
         if (count < 3) count = 3;
         if (count > 25) count = 25;
 
-        render.setPixselSize(count);
-    }
-
-    /**
-     * {@inheritDoc}
-     * */
-    @Override
-    public void paint(Graphics g, int X, int Y) {
-        render.paint(g, X, Y);
+        render().setPixselSize(count);
     }
 
     public Document getDocument() {
@@ -110,19 +108,13 @@ public class MSymbolEditor extends MAbstractComponent implements MouseListener,
 
     public void setDocument(Document doc) {
         if (document != null) {
-            //document.addPropertyChangeListener(this);
+            // document.addPropertyChangeListener(this);
         }
 
         document = doc;
 
         if (document != null) {
-           // document.removePropertyChangeListener(this);
+            // document.removePropertyChangeListener(this);
         }
-    }
-
-    @Override
-    public void setSymbol(MSymbol sym) {
-        super.setSymbol(sym);
-        if (document != null) document.setEditedSymbol(sym);
     }
 }

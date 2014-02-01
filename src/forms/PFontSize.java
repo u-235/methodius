@@ -287,7 +287,7 @@ public class PFontSize extends JPanel implements PropertyChangeListener {
         vDescent.setValue(mFont.getDescent());
         vMinSize.setText(((Integer) mFont.getMinWidth()).toString());
         vMaxSize.setText(((Integer) mFont.getMaxWidth()).toString());
-        vSizeView.setSymbol(mFont.symbolByIndex(35));
+        vSizeView.setPixselMap(mFont.symbolByIndex(35));
     }
 
     public boolean isReadOnly() {
