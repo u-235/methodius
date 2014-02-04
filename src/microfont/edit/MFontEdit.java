@@ -16,7 +16,7 @@ public class MFontEdit extends AbstractEdit {
     public MFontEdit(MFont mf, String operation) {
         super(operation);
         owner = mf;
-        before = new MFont(mf);
+        before = mf.clone();
     }
 
     @Override
@@ -50,6 +50,6 @@ public class MFontEdit extends AbstractEdit {
             return;
         }
 
-        after = new MFont(owner);
+        after = owner.clone();
     }
 }

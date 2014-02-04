@@ -634,7 +634,7 @@ public class Application {
             if (fpf == null) fpf = new FontProperties(work, res);
 
             if (font == null) return;
-            c = new MFont(font);
+            c = font.clone();
             if (fpf.start(c) == FontProperties.ACTION_OK) {
                 doc.fontEdit("change property");
                 font.copy(c);

@@ -4,46 +4,132 @@ package microfont;
 import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
 import microfont.events.PixselMapListener;
-import microfont.render.StylePropertyName;
 
 /**
  * 
  */
 public class MFont extends AbstractMFont implements PixselMapListener,
-                PropertyChangeListener, StylePropertyName {
-    public static final String PROPERTY_AUTHOR       = "mf.author";
-    public static final String PROPERTY_DESCRIPTION  = "mf.description";
-    public static final String PROPERTY_NAME         = "mf.name";
-    public static final String PROPERTY_PROTOTYPE    = "mf.prototype";
+                PropertyChangeListener {
+    /** Высота надстрочной части символа. */
+    public static final String PROPERTY_ASCENT                = "mf.ascent";
+    /** Базовая линия строки. */
+    public static final String PROPERTY_BASELINE              = "mf.baseline";
+    /** Подстрочная часть символа. */
+    public static final String PROPERTY_DESCENT               = "mf.descent";
+    /** Высота строки символов. */
+    public static final String PROPERTY_LINE                  = "mf.line";
+    /** Левое поле. */
+    public static final String PROPERTY_MARGIN_LEFT           = "mf.magrin.left";
+    /** Правое поле. */
+    public static final String PROPERTY_MARGIN_RIGHT          = "mf.margin.right";
+    /** Высота надстрочной части символа. */
+    public static final String PROPERTY_ACTUALLY_ASCENT       = "mf.state.ascent";
+    /** Базовая линия строки. */
+    public static final String PROPERTY_ACTUALLY_BASELINE     = "mf.state.baseline";
+    /** Подстрочная часть символа. */
+    public static final String PROPERTY_ACTUALLY_DESCENT      = "mf.state.descent";
+    /** Высота строки символов. */
+    public static final String PROPERTY_ACTUALLY_LINE         = "mf.state.line";
+    /** Левое поле. */
+    public static final String PROPERTY_ACTUALLY_MARGIN_LEFT  = "mf.state.magrin.left";
+    /** Правое поле. */
+    public static final String PROPERTY_ACTUALLY_MARGIN_RIGHT = "mf.state.margin.right";
+    public static final String PROPERTY_AUTHOR                = "mf.author";
+    public static final String PROPERTY_DESCRIPTION           = "mf.description";
+    public static final String PROPERTY_NAME                  = "mf.name";
+    public static final String PROPERTY_PROTOTYPE             = "mf.prototype";
+
+    public static final int    METRIC_BASELINE                = 0;
+    public static final int    METRIC_LINE                    = 1;
+    public static final int    METRIC_ASCENT                  = 2;
+    public static final int    METRIC_DESCENT                 = 3;
+    public static final int    METRIC_LEFT                    = 4;
+    public static final int    METRIC_RIGHT                   = 5;
+    public static final int    METRIC_MAX                     = 5;
 
     private String             name;
     private String             prototype;
     private String             description;
     private String             author;
-    private int                marginLeft;
-    private int                marginRight;
-    private int                baseline;
-    private int                ascent;
-    private int                line;
-    private int                descent;
+    private int[]              metrics;
+    private boolean[]          actually;
 
     public MFont() {
         super();
+        metrics = new int[METRIC_MAX + 1];
+        actually = new boolean[METRIC_MAX + 1];
+        for (int i = 0; i <= METRIC_MAX; i++) {
+            metrics[i] = 0;
+            actually[i] = false;
+        }
     }
 
-    public MFont(MFont src) {
-        super(src);
-        synchronized (src.getLock()) {
-            name = src.name;
-            prototype = src.prototype;
-            author = src.author;
-            marginLeft = src.marginLeft;
-            marginRight = src.marginRight;
-            baseline = src.baseline;
-            ascent = src.ascent;
-            line = src.line;
-            descent = src.descent;
+    @Override
+    public MFont clone() {
+        MFont ret=new MFont();
+        synchronized (getLock()) {
+            ret.copy(this);
+            return ret;
         }
+    }
+
+    protected void fireActuallyChange(int index, boolean oldValue,
+                    boolean newValue) {
+        String property;
+
+        switch (index) {
+        case METRIC_BASELINE:
+            property = PROPERTY_ACTUALLY_BASELINE;
+            break;
+        case METRIC_LINE:
+            property = PROPERTY_ACTUALLY_LINE;
+            break;
+        case METRIC_ASCENT:
+            property = PROPERTY_ACTUALLY_ASCENT;
+            break;
+        case METRIC_DESCENT:
+            property = PROPERTY_ACTUALLY_DESCENT;
+            break;
+        case METRIC_LEFT:
+            property = PROPERTY_ACTUALLY_MARGIN_LEFT;
+            break;
+        case METRIC_RIGHT:
+            property = PROPERTY_ACTUALLY_MARGIN_RIGHT;
+            break;
+        default:
+            return;
+        }
+
+        firePropertyChange(property, oldValue, newValue);
+    }
+
+    protected void fireMetricChange(int index, int oldValue, int newValue) {
+        String property;
+
+        switch (index) {
+        case METRIC_BASELINE:
+            property = PROPERTY_BASELINE;
+            break;
+        case METRIC_LINE:
+            property = PROPERTY_LINE;
+            break;
+        case METRIC_ASCENT:
+            property = PROPERTY_ASCENT;
+            break;
+        case METRIC_DESCENT:
+            property = PROPERTY_DESCENT;
+            break;
+        case METRIC_LEFT:
+            property = PROPERTY_MARGIN_LEFT;
+            break;
+        case METRIC_RIGHT:
+            property = PROPERTY_MARGIN_RIGHT;
+            break;
+        default:
+            return;
+        }
+
+        firePropertyChange(property, oldValue, newValue);
     }
 
     /*
@@ -54,15 +140,15 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     public synchronized int hashCode() {
         final int prime = 31;
         int result = super.hashCode();
-        result = prime * result + ascent;
+
+        for (int i = 0; i <= METRIC_MAX; i++) {
+            result = prime * result + (actually[i] ? 1231 : 1237);
+            result = prime * result + (actually[i] ? metrics[i] : 0);
+        }
+
         result = prime * result + ((author == null) ? 0 : author.hashCode());
-        result = prime * result + baseline;
-        result = prime * result + descent;
         result = prime * result
                         + ((description == null) ? 0 : description.hashCode());
-        result = prime * result + line;
-        result = prime * result + marginLeft;
-        result = prime * result + marginRight;
         result = prime * result + ((name == null) ? 0 : name.hashCode());
         result = prime * result
                         + ((prototype == null) ? 0 : prototype.hashCode());
@@ -79,18 +165,16 @@ public class MFont extends AbstractMFont implements PixselMapListener,
         if (!super.equals(obj)) return false;
         if (!(obj instanceof MFont)) return false;
         MFont other = (MFont) obj;
-        if (ascent != other.ascent) return false;
+        for (int i = 0; i < METRIC_MAX; i++) {
+            if (actually[i] != other.actually[i]) return false;
+            if (actually[i] && metrics[i] != other.metrics[i]) return false;
+        }
         if (author == null) {
             if (other.author != null) return false;
         } else if (!author.equals(other.author)) return false;
-        if (baseline != other.baseline) return false;
-        if (descent != other.descent) return false;
         if (description == null) {
             if (other.description != null) return false;
         } else if (!description.equals(other.description)) return false;
-        if (line != other.line) return false;
-        if (marginLeft != other.marginLeft) return false;
-        if (marginRight != other.marginRight) return false;
         if (name == null) {
             if (other.name != null) return false;
         } else if (!name.equals(other.name)) return false;
@@ -103,12 +187,10 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     public void copy(MFont font) {
         super.copy(font);
 
-        setMarginLeft(font.marginLeft);
-        setMarginRight(font.marginRight);
-        setBaseline(font.baseline);
-        setAscent(font.ascent);
-        setLine(font.line);
-        setDescent(font.descent);
+        for (int i = 0; i <= METRIC_MAX; i++) {
+            if (!font.isActuallyMetric(i)) continue;
+            setMetric(i, font.getMetric(i));
+        }
 
         setName(font.name);
         setPrototype(font.prototype);
@@ -160,22 +242,87 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     public void setWidth(int w) {
         super.setWidth(w);
 
-        setMarginLeft(marginLeft);
-        setMarginRight(marginRight);
+        setMarginLeft(getMarginLeft());
+        setMarginRight(getMarginRight());
     }
 
     @Override
     public void setHeight(int h) {
         super.setHeight(h);
 
-        setBaseline(baseline);
+        setBaseline(getBaseline());
+    }
+
+    public boolean isActuallyMetric(int index) {
+        switch (index) {
+        case METRIC_BASELINE:
+            return actually[METRIC_BASELINE];
+        case METRIC_LINE:
+            return actually[METRIC_BASELINE] & actually[METRIC_LINE];
+        case METRIC_ASCENT:
+            return actually[METRIC_BASELINE] & actually[METRIC_ASCENT];
+        case METRIC_DESCENT:
+            return actually[METRIC_BASELINE] & actually[METRIC_DESCENT];
+        case METRIC_LEFT:
+            return actually[METRIC_LEFT];
+        case METRIC_RIGHT:
+            return actually[METRIC_RIGHT];
+        default:
+            return false;
+        }
+    }
+
+    public void clearActuallyMetric(int index) {
+        if (index < 0 || index > METRIC_MAX) return;
+        boolean old = actually[index];
+        actually[index] = false;
+        fireActuallyChange(index, old, actually[index]);
+    }
+
+    public int getMetric(int index) {
+        if (index < 0 || index > METRIC_MAX) return 0;
+        return metrics[index];
+    }
+
+    public void setMetric(int index, int value) {
+        if (index < 0 || index > METRIC_MAX) return;
+
+        int old = metrics[index];
+        boolean oldActully = actually[index];
+        actually[index] = true;
+
+        switch (index) {
+        case METRIC_BASELINE:
+            metrics[index] = checkBaseline(value);
+            setMetric(METRIC_LINE, metrics[METRIC_LINE]);
+            break;
+        case METRIC_LINE:
+            metrics[index] = checkLine(value);
+            setMetric(METRIC_ASCENT, metrics[METRIC_ASCENT]);
+            setMetric(METRIC_DESCENT, metrics[METRIC_DESCENT]);
+            break;
+        case METRIC_ASCENT:
+            metrics[index] = checkAscent(value);
+            break;
+        case METRIC_DESCENT:
+            metrics[index] = checkDescent(value);
+            break;
+        case METRIC_LEFT:
+            metrics[index] = checkMargin(value);
+            break;
+        case METRIC_RIGHT:
+            metrics[index] = checkMargin(value);
+            break;
+        }
+        fireActuallyChange(index, oldActully, actually[index]);
+        fireMetricChange(index, old, value);
     }
 
     public int getMarginLeft() {
-        return marginLeft;
+        return getMetric(METRIC_LEFT);
     }
 
-    public int checkMarginLeft(int value) {
+    public int checkMargin(int value) {
         int bound = (getMinWidth() * 3 + 5) / 10;
         if (value < 0) return 0;
         else if (value > bound) return bound;
@@ -183,34 +330,20 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     }
 
     public void setMarginLeft(int margin) {
-        int old = marginLeft;
-
-        marginLeft = checkMarginLeft(margin);
-
-        firePropertyChange(STYLE_PROPERTY_MARGIN_LEFT, old, marginLeft);
+        setMetric(METRIC_LEFT, margin);
     }
 
     public int getMarginRight() {
-        return marginRight;
+        return getMetric(METRIC_RIGHT);
     }
 
-    public int checkMarginRight(int value) {
-        int bound = (getMinWidth() * 3 + 5) / 10;
-        if (value < 0) return 0;
-        else if (value > bound) return bound;
-        else return value;
-    }
 
     public void setMarginRight(int margin) {
-        int old = marginRight;
-
-        marginRight = checkMarginRight(margin);
-
-        firePropertyChange(STYLE_PROPERTY_MARGIN_RIGHT, old, marginRight);
+        setMetric(METRIC_RIGHT, margin);
     }
 
     public int getBaseline() {
-        return baseline;
+        return getMetric(METRIC_BASELINE);
     }
 
     public int checkBaseline(int value) {
@@ -221,22 +354,15 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     }
 
     public void setBaseline(int bl) {
-        int old = baseline;
-
-        if (bl < 0) throw (new IllegalArgumentException("invalid baseline"));
-        baseline = checkBaseline(bl);
-
-        firePropertyChange(STYLE_PROPERTY_BASELINE, old, baseline);
-
-        setAscent(ascent);
-        setDescent(descent);
+        setMetric(METRIC_BASELINE, bl);
     }
 
     public int getAscent() {
-        return ascent;
+        return getMetric(METRIC_ASCENT);
     }
 
     public int checkAscent(int value) {
+        int baseline=getMetric(METRIC_BASELINE);
         int bound = baseline / 2;
         if (value < bound) return bound;
         else if (value > baseline) return baseline;
@@ -244,21 +370,15 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     }
 
     public void setAscent(int asc) {
-        int old = ascent;
-
-        if (asc < 0) throw (new IllegalArgumentException("invalid ascent"));
-        ascent = checkAscent(asc);
-
-        firePropertyChange(STYLE_PROPERTY_ASCENT, old, ascent);
-
-        setLine(line);
+        setMetric(METRIC_ASCENT, asc);
     }
 
     public int getLine() {
-        return this.line;
+        return getMetric(METRIC_LINE);
     }
 
     public int checkLine(int value) {
+        int ascent=getMetric(METRIC_ASCENT);
         int bound = ascent / 2;
         if (value < bound) return bound;
         else if (value > ascent) return ascent;
@@ -266,47 +386,37 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     }
 
     public void setLine(int ln) {
-        int old = line;
-
-        if (ln < 0) throw (new IllegalArgumentException("invalid line"));
-        line = checkLine(ln);
-
-        firePropertyChange(STYLE_PROPERTY_LINE, old, line);
+        setMetric(METRIC_LINE, ln);
     }
 
     public int getDescent() {
-        return descent;
+        return getMetric(METRIC_DESCENT);
     }
 
     public int checkDescent(int value) {
-        int bound = height - baseline;
+        int bound = height - getBaseline();
         if (value < 0) return 0;
         else if (value > bound) return bound;
         else return value;
     }
 
     public void setDescent(int dsc) {
-        int old = descent;
-
-        if (dsc < 0) throw (new IllegalArgumentException("invalid descent"));
-        descent = checkDescent(dsc);
-
-        firePropertyChange(STYLE_PROPERTY_DESCENT, old, descent);
+        setMetric(METRIC_DESCENT, dsc);
     }
 
     @Override
     public Object getProperty(String property) {
-        if (property.equals(STYLE_PROPERTY_ASCENT)) return new Integer(getAscent());
+        if (property.equals(PROPERTY_ASCENT)) return new Integer(getAscent());
         else if (property.equals(PROPERTY_AUTHOR)) return getAuthor();
-        else if (property.equals(STYLE_PROPERTY_BASELINE)) return new Integer(
+        else if (property.equals(PROPERTY_BASELINE)) return new Integer(
                         getBaseline());
-        else if (property.equals(STYLE_PROPERTY_DESCENT)) return new Integer(
+        else if (property.equals(PROPERTY_DESCENT)) return new Integer(
                         getDescent());
         else if (property.equals(PROPERTY_DESCRIPTION)) return getDescriptin();
-        else if (property.equals(STYLE_PROPERTY_LINE)) return new Integer(getLine());
-        else if (property.equals(STYLE_PROPERTY_MARGIN_LEFT)) return new Integer(
+        else if (property.equals(PROPERTY_LINE)) return new Integer(getLine());
+        else if (property.equals(PROPERTY_MARGIN_LEFT)) return new Integer(
                         getMarginLeft());
-        else if (property.equals(STYLE_PROPERTY_MARGIN_RIGHT)) return new Integer(
+        else if (property.equals(PROPERTY_MARGIN_RIGHT)) return new Integer(
                         getMarginRight());
         else if (property.equals(PROPERTY_NAME)) return getName();
         else if (property.equals(PROPERTY_PROTOTYPE)) return getPrototype();
@@ -320,22 +430,22 @@ public class MFont extends AbstractMFont implements PixselMapListener,
         if (value instanceof Integer) {
             int i = ((Integer) value).intValue();
 
-            if (property.equals(STYLE_PROPERTY_ASCENT)) {
+            if (property.equals(PROPERTY_ASCENT)) {
                 setAscent(i);
                 return;
-            } else if (property.equals(STYLE_PROPERTY_BASELINE)) {
+            } else if (property.equals(PROPERTY_BASELINE)) {
                 setBaseline(i);
                 return;
-            } else if (property.equals(STYLE_PROPERTY_DESCENT)) {
+            } else if (property.equals(PROPERTY_DESCENT)) {
                 setDescent(i);
                 return;
-            } else if (property.equals(STYLE_PROPERTY_LINE)) {
+            } else if (property.equals(PROPERTY_LINE)) {
                 setLine(i);
                 return;
-            } else if (property.equals(STYLE_PROPERTY_MARGIN_LEFT)) {
+            } else if (property.equals(PROPERTY_MARGIN_LEFT)) {
                 setMarginLeft(i);
                 return;
-            } else if (property.equals(STYLE_PROPERTY_MARGIN_RIGHT)) {
+            } else if (property.equals(PROPERTY_MARGIN_RIGHT)) {
                 setMarginRight(i);
                 return;
             }
