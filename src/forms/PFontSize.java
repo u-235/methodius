@@ -95,7 +95,7 @@ public class PFontSize extends JPanel implements PropertyChangeListener {
                 sp = (JSpinner) e.getSource();
                 value = ((Integer) sp.getValue());
 
-                check = mFont.checkMarginLeft(value);
+                check = mFont.checkMargin(value);
                 if (value != check) sp.setValue(check);
                 else mFont.setMarginLeft(value);
             }
@@ -112,7 +112,7 @@ public class PFontSize extends JPanel implements PropertyChangeListener {
                 sp = (JSpinner) e.getSource();
                 value = ((Integer) sp.getValue());
 
-                check = mFont.checkMarginRight(value);
+                check = mFont.checkMargin(value);
                 if (value != check) sp.setValue(check);
                 else mFont.setMarginRight(value);
             }

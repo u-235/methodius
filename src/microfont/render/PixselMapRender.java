@@ -15,7 +15,7 @@ import microfont.events.PixselMapListener;
 /**
  * Класс для отрисовки карты пикселей.
  */
-public class PixselMapRender implements ColorIndex, StylePropertyName {
+public class PixselMapRender implements ColorIndex {
     /** Карта пикселей для отрисовки. */
     private AbstractPixselMap pixmap;
     /** Интерфейс для отправки запросов о перерисовки и изменении размеров. */
