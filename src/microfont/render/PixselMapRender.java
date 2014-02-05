@@ -419,31 +419,34 @@ public class PixselMapRender implements ColorIndex, Metrics {
     }
 
     @Override
-    public boolean isActuallyMetric(int index) {
-        if (index < 0 || index > METRIC_MAX) return false;
+    public boolean isMetricActually(int index) {
+        if (index < 0 || index > METRIC_MAX)
+            throw new IllegalArgumentException("index=" + index);
         return actually[index];
     }
 
     @Override
-    public void clearActuallyMetric(int index) {
-        if (index < 0 || index > METRIC_MAX) return;
-        actually[index] = false;
+    public void setMetricActually(int index, boolean state) {
+        if (index < 0 || index > METRIC_MAX)
+            throw new IllegalArgumentException("index=" + index);
+        actually[index] = state;
     }
 
     @Override
     public int getMetric(int index) {
-        if (index < 0 || index > METRIC_MAX) return 0;
+        if (index < 0 || index > METRIC_MAX)
+            throw new IllegalArgumentException("index=" + index);
         return metrics[index];
     }
 
     @Override
     public void setMetric(int index, int value) {
-        if (index < 0 || index > METRIC_MAX) return;
-        boolean oldActually = actually[index];
-        actually[index] = true;
+        if (index < 0 || index > METRIC_MAX)
+            throw new IllegalArgumentException("index=" + index);
+
         int old = metrics[index];
         metrics[index] = value;
-        if (old != value || !oldActually) {
+        if (old != value && isMetricActually(index)) {
             Rectangle rect = new Rectangle();
 
             rect = toPointRect(rect, rect);
@@ -709,18 +712,29 @@ public class PixselMapRender implements ColorIndex, Metrics {
         if (pixmap == null) return COLOR_PAPER;
 
         if (drawMargins) {
-            if (x < getMetric(METRIC_LEFT))
+            if (isMetricActually(METRIC_LEFT) && x < getMetric(METRIC_LEFT))
                 return ink ? COLOR_INK_MARGINS : COLOR_PAPER_MARGINS;
-            if (pixmap.getWidth() - x <= getMetric(METRIC_RIGHT))
+
+            if (isMetricActually(METRIC_RIGHT)
+                            && pixmap.getWidth() - x <= getMetric(METRIC_RIGHT))
                 return ink ? COLOR_INK_MARGINS : COLOR_PAPER_MARGINS;
-            if (y < getMetric(METRIC_BASELINE) - getMetric(METRIC_ASCENT))
-                return ink ? COLOR_INK_MARGINS : COLOR_PAPER_MARGINS;
-            if (y >= getMetric(METRIC_BASELINE) + getMetric(METRIC_DESCENT))
-                return ink ? COLOR_INK_MARGINS : COLOR_PAPER_MARGINS;
-            if (y < getMetric(METRIC_BASELINE) - getMetric(METRIC_LINE))
-                return ink ? COLOR_INK_ASCENT : COLOR_PAPER_ASCENT;
-            if (y >= getMetric(METRIC_BASELINE))
-                return ink ? COLOR_INK_DESCENT : COLOR_PAPER_DESCENT;
+
+            if (isMetricActually(METRIC_BASELINE)) {
+                if (y < getMetric(METRIC_BASELINE) - getMetric(METRIC_ASCENT)) {
+                    if (isMetricActually(METRIC_ASCENT))
+                        return ink ? COLOR_INK_MARGINS : COLOR_PAPER_MARGINS;
+                } else if (y >= getMetric(METRIC_BASELINE)
+                                + getMetric(METRIC_DESCENT)) {
+                    if (isMetricActually(METRIC_DESCENT))
+                        return ink ? COLOR_INK_MARGINS : COLOR_PAPER_MARGINS;
+                } else if (y < getMetric(METRIC_BASELINE)
+                                - getMetric(METRIC_LINE)) {
+                    if (isMetricActually(METRIC_ASCENT))
+                        return ink ? COLOR_INK_ASCENT : COLOR_PAPER_ASCENT;
+                } else if (y >= getMetric(METRIC_BASELINE)) {
+                    return ink ? COLOR_INK_DESCENT : COLOR_PAPER_DESCENT;
+                }
+            }
         }
 
         // Значения по умолчанию.

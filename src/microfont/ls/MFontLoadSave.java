@@ -204,8 +204,7 @@ public class MFontLoadSave {
         String str;
         String section = "";
         String key, value;
-        int width = 0, index = 0, size = 0, height = -1;//
-        int start;
+        int width = 0, index = 0, size = 0, height = -1;
         byte[] bytes;
 
         inpStream = new FileInputStream(f);
@@ -220,13 +219,7 @@ public class MFontLoadSave {
 
             str = str.trim();
             if (str.length() == 0) continue;
-
-            start = str.indexOf(';');
-            if (start >= 0) {
-                str = str.substring(start);
-                str = str.trim();
-                if (str.length() == 0) continue;
-            }
+            if (str.charAt(0) == ';') continue;
 
             if (str.charAt(0) == '[') {
                 section = str.substring(1, str.indexOf(']'));
@@ -268,30 +261,42 @@ public class MFontLoadSave {
                     if (value.length() != 0) height = Integer.parseInt(value);
                     ret.setHeight(height);
                 } else if (key.compareToIgnoreCase(INFO_BASELINE) == 0) {
-                    if (value.length() != 0)
+                    if (value.length() != 0) {
                         ret.setMetric(Metrics.METRIC_BASELINE,
                                         Integer.parseInt(value));
+                        ret.setMetricActually(Metrics.METRIC_BASELINE, true);
+                    }
                 } else if (key.compareToIgnoreCase(INFO_ASCENT) == 0) {
-                    if (value.length() != 0)
+                    if (value.length() != 0) {
                         ret.setMetric(Metrics.METRIC_ASCENT,
                                         Integer.parseInt(value));
+                        ret.setMetricActually(Metrics.METRIC_ASCENT, true);
+                    }
                 } else if (key.compareToIgnoreCase(INFO_LINE) == 0
                                 || key.compareToIgnoreCase("ascentCapital") == 0) {
-                    if (value.length() != 0)
+                    if (value.length() != 0) {
                         ret.setMetric(Metrics.METRIC_LINE,
                                         Integer.parseInt(value));
+                        ret.setMetricActually(Metrics.METRIC_LINE, true);
+                    }
                 } else if (key.compareToIgnoreCase(INFO_DESCENT) == 0) {
-                    if (value.length() != 0)
+                    if (value.length() != 0) {
                         ret.setMetric(Metrics.METRIC_DESCENT,
                                         Integer.parseInt(value));
+                        ret.setMetricActually(Metrics.METRIC_DESCENT, true);
+                    }
                 } else if (key.compareToIgnoreCase(INFO_LEFT_MARGIN) == 0) {
-                    if (value.length() != 0)
+                    if (value.length() != 0) {
                         ret.setMetric(Metrics.METRIC_LEFT,
                                         Integer.parseInt(value));
+                        ret.setMetricActually(Metrics.METRIC_LEFT, true);
+                    }
                 } else if (key.compareToIgnoreCase(INFO_RIGHT_MARGIN) == 0) {
-                    if (value.length() != 0)
+                    if (value.length() != 0) {
                         ret.setMetric(Metrics.METRIC_RIGHT,
                                         Integer.parseInt(value));
+                        ret.setMetricActually(Metrics.METRIC_RIGHT, true);
+                    }
                 }
                 continue;
             }

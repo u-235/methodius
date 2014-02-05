@@ -180,7 +180,7 @@ public class MFont extends AbstractMFont implements PixselMapListener,
         super.copy(font);
 
         for (int i = 0; i <= METRIC_MAX; i++) {
-            if (!font.isActuallyMetric(i)) continue;
+            setMetricActually(i, font.isMetricActually(i));
             setMetric(i, font.getMetric(i));
         }
 
@@ -246,71 +246,56 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     }
 
     @Override
-    public boolean isActuallyMetric(int index) {
-        switch (index) {
-        case METRIC_BASELINE:
-            return actually[METRIC_BASELINE];
-        case METRIC_LINE:
-            return actually[METRIC_BASELINE] & actually[METRIC_LINE];
-        case METRIC_ASCENT:
-            return actually[METRIC_BASELINE] & actually[METRIC_ASCENT];
-        case METRIC_DESCENT:
-            return actually[METRIC_BASELINE] & actually[METRIC_DESCENT];
-        case METRIC_LEFT:
-            return actually[METRIC_LEFT];
-        case METRIC_RIGHT:
-            return actually[METRIC_RIGHT];
-        default:
-            return false;
-        }
+    public boolean isMetricActually(int index) {
+        if (index < 0 || index > METRIC_MAX)
+            throw new IllegalArgumentException("index=" + index);
+        return actually[index];
     }
 
     @Override
-    public void clearActuallyMetric(int index) {
-        if (index < 0 || index > METRIC_MAX) return;
+    public void setMetricActually(int index, boolean state) {
+        if (index < 0 || index > METRIC_MAX)
+            throw new IllegalArgumentException("index=" + index);
         boolean old = actually[index];
-        actually[index] = false;
-        fireActuallyChange(index, old, actually[index]);
+        actually[index] = state;
+        fireActuallyChange(index, old, state);
     }
 
     @Override
     public int getMetric(int index) {
-        if (index < 0 || index > METRIC_MAX) return 0;
+        if (index < 0 || index > METRIC_MAX)
+            throw new IllegalArgumentException("index=" + index);
         return metrics[index];
     }
 
     @Override
     public void setMetric(int index, int value) {
-        if (index < 0 || index > METRIC_MAX) return;
+        if (index < 0 || index > METRIC_MAX)
+            throw new IllegalArgumentException("index=" + index);
 
         int old = metrics[index];
-        boolean oldActully = actually[index];
-        actually[index] = true;
 
         switch (index) {
         case METRIC_BASELINE:
             metrics[index] = checkBaseline(value);
-            setMetric(METRIC_LINE, metrics[METRIC_LINE]);
-            break;
-        case METRIC_LINE:
-            metrics[index] = checkLine(value);
             setMetric(METRIC_ASCENT, metrics[METRIC_ASCENT]);
             setMetric(METRIC_DESCENT, metrics[METRIC_DESCENT]);
             break;
+        case METRIC_LINE:
+            metrics[index] = checkLine(value);
+            break;
         case METRIC_ASCENT:
             metrics[index] = checkAscent(value);
+            setMetric(METRIC_LINE, metrics[METRIC_LINE]);
             break;
         case METRIC_DESCENT:
             metrics[index] = checkDescent(value);
             break;
         case METRIC_LEFT:
-            metrics[index] = checkMargin(value);
-            break;
         case METRIC_RIGHT:
             metrics[index] = checkMargin(value);
             break;
         }
-        fireActuallyChange(index, oldActully, actually[index]);
         fireMetricChange(index, old, value);
     }
 
@@ -322,10 +307,11 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     }
 
     public int checkBaseline(int value) {
-        int bound = (height * 6 + 6) / 10;
+        int bound = (int) (height * 0.60);
         if (value < bound) return bound;
-        else if (value > height) return height;
-        else return value;
+        bound = (int) (height * 0.90);
+        if (value > bound) return bound;
+        return value;
     }
 
     public int checkAscent(int value) {
