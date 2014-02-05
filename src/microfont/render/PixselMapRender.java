@@ -8,6 +8,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import microfont.AbstractPixselMap;
 import microfont.AbstractPixselMap.PixselIterator;
+import microfont.Metrics;
 import microfont.PixselMap;
 import microfont.events.PixselMapEvent;
 import microfont.events.PixselMapListener;
@@ -15,7 +16,7 @@ import microfont.events.PixselMapListener;
 /**
  * Класс для отрисовки карты пикселей.
  */
-public class PixselMapRender implements ColorIndex {
+public class PixselMapRender implements ColorIndex, Metrics {
     /** Карта пикселей для отрисовки. */
     private AbstractPixselMap pixmap;
     /** Интерфейс для отправки запросов о перерисовки и изменении размеров. */
@@ -46,18 +47,9 @@ public class PixselMapRender implements ColorIndex {
     private int               gridSize;
     /** Отрисовывать сетку. */
     private boolean           drawGrid;
-    /** Размер левого поля. */
-    private int               marginLeft;
-    /** Размер правого поля. */
-    private int               marginRight;
-    /** Расстояние до базовой линии строки. */
-    private int               base;
-    /** Высота строчных букв. */
-    private int               line;
-    /** Подъём (прописных) букв. */
-    private int               ascent;
-    /** Понижение букв. */
-    private int               descent;
+
+    private int[]             metrics;
+    private boolean[]         actually;
     /** Отрисовывать поля своими цветами. */
     private boolean           drawMargins;
 
@@ -67,6 +59,8 @@ public class PixselMapRender implements ColorIndex {
      * @param compReq
      */
     public PixselMapRender(ComponentRequest compReq) {
+        metrics = new int[METRIC_MAX + 1];
+        actually = new boolean[METRIC_MAX + 1];
         req = compReq;
         listener = new PixselListener();
         colors = new Color[COLOR_MAX + 1];
@@ -424,159 +418,36 @@ public class PixselMapRender implements ColorIndex {
         if (old != gridSize && drawGrid && pixmap != null) requestRepaint();
     }
 
-    /**
-     * Возвращает величину левого поля.
-     */
-    public int getMarginLeft() {
-        return marginLeft;
+    @Override
+    public boolean isActuallyMetric(int index) {
+        if (index < 0 || index > METRIC_MAX) return false;
+        return actually[index];
     }
 
-    /**
-     * Устанавливает величину левого поля.
-     * 
-     * @param m Левое поле.
-     * @throws IllegalArgumentException Если {@code m} меньше нуля.
-     */
-    public void setMarginLeft(int m) {
-        if (m < 0) throw new IllegalArgumentException("left margin =" + m);
+    @Override
+    public void clearActuallyMetric(int index) {
+        if (index < 0 || index > METRIC_MAX) return;
+        actually[index] = false;
+    }
 
-        int old = marginLeft;
-        marginLeft = m;
+    @Override
+    public int getMetric(int index) {
+        if (index < 0 || index > METRIC_MAX) return 0;
+        return metrics[index];
+    }
 
-        if (old != marginLeft && drawMargins && pixmap != null) {
-            int w = old < marginLeft ? marginLeft : old;
-            Rectangle rect = new Rectangle(0, 0, w, pixmap.getHeight());
+    @Override
+    public void setMetric(int index, int value) {
+        if (index < 0 || index > METRIC_MAX) return;
+        boolean oldActually = actually[index];
+        actually[index] = true;
+        int old = metrics[index];
+        metrics[index] = value;
+        if (old != value || !oldActually) {
+            Rectangle rect = new Rectangle();
+
             rect = toPointRect(rect, rect);
             requestRepaint(rect);
-        }
-    }
-
-    /**
-     * Возвращает величину правого поля.
-     */
-    public int getMarginRight() {
-        return marginRight;
-    }
-
-    /**
-     * Устанавливает величину правого поля.
-     * 
-     * @param m Правое поле.
-     * @throws IllegalArgumentException Если {@code m} меньше нуля.
-     */
-    public void setMarginRight(int m) {
-        if (m < 0) throw new IllegalArgumentException("right margin =" + m);
-
-        int old = marginRight;
-        marginRight = m;
-
-        if (old != marginRight && drawMargins && pixmap != null) {
-            int w = old < marginRight ? marginRight : old;
-            Rectangle rect = new Rectangle(pixmap.getWidth() - w, 0, w,
-                            pixmap.getHeight());
-            rect = toPointRect(rect, rect);
-            requestRepaint(rect);
-        }
-    }
-
-    /**
-     * Возвращает величину базовой линии символа.
-     */
-    public int getBase() {
-        return base;
-    }
-
-    /**
-     * Устанавливает величину базовой линии символа.
-     * 
-     * @param b Базовая линия символа.
-     * @throws IllegalArgumentException Если {@code b} меньше нуля.
-     */
-    public void setBase(int b) {
-        if (b < 0) throw new IllegalArgumentException("baseline =" + b);
-
-        int old = base;
-        base = b;
-
-        if (old != base && pixmap != null) {
-            requestInvalidate();
-            // XXX calculate region
-            if (drawMargins) requestRepaint();
-        }
-    }
-
-    /**
-     * Возвращает высоту линии символа.
-     */
-    public int getLine() {
-        return line;
-    }
-
-    /**
-     * Устанавливает высоту линии символа.
-     * 
-     * @param l Высота линии символа.
-     * @throws IllegalArgumentException Если {@code l} меньше нуля.
-     */
-    public void setLine(int l) {
-        if (l < 0) throw new IllegalArgumentException("line =" + l);
-
-        int old = line;
-        line = l;
-
-        if (old != line && drawMargins && pixmap != null) {
-            // XXX calculate region
-            requestRepaint();
-        }
-    }
-
-    /**
-     * Возвращает подъём символа.
-     */
-    public int getAscent() {
-        return ascent;
-    }
-
-    /**
-     * Устанавливает подъём символа.
-     * 
-     * @param a Подъём символа.
-     * @throws IllegalArgumentException Если {@code a} меньше нуля.
-     */
-    public void setAscent(int a) {
-        if (a < 0) throw new IllegalArgumentException("ascent =" + a);
-
-        int old = ascent;
-        ascent = a;
-
-        if (old != ascent && drawMargins && pixmap != null) {
-            // XXX calculate region
-            requestRepaint();
-        }
-    }
-
-    /**
-     * Возвращает величину подстрочной области символа.
-     */
-    public int getDescent() {
-        return descent;
-    }
-
-    /**
-     * Устанавливает величину подстрочной части символа.
-     * 
-     * @param d Подстрочная часть символа.
-     * @throws IllegalArgumentException Если {@code d} меньше нуля.
-     */
-    public void setDescent(int d) {
-        if (d < 0) throw new IllegalArgumentException("descent =" + d);
-
-        int old = descent;
-        descent = d;
-
-        if (old != descent && drawMargins && pixmap != null) {
-            // XXX calculate region
-            requestRepaint();
         }
     }
 
@@ -838,13 +709,17 @@ public class PixselMapRender implements ColorIndex {
         if (pixmap == null) return COLOR_PAPER;
 
         if (drawMargins) {
-            if (x < marginLeft || pixmap.getWidth() - x <= marginRight)
+            if (x < getMetric(METRIC_LEFT))
                 return ink ? COLOR_INK_MARGINS : COLOR_PAPER_MARGINS;
-            if (y < base - ascent || y >= base + descent)
+            if (pixmap.getWidth() - x <= getMetric(METRIC_RIGHT))
                 return ink ? COLOR_INK_MARGINS : COLOR_PAPER_MARGINS;
-            if (y < base - line)
+            if (y < getMetric(METRIC_BASELINE) - getMetric(METRIC_ASCENT))
+                return ink ? COLOR_INK_MARGINS : COLOR_PAPER_MARGINS;
+            if (y >= getMetric(METRIC_BASELINE) + getMetric(METRIC_DESCENT))
+                return ink ? COLOR_INK_MARGINS : COLOR_PAPER_MARGINS;
+            if (y < getMetric(METRIC_BASELINE) - getMetric(METRIC_LINE))
                 return ink ? COLOR_INK_ASCENT : COLOR_PAPER_ASCENT;
-            if (y >= base)
+            if (y >= getMetric(METRIC_BASELINE))
                 return ink ? COLOR_INK_DESCENT : COLOR_PAPER_DESCENT;
         }
 
@@ -917,7 +792,7 @@ public class PixselMapRender implements ColorIndex {
     protected void drawPixsel(Graphics g, int x, int y, int cInd, Color fg) {
         Color c = colorAt(cInd, fg);
         if (c == null) {
-            //if (!drawOnlyInk) g.clearRect(x, y, pixselWidth, pixselHeight);
+            // if (!drawOnlyInk) g.clearRect(x, y, pixselWidth, pixselHeight);
         } else {
             g.setColor(c);
             g.fillRect(x, y, pixselWidth, pixselHeight);

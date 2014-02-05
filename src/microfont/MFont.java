@@ -9,7 +9,7 @@ import microfont.events.PixselMapListener;
  * 
  */
 public class MFont extends AbstractMFont implements PixselMapListener,
-                PropertyChangeListener {
+                PropertyChangeListener, Metrics {
     /** Высота надстрочной части символа. */
     public static final String PROPERTY_ASCENT                = "mf.ascent";
     /** Базовая линия строки. */
@@ -39,14 +39,6 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     public static final String PROPERTY_NAME                  = "mf.name";
     public static final String PROPERTY_PROTOTYPE             = "mf.prototype";
 
-    public static final int    METRIC_BASELINE                = 0;
-    public static final int    METRIC_LINE                    = 1;
-    public static final int    METRIC_ASCENT                  = 2;
-    public static final int    METRIC_DESCENT                 = 3;
-    public static final int    METRIC_LEFT                    = 4;
-    public static final int    METRIC_RIGHT                   = 5;
-    public static final int    METRIC_MAX                     = 5;
-
     private String             name;
     private String             prototype;
     private String             description;
@@ -66,7 +58,7 @@ public class MFont extends AbstractMFont implements PixselMapListener,
 
     @Override
     public MFont clone() {
-        MFont ret=new MFont();
+        MFont ret = new MFont();
         synchronized (getLock()) {
             ret.copy(this);
             return ret;
@@ -242,17 +234,18 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     public void setWidth(int w) {
         super.setWidth(w);
 
-        setMarginLeft(getMarginLeft());
-        setMarginRight(getMarginRight());
+        setMetric(METRIC_LEFT, getMetric(METRIC_LEFT));
+        setMetric(METRIC_RIGHT, getMetric(METRIC_RIGHT));
     }
 
     @Override
     public void setHeight(int h) {
         super.setHeight(h);
 
-        setBaseline(getBaseline());
+        setMetric(METRIC_BASELINE, getMetric(METRIC_BASELINE));
     }
 
+    @Override
     public boolean isActuallyMetric(int index) {
         switch (index) {
         case METRIC_BASELINE:
@@ -272,6 +265,7 @@ public class MFont extends AbstractMFont implements PixselMapListener,
         }
     }
 
+    @Override
     public void clearActuallyMetric(int index) {
         if (index < 0 || index > METRIC_MAX) return;
         boolean old = actually[index];
@@ -279,11 +273,13 @@ public class MFont extends AbstractMFont implements PixselMapListener,
         fireActuallyChange(index, old, actually[index]);
     }
 
+    @Override
     public int getMetric(int index) {
         if (index < 0 || index > METRIC_MAX) return 0;
         return metrics[index];
     }
 
+    @Override
     public void setMetric(int index, int value) {
         if (index < 0 || index > METRIC_MAX) return;
 
@@ -318,32 +314,11 @@ public class MFont extends AbstractMFont implements PixselMapListener,
         fireMetricChange(index, old, value);
     }
 
-    public int getMarginLeft() {
-        return getMetric(METRIC_LEFT);
-    }
-
     public int checkMargin(int value) {
         int bound = (getMinWidth() * 3 + 5) / 10;
         if (value < 0) return 0;
         else if (value > bound) return bound;
         else return value;
-    }
-
-    public void setMarginLeft(int margin) {
-        setMetric(METRIC_LEFT, margin);
-    }
-
-    public int getMarginRight() {
-        return getMetric(METRIC_RIGHT);
-    }
-
-
-    public void setMarginRight(int margin) {
-        setMetric(METRIC_RIGHT, margin);
-    }
-
-    public int getBaseline() {
-        return getMetric(METRIC_BASELINE);
     }
 
     public int checkBaseline(int value) {
@@ -353,100 +328,67 @@ public class MFont extends AbstractMFont implements PixselMapListener,
         else return value;
     }
 
-    public void setBaseline(int bl) {
-        setMetric(METRIC_BASELINE, bl);
-    }
-
-    public int getAscent() {
-        return getMetric(METRIC_ASCENT);
-    }
-
     public int checkAscent(int value) {
-        int baseline=getMetric(METRIC_BASELINE);
+        int baseline = getMetric(METRIC_BASELINE);
         int bound = baseline / 2;
         if (value < bound) return bound;
         else if (value > baseline) return baseline;
         else return value;
     }
 
-    public void setAscent(int asc) {
-        setMetric(METRIC_ASCENT, asc);
-    }
-
-    public int getLine() {
-        return getMetric(METRIC_LINE);
-    }
-
     public int checkLine(int value) {
-        int ascent=getMetric(METRIC_ASCENT);
+        int ascent = getMetric(METRIC_ASCENT);
         int bound = ascent / 2;
         if (value < bound) return bound;
         else if (value > ascent) return ascent;
         else return value;
     }
 
-    public void setLine(int ln) {
-        setMetric(METRIC_LINE, ln);
-    }
-
-    public int getDescent() {
-        return getMetric(METRIC_DESCENT);
-    }
-
     public int checkDescent(int value) {
-        int bound = height - getBaseline();
+        int bound = height - getMetric(METRIC_BASELINE);
         if (value < 0) return 0;
         else if (value > bound) return bound;
         else return value;
     }
 
-    public void setDescent(int dsc) {
-        setMetric(METRIC_DESCENT, dsc);
-    }
-
     @Override
     public Object getProperty(String property) {
-        if (property.equals(PROPERTY_ASCENT)) return new Integer(getAscent());
+        if (property.equals(PROPERTY_ASCENT)) return getMetric(METRIC_ASCENT);
         else if (property.equals(PROPERTY_AUTHOR)) return getAuthor();
-        else if (property.equals(PROPERTY_BASELINE)) return new Integer(
-                        getBaseline());
-        else if (property.equals(PROPERTY_DESCENT)) return new Integer(
-                        getDescent());
+        else if (property.equals(PROPERTY_BASELINE)) return getMetric(METRIC_BASELINE);
+        else if (property.equals(PROPERTY_DESCENT)) return getMetric(METRIC_DESCENT);
         else if (property.equals(PROPERTY_DESCRIPTION)) return getDescriptin();
-        else if (property.equals(PROPERTY_LINE)) return new Integer(getLine());
-        else if (property.equals(PROPERTY_MARGIN_LEFT)) return new Integer(
-                        getMarginLeft());
-        else if (property.equals(PROPERTY_MARGIN_RIGHT)) return new Integer(
-                        getMarginRight());
+        else if (property.equals(PROPERTY_LINE)) return getMetric(METRIC_LINE);
+        else if (property.equals(PROPERTY_MARGIN_LEFT)) return getMetric(METRIC_LEFT);
+        else if (property.equals(PROPERTY_MARGIN_RIGHT)) return getMetric(METRIC_RIGHT);
         else if (property.equals(PROPERTY_NAME)) return getName();
         else if (property.equals(PROPERTY_PROTOTYPE)) return getPrototype();
-        else if (property.equals(PROPERTY_WIDTH))
-            return new Integer(getWidth());
+        else if (property.equals(PROPERTY_WIDTH)) return getWidth();
         return super.getProperty(property);
     }
 
     @Override
     public void setProperty(String property, Object value) {
         if (value instanceof Integer) {
-            int i = ((Integer) value).intValue();
+            int v = ((Integer) value).intValue();
 
             if (property.equals(PROPERTY_ASCENT)) {
-                setAscent(i);
+                setMetric(METRIC_ASCENT, v);
                 return;
             } else if (property.equals(PROPERTY_BASELINE)) {
-                setBaseline(i);
+                setMetric(METRIC_BASELINE, v);
                 return;
             } else if (property.equals(PROPERTY_DESCENT)) {
-                setDescent(i);
+                setMetric(METRIC_DESCENT, v);
                 return;
             } else if (property.equals(PROPERTY_LINE)) {
-                setLine(i);
+                setMetric(METRIC_LINE, v);
                 return;
             } else if (property.equals(PROPERTY_MARGIN_LEFT)) {
-                setMarginLeft(i);
+                setMetric(METRIC_LEFT, v);
                 return;
             } else if (property.equals(PROPERTY_MARGIN_RIGHT)) {
-                setMarginRight(i);
+                setMetric(METRIC_RIGHT, v);
                 return;
             }
         } else if (value instanceof String) {

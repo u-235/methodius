@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import microfont.MFont;
 import microfont.MSymbol;
+import microfont.Metrics;
 
 public class MFontLoadSave {
     protected static final String AUTHOR            = "AUTHOR";
@@ -120,12 +121,14 @@ public class MFontLoadSave {
 
         writeKey(writer, INFO_WIDTH, mFont.getWidth());
         writeKey(writer, INFO_HEIGHT, mFont.getHeight());
-        writeKey(writer, INFO_BASELINE, mFont.getBaseline());
-        writeKey(writer, INFO_ASCENT, mFont.getAscent());
-        writeKey(writer, INFO_LINE, mFont.getLine());
-        writeKey(writer, INFO_DESCENT, mFont.getDescent());
-        writeKey(writer, INFO_LEFT_MARGIN, mFont.getMarginLeft());
-        writeKey(writer, INFO_RIGHT_MARGIN, mFont.getMarginRight());
+        writeKey(writer, INFO_BASELINE,
+                        mFont.getMetric(Metrics.METRIC_BASELINE));
+        writeKey(writer, INFO_ASCENT, mFont.getMetric(Metrics.METRIC_ASCENT));
+        writeKey(writer, INFO_LINE, mFont.getMetric(Metrics.METRIC_LINE));
+        writeKey(writer, INFO_DESCENT, mFont.getMetric(Metrics.METRIC_DESCENT));
+        writeKey(writer, INFO_LEFT_MARGIN, mFont.getMetric(Metrics.METRIC_LEFT));
+        writeKey(writer, INFO_RIGHT_MARGIN,
+                        mFont.getMetric(Metrics.METRIC_RIGHT));
         writeNewLine(writer);
 
         writeComment(writer, "Byte arrays of synbol in hex radix.");
@@ -200,7 +203,6 @@ public class MFontLoadSave {
         BufferedReader reader;
         String str;
         String section = "";
-        int sectCount = 0;
         String key, value;
         int width = 0, index = 0, size = 0, height = -1;//
         int start;
@@ -229,8 +231,10 @@ public class MFontLoadSave {
             if (str.charAt(0) == '[') {
                 section = str.substring(1, str.indexOf(']'));
                 if (section.compareToIgnoreCase(SYMBOLS) == 0
-                                && (size < 0 || height < 0)) return null;
-                sectCount++;
+                                && (size < 0 || height < 0)) {
+                    reader.close();
+                    return null;
+                }
                 continue;
             }
 
@@ -265,23 +269,29 @@ public class MFontLoadSave {
                     ret.setHeight(height);
                 } else if (key.compareToIgnoreCase(INFO_BASELINE) == 0) {
                     if (value.length() != 0)
-                        ret.setBaseline(Integer.parseInt(value));
+                        ret.setMetric(Metrics.METRIC_BASELINE,
+                                        Integer.parseInt(value));
                 } else if (key.compareToIgnoreCase(INFO_ASCENT) == 0) {
                     if (value.length() != 0)
-                        ret.setAscent(Integer.parseInt(value));
+                        ret.setMetric(Metrics.METRIC_ASCENT,
+                                        Integer.parseInt(value));
                 } else if (key.compareToIgnoreCase(INFO_LINE) == 0
                                 || key.compareToIgnoreCase("ascentCapital") == 0) {
                     if (value.length() != 0)
-                        ret.setLine(Integer.parseInt(value));
+                        ret.setMetric(Metrics.METRIC_LINE,
+                                        Integer.parseInt(value));
                 } else if (key.compareToIgnoreCase(INFO_DESCENT) == 0) {
                     if (value.length() != 0)
-                        ret.setDescent(Integer.parseInt(value));
+                        ret.setMetric(Metrics.METRIC_DESCENT,
+                                        Integer.parseInt(value));
                 } else if (key.compareToIgnoreCase(INFO_LEFT_MARGIN) == 0) {
                     if (value.length() != 0)
-                        ret.setMarginLeft(Integer.parseInt(value));
+                        ret.setMetric(Metrics.METRIC_LEFT,
+                                        Integer.parseInt(value));
                 } else if (key.compareToIgnoreCase(INFO_RIGHT_MARGIN) == 0) {
                     if (value.length() != 0)
-                        ret.setMarginRight(Integer.parseInt(value));
+                        ret.setMetric(Metrics.METRIC_RIGHT,
+                                        Integer.parseInt(value));
                 }
                 continue;
             }

@@ -14,6 +14,7 @@ import javax.swing.JSpinner;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import microfont.MFont;
+import microfont.Metrics;
 import microfont.gui.MSymbolEditor;
 import utils.resource.Resource;
 
@@ -97,7 +98,7 @@ public class PFontSize extends JPanel implements PropertyChangeListener {
 
                 check = mFont.checkMargin(value);
                 if (value != check) sp.setValue(check);
-                else mFont.setMarginLeft(value);
+                else mFont.setMetric(Metrics.METRIC_LEFT, value);
             }
         });
 
@@ -114,7 +115,7 @@ public class PFontSize extends JPanel implements PropertyChangeListener {
 
                 check = mFont.checkMargin(value);
                 if (value != check) sp.setValue(check);
-                else mFont.setMarginRight(value);
+                else mFont.setMetric(Metrics.METRIC_RIGHT, value);
             }
         });
 
@@ -131,7 +132,7 @@ public class PFontSize extends JPanel implements PropertyChangeListener {
 
                 check = mFont.checkBaseline(value);
                 if (value != check) sp.setValue(check);
-                else mFont.setBaseline(value);
+                else mFont.setMetric(Metrics.METRIC_BASELINE, value);
             }
         });
 
@@ -148,7 +149,7 @@ public class PFontSize extends JPanel implements PropertyChangeListener {
 
                 check = mFont.checkAscent(value);
                 if (value != check) sp.setValue(check);
-                else mFont.setAscent(value);
+                else mFont.setMetric(Metrics.METRIC_ASCENT, value);
             }
         });
 
@@ -165,7 +166,7 @@ public class PFontSize extends JPanel implements PropertyChangeListener {
 
                 check = mFont.checkLine(value);
                 if (value != check) sp.setValue(check);
-                else mFont.setLine(value);
+                else mFont.setMetric(Metrics.METRIC_LINE, value);
             }
         });
 
@@ -182,7 +183,7 @@ public class PFontSize extends JPanel implements PropertyChangeListener {
 
                 check = mFont.checkDescent(value);
                 if (value != check) sp.setValue(check);
-                else mFont.setDescent(value);
+                else mFont.setMetric(Metrics.METRIC_DESCENT, value);
             }
         });
 
@@ -279,12 +280,12 @@ public class PFontSize extends JPanel implements PropertyChangeListener {
         vFixsed.setSelected(mFont.isFixsed());
         vWidth.setValue(mFont.getWidth());
         vHeight.setValue(mFont.getHeight());
-        vLeft.setValue(mFont.getMarginLeft());
-        vRight.setValue(mFont.getMarginRight());
-        vBase.setValue(mFont.getBaseline());
-        vAscent.setValue(mFont.getAscent());
-        vCapital.setValue(mFont.getLine());
-        vDescent.setValue(mFont.getDescent());
+        vLeft.setValue(mFont.getMetric(Metrics.METRIC_LEFT));
+        vRight.setValue(mFont.getMetric(Metrics.METRIC_RIGHT));
+        vBase.setValue(mFont.getMetric(Metrics.METRIC_BASELINE));
+        vAscent.setValue(mFont.getMetric(Metrics.METRIC_ASCENT));
+        vCapital.setValue(mFont.getMetric(Metrics.METRIC_LINE));
+        vDescent.setValue(mFont.getMetric(Metrics.METRIC_DESCENT));
         vMinSize.setText(((Integer) mFont.getMinWidth()).toString());
         vMaxSize.setText(((Integer) mFont.getMaxWidth()).toString());
         vSizeView.setPixselMap(mFont.symbolByIndex(35));
@@ -313,12 +314,12 @@ public class PFontSize extends JPanel implements PropertyChangeListener {
 
     @Override
     public void propertyChange(PropertyChangeEvent event) {
-        vLeft.setValue(mFont.getMarginLeft());
-        vRight.setValue(mFont.getMarginRight());
-        vBase.setValue(mFont.getBaseline());
-        vAscent.setValue(mFont.getAscent());
-        vCapital.setValue(mFont.getLine());
-        vDescent.setValue(mFont.getDescent());
+        vLeft.setValue(mFont.getMetric(Metrics.METRIC_LEFT));
+        vRight.setValue(mFont.getMetric(Metrics.METRIC_RIGHT));
+        vBase.setValue(mFont.getMetric(Metrics.METRIC_BASELINE));
+        vAscent.setValue(mFont.getMetric(Metrics.METRIC_ASCENT));
+        vCapital.setValue(mFont.getMetric(Metrics.METRIC_LINE));
+        vDescent.setValue(mFont.getMetric(Metrics.METRIC_DESCENT));
         vMinSize.setText(((Integer) mFont.getMinWidth()).toString());
         vMaxSize.setText(((Integer) mFont.getMaxWidth()).toString());
     }
