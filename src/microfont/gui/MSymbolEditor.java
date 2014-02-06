@@ -13,7 +13,6 @@ import microfont.Document;
 import microfont.MSymbol;
 import microfont.PixselMap;
 import microfont.render.ColorIndex;
-import microfont.render.PixselMapRender;
 import microfont.render.PointInfo;
 
 public class MSymbolEditor extends AbstractView {
@@ -28,20 +27,19 @@ public class MSymbolEditor extends AbstractView {
         handler = new MouseHandler();
         setLayout(new MSymbolEditorLayout(this));
 
-        PixselMapRender render = render();
-        render.setPixselSize(16);
-        render.setSpace(1);
-        render.setColor(ColorIndex.COLOR_PAPER_MARGINS, Color.LIGHT_GRAY);
-        render.setColor(ColorIndex.COLOR_INK, new Color(0, 0, 0));
-        render.setColor(ColorIndex.COLOR_INK_MARGINS, new Color(60, 0, 0));
-        render.setColor(ColorIndex.COLOR_PAPER_ASCENT, new Color(224, 224, 224));
-        render.setColor(ColorIndex.COLOR_PAPER, Color.WHITE);
-        render.setColor(ColorIndex.COLOR_SPACE, new Color(208, 208, 208));
-        render.setColor(ColorIndex.COLOR_GRID, new Color(128, 128, 128));
-        render.setGridSize(5);
-        render.setGridThickness(1);
-        render.setDrawGrid(true);
-        render.setDrawMargins(true);
+        setPixselSize(16);
+        setSpacing(1);
+        setColor(ColorIndex.COLOR_PAPER_MARGINS, Color.LIGHT_GRAY);
+        setColor(ColorIndex.COLOR_INK, new Color(0, 0, 0));
+        setColor(ColorIndex.COLOR_INK_MARGINS, new Color(60, 0, 0));
+        setColor(ColorIndex.COLOR_PAPER_ASCENT, new Color(224, 224, 224));
+        setColor(ColorIndex.COLOR_PAPER, Color.WHITE);
+        setColor(ColorIndex.COLOR_SPACE, new Color(208, 208, 208));
+        setColor(ColorIndex.COLOR_GRID, new Color(128, 128, 128));
+        setGridSize(5);
+        setGridThickness(1);
+        setDrawGrid(true);
+        setDrawMargins(true);
 
         addMouseListener(handler);
         addMouseMotionListener(handler);
@@ -82,7 +80,7 @@ public class MSymbolEditor extends AbstractView {
             if (control != null) {
                 control.mouseDragged(MSymbolEditor.this, e, info);
             } else {
-                AbstractPixselMap apm = render().getPixselMap();
+                AbstractPixselMap apm = getPixselMap();
                 if (apm instanceof PixselMap) {
                     PixselMap pm = (PixselMap) apm;
                     pm.setPixsel(info.getX(), info.getY(), paint);
@@ -108,7 +106,7 @@ public class MSymbolEditor extends AbstractView {
             if (control != null) {
                 control.mouseClicked(MSymbolEditor.this, e, info);
             } else {
-                AbstractPixselMap apm = render().getPixselMap();
+                AbstractPixselMap apm = getPixselMap();
                 if (apm instanceof PixselMap) {
                     PixselMap pm = (PixselMap) apm;
                     if (document != null)
@@ -131,7 +129,7 @@ public class MSymbolEditor extends AbstractView {
             if (control != null) {
                 control.mousePressed(MSymbolEditor.this, e, info);
             } else {
-                AbstractPixselMap apm = render().getPixselMap();
+                AbstractPixselMap apm = getPixselMap();
                 if (apm instanceof PixselMap) {
                     if (e.getButton() == MouseEvent.BUTTON1)
                        paint= true;

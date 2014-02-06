@@ -7,6 +7,8 @@ import java.awt.Dimension;
 import java.awt.LayoutManager;
 import java.awt.Rectangle;
 
+/**
+ */
 public class MSymbolViewLayout implements LayoutManager {
     Dimension   pref;
     MSymbolView owner;

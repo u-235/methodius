@@ -18,7 +18,7 @@ public class MSymbolCellRenderer extends MSymbolView implements
     public Component getListCellRendererComponent(
                     JList<? extends MSymbol> list, MSymbol value, int index,
                     boolean isSelected, boolean cellHasFocus) {
-        super.setPixselMap(value);
+        setPixselMap(value);
         if (isSelected) {
             setBackground(list.getSelectionBackground());
             setForeground(list.getSelectionForeground());

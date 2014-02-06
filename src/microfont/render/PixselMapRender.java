@@ -16,7 +16,7 @@ import microfont.events.PixselMapListener;
 /**
  * Класс для отрисовки карты пикселей.
  */
-public class PixselMapRender implements ColorIndex, Metrics {
+public class PixselMapRender implements Render, ColorIndex, Metrics {
     /** Карта пикселей для отрисовки. */
     private AbstractPixselMap pixmap;
     /** Интерфейс для отправки запросов о перерисовки и изменении размеров. */
@@ -36,7 +36,7 @@ public class PixselMapRender implements ColorIndex, Metrics {
     /** Соотношение высоты пикселя к его ширине. */
     private float             pixselRatio;
     /** Зазор между пикселями. */
-    private int               space;
+    private int               spacing;
     private int               stepX;
     private int               stepY;
     /** Отрисовывать только закрашенные пиксели. */
@@ -66,7 +66,7 @@ public class PixselMapRender implements ColorIndex, Metrics {
         colors = new Color[COLOR_MAX + 1];
         pixselWidth = 1;
         pixselRatio = 1.0f;
-        space = 0;
+        spacing = 0;
     }
 
     /**
@@ -83,6 +83,7 @@ public class PixselMapRender implements ColorIndex, Metrics {
      * @param x Начальная координата по горизонтали.
      * @param y Начальная координата по вертикали.
      */
+    @Override
     public void paint(Graphics g, int x, int y) {
         if (pixmap == null || pixmap.isEmpty()) return;
 
@@ -151,18 +152,18 @@ public class PixselMapRender implements ColorIndex, Metrics {
             if (pixselCountX <= 0 && pixselCountY <= 0) return;
 
             Color c = colorAt(COLOR_SPACE, defCol);
-            if (c != null && space != 0) {
+            if (c != null && spacing != 0) {
                 g.setColor(c);
 
                 posX = renderStartX + pixselWidth;
                 for (int i = 0; i < pixselCountX - 1; i++) {
-                    g.fillRect(posX, startY + y, space, height);
+                    g.fillRect(posX, startY + y, spacing, height);
                     posX += stepX;
                 }
 
                 posY = renderStartY + pixselHeight;
                 for (int i = 0; i < pixselCountY - 1; i++) {
-                    g.fillRect(startX + x, posY, width, space);
+                    g.fillRect(startX + x, posY, width, spacing);
                     posY += stepY;
                 }
             }
@@ -187,6 +188,7 @@ public class PixselMapRender implements ColorIndex, Metrics {
     /**
      * Возвращает ширину картинки, отрисовываемой рендером.
      */
+    @Override
     public int getWidth() {
         return width;
     }
@@ -194,6 +196,7 @@ public class PixselMapRender implements ColorIndex, Metrics {
     /**
      * Возвращает высоту картинки, отрисовываемой рендером.
      */
+    @Override
     public int getHeight() {
         return height;
     }
@@ -352,8 +355,8 @@ public class PixselMapRender implements ColorIndex, Metrics {
     /**
      * Возврашает величину зазора между пикселями.
      */
-    public int getSpace() {
-        return space;
+    public int getSpacing() {
+        return spacing;
     }
 
     /**
@@ -362,14 +365,14 @@ public class PixselMapRender implements ColorIndex, Metrics {
      * @param sp Зазор между пикселями.
      * @throws IllegalArgumentException Если {@code ratio} меньше нуля.
      */
-    public void setSpace(int sp) {
+    public void setSpacing(int sp) {
         if (sp < 0) throw new IllegalArgumentException("space =" + sp);
 
-        int old = space;
-        space = sp;
+        int old = spacing;
+        spacing = sp;
 
         updateSize();
-        if (old != space && pixmap != null) requestRepaint();
+        if (old != spacing && pixmap != null) requestRepaint();
     }
 
     /**
@@ -429,7 +432,14 @@ public class PixselMapRender implements ColorIndex, Metrics {
     public void setMetricActually(int index, boolean state) {
         if (index < 0 || index > METRIC_MAX)
             throw new IllegalArgumentException("index=" + index);
+        boolean old = actually[index];
         actually[index] = state;
+        if (old != state) {
+            Rectangle rect = new Rectangle(0, 0, getWidth(), getHeight());
+
+            rect = toPointRect(rect, rect);
+            requestRepaint(rect);
+        }
     }
 
     @Override
@@ -447,7 +457,7 @@ public class PixselMapRender implements ColorIndex, Metrics {
         int old = metrics[index];
         metrics[index] = value;
         if (old != value && isMetricActually(index)) {
-            Rectangle rect = new Rectangle();
+            Rectangle rect = new Rectangle(0, 0, getWidth(), getHeight());
 
             rect = toPointRect(rect, rect);
             requestRepaint(rect);
@@ -522,6 +532,7 @@ public class PixselMapRender implements ColorIndex, Metrics {
      * @return {@code info} или, если {@code info} был {@code null}, новый
      *         объект с информацией о точке изображения.
      */
+    @Override
     public PointInfo getPointInfo(PointInfo info, int x, int y) {
         PointInfo ret;
         if (info == null) ret = new PointInfo();
@@ -570,6 +581,7 @@ public class PixselMapRender implements ColorIndex, Metrics {
      * @param x Горизонтальная координата карты пикселей.
      * @return Горизонтальная координата изображения.
      */
+    @Override
     public int pixselToPointX(int x) {
         return x * stepX;
     }
@@ -582,6 +594,7 @@ public class PixselMapRender implements ColorIndex, Metrics {
      * @param y Вертикальная координата карты пикселей.
      * @return Вертикальная координата изображения.
      */
+    @Override
     public int pixselToPointY(int y) {
         return y * stepY;
     }
@@ -595,6 +608,7 @@ public class PixselMapRender implements ColorIndex, Metrics {
      * @param x Горизонтальная координата изображения.
      * @return Горизонтальная координата карты пикселей.
      */
+    @Override
     public int pointToPixselX(int x) {
         return x / stepX;
     }
@@ -608,6 +622,7 @@ public class PixselMapRender implements ColorIndex, Metrics {
      * @param y Вертикальная координата изображения.
      * @return Вертикальная координата карты пикселей.
      */
+    @Override
     public int pointToPixselY(int y) {
         return y / stepY;
     }
@@ -624,6 +639,7 @@ public class PixselMapRender implements ColorIndex, Metrics {
      * @return {@code pixsels} или новый объект с результатом преобразования.
      * @throws NullPointerException Если {@code points} равен {@code null}.
      */
+    @Override
     public Rectangle toPixselRect(Rectangle points, Rectangle pixsels) {
         if (points == null) throw new NullPointerException("points is null");
 
@@ -632,9 +648,9 @@ public class PixselMapRender implements ColorIndex, Metrics {
         else ret = pixsels;
 
         ret.width = pointToPixselX(points.width + points.x + pixselWidth
-                        + space - 1);
+                        + spacing - 1);
         ret.height = pointToPixselY(points.height + points.y + pixselHeight
-                        + space - 1);
+                        + spacing - 1);
         ret.x = pointToPixselX(points.x);
         ret.y = pointToPixselY(points.y);
         ret.width -= ret.x;
@@ -655,6 +671,7 @@ public class PixselMapRender implements ColorIndex, Metrics {
      * @return {@code points} или новый объект с результатом преобразования.
      * @throws NullPointerException Если {@code pixsels} равен {@code null}.
      */
+    @Override
     public Rectangle toPointRect(Rectangle pixsels, Rectangle points) {
         if (pixsels == null) throw new NullPointerException("pixsels is null");
 
@@ -666,10 +683,10 @@ public class PixselMapRender implements ColorIndex, Metrics {
         ret.y = pixselToPointY(pixsels.y);
 
         if (pixsels.width == 0) ret.width = 0;
-        else ret.width = pixselToPointX(pixsels.width) - space;
+        else ret.width = pixselToPointX(pixsels.width) - spacing;
 
         if (pixsels.height == 0) ret.height = 0;
-        else ret.height = pixselToPointY(pixsels.height) - space;
+        else ret.height = pixselToPointY(pixsels.height) - spacing;
 
         return ret;
     }
@@ -685,15 +702,15 @@ public class PixselMapRender implements ColorIndex, Metrics {
         // Округлённое значение высоты.
         pixselHeight = (int) (pixselWidth * 2 * pixselRatio) / 2;
         if (pixselHeight < 1) pixselHeight = 1;
-        stepX = pixselWidth + space;
-        stepY = pixselHeight + space;
+        stepX = pixselWidth + spacing;
+        stepY = pixselHeight + spacing;
         width = 0;
         height = 0;
         if (pixmap != null) {
             int c = pixmap.getWidth();
             int r = pixmap.getHeight();
-            if (c != 0) width = pixselToPointX(c) - space;
-            if (r != 0) height = pixselToPointY(r) - space;
+            if (c != 0) width = pixselToPointX(c) - spacing;
+            if (r != 0) height = pixselToPointY(r) - spacing;
         }
 
         if (oldW != width || oldH != height) requestInvalidate();
@@ -823,8 +840,8 @@ public class PixselMapRender implements ColorIndex, Metrics {
      * @param c Цвет сетки.
      */
     protected void drawGrid(Graphics g, int x, int y, Color c) {
-        int halfT = (space + gridThickness) / 2;
-        int halfS = (space + gridSize) / 2;
+        int halfT = (spacing + gridThickness) / 2;
+        int halfS = (spacing + gridSize) / 2;
 
         g.fillRect(x - halfT, y - halfS, gridThickness, gridSize);
         g.fillRect(x - halfS, y - halfT, gridSize, gridThickness);
