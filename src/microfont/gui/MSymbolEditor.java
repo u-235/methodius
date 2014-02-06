@@ -2,27 +2,33 @@
 package microfont.gui;
 
 import java.awt.Color;
+import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import microfont.AbstractPixselMap;
 import microfont.Document;
+import microfont.MSymbol;
+import microfont.PixselMap;
 import microfont.render.ColorIndex;
 import microfont.render.PixselMapRender;
+import microfont.render.PointInfo;
 
-public class MSymbolEditor extends AbstractView implements MouseListener,
-                MouseMotionListener, MouseWheelListener {
+public class MSymbolEditor extends AbstractView {
     /**  */
     private static final long serialVersionUID = 1L;
-    boolean                   changeEnable     = false;
+    MouseHandler              handler;
+    Editor                    control;
     private Document          document;
 
     public MSymbolEditor() {
         super(1);
+        handler = new MouseHandler();
         setLayout(new MSymbolEditorLayout(this));
 
-        PixselMapRender   render=render();
+        PixselMapRender render = render();
         render.setPixselSize(16);
         render.setSpace(1);
         render.setColor(ColorIndex.COLOR_PAPER_MARGINS, Color.LIGHT_GRAY);
@@ -37,69 +43,9 @@ public class MSymbolEditor extends AbstractView implements MouseListener,
         render.setDrawGrid(true);
         render.setDrawMargins(true);
 
-        this.addMouseListener(this);
-        this.addMouseMotionListener(this);
-        this.addMouseWheelListener(this);
-    }
-
-    /** {@inheritDoc} */
-
-    @Override
-    public void mouseClicked(MouseEvent e) {
-        requestFocus();
-        // hit(null, e.getX(), e.getY());
-    }
-
-    /** {@inheritDoc} */
-
-    @Override
-    public void mousePressed(MouseEvent e) {
-        if (!changeEnable) {
-
-        }
-    }
-
-    /** {@inheritDoc} */
-
-    @Override
-    public void mouseReleased(MouseEvent e) {
-        // if (symbol != null && document != null) document.endEdit();
-        if (changeEnable) changeEnable = false;
-    }
-
-    /** {@inheritDoc} */
-
-    @Override
-    public void mouseEntered(MouseEvent e) {
-    }
-
-    /** {@inheritDoc} */
-
-    @Override
-    public void mouseExited(MouseEvent e) {
-    }
-
-    /** {@inheritDoc} */
-
-    @Override
-    public void mouseDragged(MouseEvent e) {
-    }
-
-    /** {@inheritDoc} */
-
-    @Override
-    public void mouseMoved(MouseEvent e) {
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void mouseWheelMoved(MouseWheelEvent e) {
-        int count;
-        count = render().getPixselSize() + e.getWheelRotation();
-        if (count < 3) count = 3;
-        if (count > 25) count = 25;
-
-        render().setPixselSize(count);
+        addMouseListener(handler);
+        addMouseMotionListener(handler);
+        addMouseWheelListener(handler);
     }
 
     public Document getDocument() {
@@ -115,6 +61,106 @@ public class MSymbolEditor extends AbstractView implements MouseListener,
 
         if (document != null) {
             // document.removePropertyChangeListener(this);
+        }
+    }
+
+    private class MouseHandler implements MouseListener, MouseMotionListener,
+                    MouseWheelListener {
+        Rectangle rect;
+        PointInfo info;
+        boolean paint;
+
+        @Override
+        public void mouseWheelMoved(MouseWheelEvent e) {
+        }
+
+        @Override
+        public void mouseDragged(MouseEvent e) {
+            rect = elementPosition(ELEMENT_INDEX_RENDER);
+            info = render().getPointInfo(info, e.getX() - rect.x,
+                            e.getY() - rect.y);
+            if (control != null) {
+                control.mouseDragged(MSymbolEditor.this, e, info);
+            } else {
+                AbstractPixselMap apm = render().getPixselMap();
+                if (apm instanceof PixselMap) {
+                    PixselMap pm = (PixselMap) apm;
+                    pm.setPixsel(info.getX(), info.getY(), paint);
+                }
+            }
+        }
+
+        @Override
+        public void mouseMoved(MouseEvent e) {
+            rect = elementPosition(ELEMENT_INDEX_RENDER);
+            info = render().getPointInfo(info, e.getX() - rect.x,
+                            e.getY() - rect.y);
+            if (control != null) {
+                control.mouseMoved(MSymbolEditor.this, e, info);
+            }
+        }
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            rect = elementPosition(ELEMENT_INDEX_RENDER);
+            info = render().getPointInfo(info, e.getX() - rect.x,
+                            e.getY() - rect.y);
+            if (control != null) {
+                control.mouseClicked(MSymbolEditor.this, e, info);
+            } else {
+                AbstractPixselMap apm = render().getPixselMap();
+                if (apm instanceof PixselMap) {
+                    PixselMap pm = (PixselMap) apm;
+                    if (document != null)
+                        document.symbolEdit("paint", (MSymbol) pm);
+                    if (e.getButton() == MouseEvent.BUTTON1)
+                        pm.setPixsel(info.getX(), info.getY(), true);
+                    if (e.getButton() == MouseEvent.BUTTON3)
+                        pm.setPixsel(info.getX(), info.getY(), false);
+                    if (document != null)
+                        document.endEdit();
+                }
+            }
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+            rect = elementPosition(ELEMENT_INDEX_RENDER);
+            info = render().getPointInfo(info, e.getX() - rect.x,
+                            e.getY() - rect.y);
+            if (control != null) {
+                control.mousePressed(MSymbolEditor.this, e, info);
+            } else {
+                AbstractPixselMap apm = render().getPixselMap();
+                if (apm instanceof PixselMap) {
+                    if (e.getButton() == MouseEvent.BUTTON1)
+                       paint= true;
+                    if (e.getButton() == MouseEvent.BUTTON3)
+                        paint= false;
+
+                    PixselMap pm = (PixselMap) apm;
+                    if (document != null)
+                        document.symbolEdit("paint", (MSymbol) pm);
+                }
+            }
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            rect = elementPosition(ELEMENT_INDEX_RENDER);
+            info = render().getPointInfo(info, e.getX() - rect.x,
+                            e.getY() - rect.y);
+            if (control != null) {
+                control.mouseReleased(MSymbolEditor.this, e, info);
+            } else if (document != null) document.endEdit();
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e) {
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
         }
     }
 }
