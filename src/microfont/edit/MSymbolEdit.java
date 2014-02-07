@@ -1,6 +1,8 @@
 
 package microfont.edit;
 
+import java.util.logging.Level;
+import microfont.AbstractMFont;
 import microfont.DisallowOperationException;
 import microfont.MSymbol;
 
@@ -20,12 +22,10 @@ public class MSymbolEdit extends AbstractEdit {
         super.undo();
         try {
             owner.copy(before);
-        } catch (IllegalArgumentException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        } catch (NullPointerException e) {
+            AbstractMFont.logger().log(Level.SEVERE, "copy fail in undo", e);
         } catch (DisallowOperationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            AbstractMFont.logger().log(Level.SEVERE, "copy fail in undo", e);
         }
     }
 
@@ -34,12 +34,10 @@ public class MSymbolEdit extends AbstractEdit {
         super.redo();
         try {
             owner.copy(after);
-        } catch (IllegalArgumentException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        } catch (NullPointerException e) {
+            AbstractMFont.logger().log(Level.SEVERE, "copy fail in redo", e);
         } catch (DisallowOperationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            AbstractMFont.logger().log(Level.SEVERE, "copy fail in redo", e);
         }
     }
 
