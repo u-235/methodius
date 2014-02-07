@@ -435,7 +435,7 @@ public class AbstractMFont implements PixselMapListener, PropertyChangeListener 
             setCharset(font.getCharset());
 
             for (int i = 0; i < font.length(); i++) {
-                add(new MSymbol(font.symbolByIndex(i)));
+                add(font.symbolByIndex(i).clone());
             }
         }
     }

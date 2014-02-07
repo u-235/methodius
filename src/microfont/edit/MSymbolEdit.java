@@ -12,7 +12,7 @@ public class MSymbolEdit extends AbstractEdit {
     public MSymbolEdit(MSymbol mSymbol, String operation) {
         super(operation);
         owner = mSymbol;
-        before = new MSymbol(mSymbol);
+        before = mSymbol.clone();
     }
 
     @Override
@@ -60,6 +60,6 @@ public class MSymbolEdit extends AbstractEdit {
             return;
         }
 
-        after = new MSymbol(owner);
+        after = owner.clone();
     }
 }

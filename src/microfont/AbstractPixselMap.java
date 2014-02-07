@@ -4,6 +4,7 @@ package microfont;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.util.Arrays;
+import java.util.logging.Level;
 import static microfont.AbstractPixselMap.PixselIterator.*;
 
 /**
@@ -376,7 +377,7 @@ public class AbstractPixselMap {
      * 
      * @param width Ширина карты.
      * @param height Высота карты.
-     * @param src Копируемый массив.
+     * @param src Копируемый массив. Может быть {@code null}.
      */
     public AbstractPixselMap(int width, int height, byte[] src) {
         init(width, height);
@@ -384,22 +385,29 @@ public class AbstractPixselMap {
     }
 
     /**
-     * Конструктор для получения копии карты.
-     * 
-     * @param src Копируемая карта.
-     * @see #clone()
-     * @see #copy(AbstractPixselMap)
-     */
-    public AbstractPixselMap(AbstractPixselMap src) {
-        init(src.width, src.height);
-        if (pixsels != null)
-            System.arraycopy(src.pixsels, 0, pixsels, 0, pixsels.length);
-    }
-
-    /**
      * Пустой конструктор. Символ имеет нулевую ширину и высоту.
      */
     public AbstractPixselMap() {
+    }
+
+    /**
+     * Получение копии карты.
+     * 
+     * @see #copy(AbstractPixselMap)
+     */
+    @Override
+    public AbstractPixselMap clone() {
+        AbstractPixselMap ret = new AbstractPixselMap(width, height);
+        try {
+            ret.copy(this);
+        } catch (DisallowOperationException e) {
+            /*
+             * Исключения не должно быть в принципе.
+             */
+            AbstractMFont.logger().log(Level.SEVERE,
+                            "copy in PixselMap(PixselMap)", e);
+        }
+        return ret;
     }
 
     /**
@@ -433,7 +441,7 @@ public class AbstractPixselMap {
      * @throws IllegalArgumentException если ширина и/или высота меньше нуля.
      * @see #init(int, int)
      */
-    private byte[] doPixselArray(int width, int height) {
+    private static byte[] doPixselArray(int width, int height) {
         if (width < 0) throw (new IllegalArgumentException("Invalid width"));
         if (height < 0) throw (new IllegalArgumentException("Invalid height"));
 
@@ -448,7 +456,7 @@ public class AbstractPixselMap {
      * @param x Горизонтальная позиция пикселя.
      * @param y Вертикальная позиция пикселя.
      */
-    private int index(int w, int x, int y) {
+    private static int index(int w, int x, int y) {
         return ((w + ITEM_SIZE - 1) >> ITEM_SHIFT) * y + (x >> ITEM_SHIFT);
     }
 
@@ -707,7 +715,7 @@ public class AbstractPixselMap {
      * @param y вертикальная позиция пикселя.
      * @return состояние пикселя.
      */
-    protected final boolean get(byte[] pixsels, int w, int x, int y) {
+    protected final static boolean get(byte[] pixsels, int w, int x, int y) {
         int i;
         if (x < 0 || x >= w) return false;
         i = index(w, x, y);

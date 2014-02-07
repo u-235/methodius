@@ -1,6 +1,8 @@
 
 package microfont;
 
+import java.util.logging.Level;
+
 /**
  * Класс MSymbol для хранения и изменения символа {@link MFont шрифта}.<br>
  * Важно знать, что хотя символ и является разделяемым ресурсом, но один и тот
@@ -67,20 +69,39 @@ public class MSymbol extends PixselMap {
      */
     public MSymbol(int i, int w, int h, byte[] a) {
         super(w, h, a);
-        if (i < 0) throw (new IllegalArgumentException("Invalid code"));
         code = i;
+    }
+
+    /**
+     * Конструктор символа с заданными размерами и индексом.<br>
+     * 
+     * @param i Индекс символа в шрифте.
+     * @param w Ширина нового символа.
+     * @param h Высота нового символа.
+     */
+    public MSymbol(int i, int w, int h) {
+        this(i, w, h, null);
     }
 
     /**
      * Создание копии символа.<br>
      * Важно знать, что <b>списки получателей сообщений не копируются</b>.
      * 
-     * @param src Копируемый символ.
+     * @see #copy(MSymbol)
      */
-    public MSymbol(MSymbol src) {
-        super(src);
-        if (src.isUnicode()) setUnicode(src.getUnicode());
-        code = src.code;
+    @Override
+    public MSymbol clone() {
+        MSymbol ret = new MSymbol(getCode(), getWidth(), getHeight());
+        try {
+            ret.copy(this);
+        } catch (DisallowOperationException e) {
+            /*
+             * Исключения не должно быть в принципе.
+             */
+            AbstractMFont.logger().log(Level.SEVERE,
+                            "copy in PixselMap(PixselMap)", e);
+        }
+        return ret;
     }
 
     /**

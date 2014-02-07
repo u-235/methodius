@@ -109,22 +109,29 @@ public class PixselMap extends AbstractPixselMap {
      * 
      * @param width Ширина карты.
      * @param height Высота карты.
-     * @param src Копируемый массив.
+     * @param src Копируемый массив. Может быть {@code null}.
      */
     public PixselMap(int width, int height, byte[] src) {
         super(width, height, src);
     }
 
     /**
-     * Конструктор для получения копии карты.
+     * Пустой конструктор. Символ имеет нулевую ширину и высоту.
+     */
+    public PixselMap() {
+        this(0, 0);
+    }
+
+    /**
+     * Получение копии карты.
      * 
-     * @param src Копируемая карта.
      * @see #copy(AbstractPixselMap)
      */
-    public PixselMap(PixselMap src) {
-        this();
+    @Override
+    public PixselMap clone() {
+        PixselMap ret = new PixselMap(getWidth(), getHeight());
         try {
-            this.copy(src);
+            ret.copy(this);
         } catch (DisallowOperationException e) {
             /*
              * Поскольку PixselMap не ограничивает изменение размеров, то
@@ -133,13 +140,7 @@ public class PixselMap extends AbstractPixselMap {
             AbstractMFont.logger().log(Level.SEVERE,
                             "copy in PixselMap(PixselMap)", e);
         }
-    }
-
-    /**
-     * Пустой конструктор. Символ имеет нулевую ширину и высоту.
-     */
-    public PixselMap() {
-        this(0, 0);
+        return ret;
     }
 
     /**
