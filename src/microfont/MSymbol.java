@@ -204,9 +204,14 @@ public class MSymbol extends PixselMap {
 
     /**
      * Сбрасывает признак, что символ имеет действительный unicode.
+     * 
+     * @throws DisallowOperationException Если символ принадлежит шрифту,
+     *             который имеет свойство уникода.
      */
-    public void clearUnicode() {
+    public void clearUnicode() throws DisallowOperationException {
         synchronized (writeLock()) {
+            if (owner != null && owner.isUnicode())
+                throw new DisallowOperationException();
             hasUnicode = false;
             firePropertyChange(PROPERTY_HAS_UNICODE, true, false);
         }
@@ -226,11 +231,15 @@ public class MSymbol extends PixselMap {
      * сообщение} {@link #PROPERTY_UNICODE}.
      * 
      * @param u Новый код символа.
+     * @throws DisallowOperationException Если символ принадлежит шрифту,
+     *             который не имеет свойства уникода.
      * @see #isUnicode()
      * @see #getUnicode()
      */
-    public void setUnicode(int u) {
+    public void setUnicode(int u) throws DisallowOperationException {
         synchronized (writeLock()) {
+            if (owner != null && !owner.isUnicode())
+                throw new DisallowOperationException();
             if (u == unicode && hasUnicode) return;
             int oldCode = code;
             int oldUnicode = unicode;
