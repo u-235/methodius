@@ -1,13 +1,13 @@
 
 package gui;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import javax.swing.AbstractAction;
 import utils.resource.Resource;
-import utils.resource.ResourceEvent;
-import utils.resource.ResourceListener;
 
 public abstract class ActionX extends AbstractAction implements
-                ResourceListener {
+PropertyChangeListener {
     private static final long  serialVersionUID                 = 1L;
 
     private Resource           resource;
@@ -61,7 +61,7 @@ public abstract class ActionX extends AbstractAction implements
     }
 
     @Override
-    public void onResourceEvent(ResourceEvent event) {
+    public void propertyChange(PropertyChangeEvent event) {
         // TODO Auto-generated method stub
 
     }

@@ -2,6 +2,8 @@
 package utils.resource;
 
 import java.awt.Image;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
@@ -140,47 +142,47 @@ public class Resource implements Cloneable {
     public void setPrefix(String prefix) {
         String old = this.prefix;
         this.prefix = prefix;
-        fireEvent(ResourceEvent.PREFIX, old, this.prefix);
+        fireEvent("ResourceEvent.PREFIX", old, this.prefix);
     }
 
-    public void addListener(ResourceListener listener) {
-        listeners.add(ResourceListener.class, listener);
+    public void addListener(PropertyChangeListener listener) {
+        listeners.add(PropertyChangeListener.class, listener);
     }
 
-    public void removeListener(ResourceListener listener) {
-        listeners.remove(ResourceListener.class, listener);
+    public void removeListener(PropertyChangeListener listener) {
+        listeners.remove(PropertyChangeListener.class, listener);
     }
 
-    protected void fireEvent(ResourceEvent event) {
+    protected void fireEvent(PropertyChangeEvent event) {
         Object[] listenerArray;
 
         if (listeners == null) return;
 
         listenerArray = listeners.getListenerList();
         for (int i = 0; i < listenerArray.length; i += 2) {
-            if (listenerArray[i] == ResourceListener.class)
-                ((ResourceListener) listenerArray[i + 1])
-                                .onResourceEvent(event);
+            if (listenerArray[i] == PropertyChangeListener.class)
+                ((PropertyChangeListener) listenerArray[i + 1])
+                                .propertyChange(event);
         }
     }
 
-    protected void fireEvent(int reason, int oldValue, int newValue) {
+    protected void fireEvent(String prop, int oldValue, int newValue) {
         if (oldValue == newValue) return;
-        fireEvent(new ResourceEvent(this, reason, oldValue, newValue));
+        fireEvent(new PropertyChangeEvent(this, prop, oldValue, newValue));
     }
 
-    protected void fireEvent(int reason, boolean oldValue, boolean newValue) {
+    protected void fireEvent(String prop, boolean oldValue, boolean newValue) {
         if (oldValue == newValue) return;
-        fireEvent(new ResourceEvent(this, reason, oldValue, newValue));
+        fireEvent(new PropertyChangeEvent(this, prop, oldValue, newValue));
     }
 
-    protected void fireEvent(int reason, String oldValue, String newValue) {
+    protected void fireEvent(String prop, String oldValue, String newValue) {
         if (oldValue == null) {
             if (newValue == null) return;
         } else {
             if (newValue != null && oldValue.equals(newValue)) return;
         }
 
-        fireEvent(new ResourceEvent(this, reason, oldValue, newValue));
+        fireEvent(new PropertyChangeEvent(this, prop, oldValue, newValue));
     }
 }
