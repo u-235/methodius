@@ -46,6 +46,9 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     private int[]              metrics;
     private boolean[]          actually;
 
+    /**
+     * Создание пустого шрифта.
+     */
     public MFont() {
         super();
         metrics = new int[METRIC_MAX + 1];
@@ -65,207 +68,232 @@ public class MFont extends AbstractMFont implements PixselMapListener,
         }
     }
 
-    protected void fireActuallyChange(int index, boolean oldValue,
-                    boolean newValue) {
-        String property;
-
-        switch (index) {
-        case METRIC_BASELINE:
-            property = PROPERTY_ACTUALLY_BASELINE;
-            break;
-        case METRIC_LINE:
-            property = PROPERTY_ACTUALLY_LINE;
-            break;
-        case METRIC_ASCENT:
-            property = PROPERTY_ACTUALLY_ASCENT;
-            break;
-        case METRIC_DESCENT:
-            property = PROPERTY_ACTUALLY_DESCENT;
-            break;
-        case METRIC_LEFT:
-            property = PROPERTY_ACTUALLY_MARGIN_LEFT;
-            break;
-        case METRIC_RIGHT:
-            property = PROPERTY_ACTUALLY_MARGIN_RIGHT;
-            break;
-        default:
-            return;
-        }
-
-        firePropertyChange(property, oldValue, newValue);
-    }
-
-    protected void fireMetricChange(int index, int oldValue, int newValue) {
-        String property;
-
-        switch (index) {
-        case METRIC_BASELINE:
-            property = PROPERTY_BASELINE;
-            break;
-        case METRIC_LINE:
-            property = PROPERTY_LINE;
-            break;
-        case METRIC_ASCENT:
-            property = PROPERTY_ASCENT;
-            break;
-        case METRIC_DESCENT:
-            property = PROPERTY_DESCENT;
-            break;
-        case METRIC_LEFT:
-            property = PROPERTY_MARGIN_LEFT;
-            break;
-        case METRIC_RIGHT:
-            property = PROPERTY_MARGIN_RIGHT;
-            break;
-        default:
-            return;
-        }
-
-        firePropertyChange(property, oldValue, newValue);
-    }
-
     /*
-     * (non-Javadoc)
      * @see java.lang.Object#hashCode()
      */
     @Override
-    public synchronized int hashCode() {
+    public int hashCode() {
         final int prime = 31;
-        int result = super.hashCode();
+        synchronized (getLock()) {
+            int result = super.hashCode();
 
-        for (int i = 0; i <= METRIC_MAX; i++) {
-            result = prime * result + (actually[i] ? 1231 : 1237);
-            result = prime * result + (actually[i] ? metrics[i] : 0);
+            for (int i = 0; i <= METRIC_MAX; i++) {
+                result = prime * result + (actually[i] ? 1231 : 1237);
+                result = prime * result + (actually[i] ? metrics[i] : 0);
+            }
+
+            result = prime * result
+                            + ((author == null) ? 0 : author.hashCode());
+            result = prime
+                            * result
+                            + ((description == null) ? 0 : description
+                                            .hashCode());
+            result = prime * result + ((name == null) ? 0 : name.hashCode());
+            result = prime * result
+                            + ((prototype == null) ? 0 : prototype.hashCode());
+            return result;
         }
-
-        result = prime * result + ((author == null) ? 0 : author.hashCode());
-        result = prime * result
-                        + ((description == null) ? 0 : description.hashCode());
-        result = prime * result + ((name == null) ? 0 : name.hashCode());
-        result = prime * result
-                        + ((prototype == null) ? 0 : prototype.hashCode());
-        return result;
     }
 
     /*
-     * (non-Javadoc)
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
-    public synchronized boolean equals(Object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) return true;
         if (!super.equals(obj)) return false;
         if (!(obj instanceof MFont)) return false;
-        MFont other = (MFont) obj;
-        for (int i = 0; i < METRIC_MAX; i++) {
-            if (actually[i] != other.actually[i]) return false;
-            if (actually[i] && metrics[i] != other.metrics[i]) return false;
+        synchronized (getLock()) {
+            MFont other = (MFont) obj;
+            synchronized (other.getLock()) {
+                for (int i = 0; i < METRIC_MAX; i++) {
+                    if (actually[i] != other.actually[i]) return false;
+                    if (actually[i] && metrics[i] != other.metrics[i])
+                        return false;
+                }
+                if (author == null) {
+                    if (other.author != null) return false;
+                } else if (!author.equals(other.author)) return false;
+                if (description == null) {
+                    if (other.description != null) return false;
+                } else if (!description.equals(other.description))
+                    return false;
+                if (name == null) {
+                    if (other.name != null) return false;
+                } else if (!name.equals(other.name)) return false;
+                if (prototype == null) {
+                    if (other.prototype != null) return false;
+                } else if (!prototype.equals(other.prototype)) return false;
+                return true;
+            }
         }
-        if (author == null) {
-            if (other.author != null) return false;
-        } else if (!author.equals(other.author)) return false;
-        if (description == null) {
-            if (other.description != null) return false;
-        } else if (!description.equals(other.description)) return false;
-        if (name == null) {
-            if (other.name != null) return false;
-        } else if (!name.equals(other.name)) return false;
-        if (prototype == null) {
-            if (other.prototype != null) return false;
-        } else if (!prototype.equals(other.prototype)) return false;
-        return true;
     }
 
+    /**
+     * Копирует шрифт. Получатели сообщений не копируются.
+     * 
+     * @param font Копируемый шрифт.
+     */
     public void copy(MFont font) {
-        super.copy(font);
+        synchronized (font.getLock()) {
+            synchronized (getLock()) {
+                super.copy(font);
 
-        for (int i = 0; i <= METRIC_MAX; i++) {
-            setMetricActually(i, font.isMetricActually(i));
-            setMetric(i, font.getMetric(i));
+                for (int i = 0; i <= METRIC_MAX; i++) {
+                    setMetricActually(i, font.isMetricActually(i));
+                    setMetric(i, font.getMetric(i));
+                }
+
+                setName(font.name);
+                setPrototype(font.prototype);
+                setAuthor(font.author);
+            }
         }
-
-        setName(font.name);
-        setPrototype(font.prototype);
-        setAuthor(font.author);
     }
 
+    /**
+     * Возвращает имя шрифта.
+     * 
+     * @return Имя шрифта, может быть {@code null}.
+     */
     public String getName() {
-        return this.name;
+        synchronized (getLock()) {
+            return name;
+        }
     }
 
+    /**
+     * Устанавливает имя шрифта.
+     * 
+     * @param s Новое имя.
+     */
     public void setName(String s) {
-        String old = name;
-        name = s;
-        firePropertyChange(PROPERTY_NAME, old, name);
+        synchronized (getLock()) {
+            String old = name;
+            name = s;
+            firePropertyChange(PROPERTY_NAME, old, name);
+        }
     }
 
+    /**
+     * Возвращает название прототипа шрифта.
+     * 
+     * @return Название прототипа, может быть {@code null}.
+     */
     public String getPrototype() {
-        return prototype;
+        synchronized (getLock()) {
+            return prototype;
+        }
     }
 
+    /**
+     * Устанавливает название прототипа шрифта.
+     * 
+     * @param s Название прототипа.
+     */
     public void setPrototype(String s) {
-        String old = this.prototype;
-        prototype = s;
-        firePropertyChange(PROPERTY_PROTOTYPE, old, prototype);
+        synchronized (getLock()) {
+            String old = this.prototype;
+            prototype = s;
+            firePropertyChange(PROPERTY_PROTOTYPE, old, prototype);
+        }
     }
 
+    /**
+     * Возвращает описание шрифта.
+     * 
+     * @return Описание шрифта, может быть {@code null}.
+     */
     public String getDescriptin() {
-        return this.description;
+        synchronized (getLock()) {
+            return description;
+        }
     }
 
+    /**
+     * Устанавливает описание шрифта.
+     * 
+     * @param s Описание шрифта.
+     */
     public void setDescriptin(String s) {
-        String old = description;
-        description = s;
-        firePropertyChange(PROPERTY_DESCRIPTION, old, description);
+        synchronized (getLock()) {
+            String old = description;
+            description = s;
+            firePropertyChange(PROPERTY_DESCRIPTION, old, description);
+        }
     }
 
+    /**
+     * Возвращает информацию о авторе.
+     * 
+     * @return Информация о авторе, может быть {@code null}.
+     */
     public String getAuthor() {
-        return author;
+        synchronized (getLock()) {
+            return author;
+        }
     }
 
+    /**
+     * Устанавливает информацию о авторе.
+     * 
+     * @param s Информация о авторе.
+     */
     public void setAuthor(String s) {
-        String old = author;
-        author = s;
+        synchronized (getLock()) {
+            String old = author;
+            author = s;
 
-        firePropertyChange(PROPERTY_AUTHOR, old, author);
+            firePropertyChange(PROPERTY_AUTHOR, old, author);
+        }
     }
 
     @Override
     public void setWidth(int w) {
-        super.setWidth(w);
+        synchronized (getLock()) {
+            super.setWidth(w);
 
-        setMetric(METRIC_LEFT, getMetric(METRIC_LEFT));
-        setMetric(METRIC_RIGHT, getMetric(METRIC_RIGHT));
+            setMetric(METRIC_LEFT, getMetric(METRIC_LEFT));
+            setMetric(METRIC_RIGHT, getMetric(METRIC_RIGHT));
+        }
     }
 
     @Override
     public void setHeight(int h) {
-        super.setHeight(h);
+        synchronized (getLock()) {
+            super.setHeight(h);
 
-        setMetric(METRIC_BASELINE, getMetric(METRIC_BASELINE));
+            setMetric(METRIC_BASELINE, getMetric(METRIC_BASELINE));
+        }
     }
 
     @Override
     public boolean isMetricActually(int index) {
         if (index < 0 || index > METRIC_MAX)
             throw new IllegalArgumentException("index=" + index);
-        return actually[index];
+        synchronized (getLock()) {
+            return actually[index];
+        }
     }
 
     @Override
     public void setMetricActually(int index, boolean state) {
         if (index < 0 || index > METRIC_MAX)
             throw new IllegalArgumentException("index=" + index);
-        boolean old = actually[index];
-        actually[index] = state;
-        fireActuallyChange(index, old, state);
+        synchronized (getLock()) {
+            boolean old = actually[index];
+            actually[index] = state;
+            fireActuallyChange(index, old, state);
+        }
     }
 
     @Override
     public int getMetric(int index) {
         if (index < 0 || index > METRIC_MAX)
             throw new IllegalArgumentException("index=" + index);
-        return metrics[index];
+        synchronized (getLock()) {
+            return metrics[index];
+        }
     }
 
     @Override
@@ -273,68 +301,120 @@ public class MFont extends AbstractMFont implements PixselMapListener,
         if (index < 0 || index > METRIC_MAX)
             throw new IllegalArgumentException("index=" + index);
 
-        int old = metrics[index];
+        synchronized (getLock()) {
+            int old = metrics[index];
 
-        switch (index) {
-        case METRIC_BASELINE:
-            metrics[index] = checkBaseline(value);
-            setMetric(METRIC_ASCENT, metrics[METRIC_ASCENT]);
-            setMetric(METRIC_DESCENT, metrics[METRIC_DESCENT]);
-            break;
-        case METRIC_LINE:
-            metrics[index] = checkLine(value);
-            break;
-        case METRIC_ASCENT:
-            metrics[index] = checkAscent(value);
-            setMetric(METRIC_LINE, metrics[METRIC_LINE]);
-            break;
-        case METRIC_DESCENT:
-            metrics[index] = checkDescent(value);
-            break;
-        case METRIC_LEFT:
-        case METRIC_RIGHT:
-            metrics[index] = checkMargin(value);
-            break;
+            switch (index) {
+            case METRIC_BASELINE:
+                metrics[index] = checkBaseline(value);
+                setMetric(METRIC_ASCENT, metrics[METRIC_ASCENT]);
+                setMetric(METRIC_DESCENT, metrics[METRIC_DESCENT]);
+                break;
+            case METRIC_LINE:
+                metrics[index] = checkLine(value);
+                break;
+            case METRIC_ASCENT:
+                metrics[index] = checkAscent(value);
+                setMetric(METRIC_LINE, metrics[METRIC_LINE]);
+                break;
+            case METRIC_DESCENT:
+                metrics[index] = checkDescent(value);
+                break;
+            case METRIC_LEFT:
+            case METRIC_RIGHT:
+                metrics[index] = checkMargin(value);
+                break;
+            }
+            fireMetricChange(index, old, value);
         }
-        fireMetricChange(index, old, value);
     }
 
+    /**
+     * Проверяет {@code value} на допустимость значения для левого или правого
+     * поля символов. Поле не может быть больше 30% от ширины самого узкого
+     * символа и не может быть меньше нуля.
+     * 
+     * @param value Проверяемое значение.
+     * @return Откорректированное значение {@code value}, допустимое для шрифта.
+     */
     public int checkMargin(int value) {
-        int bound = (getMinWidth() * 3 + 5) / 10;
-        if (value < 0) return 0;
-        else if (value > bound) return bound;
-        else return value;
+        synchronized (getLock()) {
+            int bound = (int) (getMinWidth() * 0.3);
+            if (value < 0) return 0;
+            else if (value > bound) return bound;
+            else return value;
+        }
     }
 
+    /**
+     * Проверяет {@code value} на допустимость значения для базовой линии
+     * символов. Базовая линия не может быть больше 90% и не может быть меньше
+     * 60% от высоты символов.
+     * 
+     * @param value Проверяемое значение.
+     * @return Откорректированное значение {@code value}, допустимое для шрифта.
+     */
     public int checkBaseline(int value) {
-        int bound = (int) (height * 0.60);
-        if (value < bound) return bound;
-        bound = (int) (height * 0.90);
-        if (value > bound) return bound;
-        return value;
+        synchronized (getLock()) {
+            int bound = (int) (height * 0.60);
+            if (value < bound) return bound;
+            bound = (int) (height * 0.90);
+            if (value > bound) return bound;
+            return value;
+        }
     }
 
+    /**
+     * Проверяет {@code value} на допустимость значения высоты строчных
+     * символов. Это значение не может быть больше базовой линии символов и
+     * меньше 50% базовой линии.
+     * 
+     * @param value Проверяемое значение.
+     * @return Откорректированное значение {@code value}, допустимое для шрифта.
+     */
     public int checkAscent(int value) {
-        int baseline = getMetric(METRIC_BASELINE);
-        int bound = baseline / 2;
-        if (value < bound) return bound;
-        else if (value > baseline) return baseline;
-        else return value;
+        synchronized (getLock()) {
+            int baseline = getMetric(METRIC_BASELINE);
+            int bound = baseline / 2;
+            if (value < bound) return bound;
+            else if (value > baseline) return baseline;
+            else return value;
+        }
     }
 
+    /**
+     * Проверяет {@code value} на допустимость высоты прописных символов. Это
+     * значение не может быть больше высоты строчных символов и меньше 50%
+     * высоты строчных символов.
+     * 
+     * @param value Проверяемое значение.
+     * @return Откорректированное значение {@code value}, допустимое для шрифта.
+     */
     public int checkLine(int value) {
-        int ascent = getMetric(METRIC_ASCENT);
-        int bound = ascent / 2;
-        if (value < bound) return bound;
-        else if (value > ascent) return ascent;
-        else return value;
+        synchronized (getLock()) {
+            int ascent = getMetric(METRIC_ASCENT);
+            int bound = ascent / 2;
+            if (value < bound) return bound;
+            else if (value > ascent) return ascent;
+            else return value;
+        }
     }
 
+    /**
+     * Проверяет {@code value} на допустимость значения подстрочной части
+     * символов. Поле не может быть больше разницы между высотой символов и
+     * базовой линией и не может быть меньше нуля.
+     * 
+     * @param value Проверяемое значение.
+     * @return Откорректированное значение {@code value}, допустимое для шрифта.
+     */
     public int checkDescent(int value) {
-        int bound = height - getMetric(METRIC_BASELINE);
-        if (value < 0) return 0;
-        else if (value > bound) return bound;
-        else return value;
+        synchronized (getLock()) {
+            int bound = height - getMetric(METRIC_BASELINE);
+            if (value < 0) return 0;
+            else if (value > bound) return bound;
+            else return value;
+        }
     }
 
     @Override
@@ -672,5 +752,90 @@ public class MFont extends AbstractMFont implements PixselMapListener,
             }
             applyHeight();
         }
+    }
+
+    /**
+     * Выпускает сообщение об изменении актуальности метрик шрифта.
+     * 
+     * @param index Индекс метрики. Может быть одним из следующих значений:<br>
+     *            {@link Metrics#METRIC_ASCENT} <br>
+     *            {@link Metrics#METRIC_BASELINE} <br>
+     *            {@link Metrics#METRIC_DESCENT} <br>
+     *            {@link Metrics#METRIC_LEFT} <br>
+     *            {@link Metrics#METRIC_LINE} <br>
+     *            {@link Metrics#METRIC_RIGHT}
+     * @param oldValue Старое значение актуальности.
+     * @param newValue Новое значение актуальности.
+     */
+    protected void fireActuallyChange(int index, boolean oldValue,
+                    boolean newValue) {
+        String property;
+
+        switch (index) {
+        case METRIC_BASELINE:
+            property = PROPERTY_ACTUALLY_BASELINE;
+            break;
+        case METRIC_LINE:
+            property = PROPERTY_ACTUALLY_LINE;
+            break;
+        case METRIC_ASCENT:
+            property = PROPERTY_ACTUALLY_ASCENT;
+            break;
+        case METRIC_DESCENT:
+            property = PROPERTY_ACTUALLY_DESCENT;
+            break;
+        case METRIC_LEFT:
+            property = PROPERTY_ACTUALLY_MARGIN_LEFT;
+            break;
+        case METRIC_RIGHT:
+            property = PROPERTY_ACTUALLY_MARGIN_RIGHT;
+            break;
+        default:
+            return;
+        }
+
+        firePropertyChange(property, oldValue, newValue);
+    }
+
+    /**
+     * Выпускает сообщение о изменении метрик шрифта.
+     * 
+     * @param index Индекс метрики. Может быть одним из следующих значений:<br>
+     *            {@link Metrics#METRIC_ASCENT} <br>
+     *            {@link Metrics#METRIC_BASELINE} <br>
+     *            {@link Metrics#METRIC_DESCENT} <br>
+     *            {@link Metrics#METRIC_LEFT} <br>
+     *            {@link Metrics#METRIC_LINE} <br>
+     *            {@link Metrics#METRIC_RIGHT}
+     * @param oldValue Старое значение метрики.
+     * @param newValue Новое значение метрики.
+     */
+    protected void fireMetricChange(int index, int oldValue, int newValue) {
+        String property;
+
+        switch (index) {
+        case METRIC_BASELINE:
+            property = PROPERTY_BASELINE;
+            break;
+        case METRIC_LINE:
+            property = PROPERTY_LINE;
+            break;
+        case METRIC_ASCENT:
+            property = PROPERTY_ASCENT;
+            break;
+        case METRIC_DESCENT:
+            property = PROPERTY_DESCENT;
+            break;
+        case METRIC_LEFT:
+            property = PROPERTY_MARGIN_LEFT;
+            break;
+        case METRIC_RIGHT:
+            property = PROPERTY_MARGIN_RIGHT;
+            break;
+        default:
+            return;
+        }
+
+        firePropertyChange(property, oldValue, newValue);
     }
 }
