@@ -391,7 +391,11 @@ public class AbstractMFont implements PixselMapListener, PropertyChangeListener 
         if (!isUnicode()) {
             // Сброс unicode для всех символов.
             for (MSymbol sym : symbols) {
-                sym.clearUnicode();
+                try {
+                    sym.clearUnicode();
+                } catch (DisallowOperationException e) {
+                    logger().log(Level.SEVERE, "Clear unicode fail", e);
+                }
             }
         } else if (old == null) {
             // Установить unicode для всех символов.
@@ -402,6 +406,8 @@ public class AbstractMFont implements PixselMapListener, PropertyChangeListener 
                     // Символ не входит в новую кодировку.
                     // XXX Спорный момент - оставлять ли символ шрифте.
                     remove(sym);
+                } catch (DisallowOperationException e) {
+                    logger().log(Level.SEVERE, "Set unicode fail", e);
                 }
             }
         } else {
@@ -678,7 +684,11 @@ public class AbstractMFont implements PixselMapListener, PropertyChangeListener 
             if (symbol.owner != null) symbol = symbol.clone();
             // Преобразования свойств код и уникод символа.
             if (charSet == null) {
-                symbol.clearUnicode();
+                try {
+                    symbol.clearUnicode();
+                } catch (DisallowOperationException e) {
+                    logger().log(Level.SEVERE, "Clear unicode fail", e);
+                }
             } else if (symbol.isUnicode()) {
                 try {
                     symbol.setCode(toCode(symbol.getUnicode()));
@@ -701,6 +711,8 @@ public class AbstractMFont implements PixselMapListener, PropertyChangeListener 
                                                     + symbol.getCode());
                     // XXX Спорный момент - оставлять ли символ шрифте.
                     return;
+                } catch (DisallowOperationException e) {
+                    logger().log(Level.SEVERE, "Set unicode fail", e);
                 }
             }
 
@@ -732,9 +744,7 @@ public class AbstractMFont implements PixselMapListener, PropertyChangeListener 
             }
 
             if (old != null) {
-                old.removePropertyChangeListener(this);
-                old.removePixselMapListener(this);
-                old.owner = null;
+                releaseSymbol(old);
             }
 
             firePropertyChange(PROPERTY_SYMBOLS, old, symbol);
@@ -957,12 +967,24 @@ public class AbstractMFont implements PixselMapListener, PropertyChangeListener 
         return indexByCode(code);
     }
 
+    /**
+     * Встраивает {@code sym} в шрифт. Символу добавляется текущий шрифт как
+     * слушатель и устанавливается владелец.
+     * 
+     * @param sym Встраиваемый символ.
+     */
     protected void captureSymbol(MSymbol sym) {
         sym.addPropertyChangeListener(this);
         sym.addPixselMapListener(this);
         sym.owner = this;
     }
 
+    /**
+     * Отпускает {@code sym} из шрифта. Владелец символа приравнивается
+     * {@code null}, текущий шрифт удаляется из слушателей.
+     * 
+     * @param sym Освобождаемый символ.
+     */
     protected void releaseSymbol(MSymbol sym) {
         sym.removePropertyChangeListener(this);
         sym.removePixselMapListener(this);
@@ -992,10 +1014,42 @@ public class AbstractMFont implements PixselMapListener, PropertyChangeListener 
      */
     protected void replace(int oldPos, int newPos) {
         // FIXME метод не реализован!
-        if (symbols[oldPos].getCode() == symbols[newPos].getCode()){
+        MSymbol replaced = symbols[oldPos];
+
+        if (symbols[oldPos].getCode() == symbols[newPos].getCode()) {
             // Символ [newPos] должен быть удалён.
-        }else{
-            
+            MSymbol[] t = new MSymbol[symbols.length - 1];
+            MSymbol deleted = symbols[newPos];
+
+            if (oldPos < newPos) {
+                System.arraycopy(symbols, 0, t, 0, oldPos);
+                System.arraycopy(symbols, oldPos + 1, t, oldPos, newPos
+                                - oldPos - 1);
+                System.arraycopy(symbols, newPos + 2, t, newPos + 1,
+                                symbols.length - newPos - 1);
+
+                if (newPos < symbols.length - 1 && newPos > 0)
+                    t[newPos - 1] = symbols[newPos + 1];
+            } else {
+                System.arraycopy(symbols, 0, t, 0, oldPos);
+                System.arraycopy(symbols, oldPos + 1, t, oldPos, symbols.length
+                                - oldPos - 1);
+            }
+
+            t[newPos] = replaced;
+            symbols = t;
+            releaseSymbol(deleted);
+            firePropertyChange(PROPERTY_SYMBOLS, deleted, null);
+        } else {
+            if (oldPos < newPos) {
+                System.arraycopy(symbols, oldPos + 1, symbols, oldPos, newPos
+                                - oldPos - 1);
+                symbols[newPos - 1] = replaced;
+            } else {
+                System.arraycopy(symbols, newPos, symbols, newPos + 1, oldPos
+                                - newPos);
+                symbols[newPos] = replaced;
+            }
         }
     }
 
