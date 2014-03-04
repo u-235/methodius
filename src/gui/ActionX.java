@@ -62,7 +62,6 @@ PropertyChangeListener {
 
     @Override
     public void propertyChange(PropertyChangeEvent event) {
-        // TODO Auto-generated method stub
-
+        applyPropers();
     }
 }

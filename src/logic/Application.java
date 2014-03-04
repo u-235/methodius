@@ -113,6 +113,7 @@ public class Application {
         doc = new Document();
 
         res = new Resource("locale/MainForm");
+        res.setIconPath("icons/16/");
         atFontChange = new OnFontChange();
 
         actions = doActions();

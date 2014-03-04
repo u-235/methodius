@@ -5,7 +5,6 @@ import java.awt.Image;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -13,42 +12,43 @@ import javax.swing.ImageIcon;
 import utils.event.ListenerChain;
 
 public class Resource implements Cloneable {
-    ResourceBundle                  rBundle;
-    Class<? extends Resource>       imgClass;
-    private String                  prefix;
-    private String                  baseName;
-    private String                  imgType                    = "gif";
-    private String                  imgPath                    = "/icons/16/";
-    private HashMap<String, String> iconStateMap;
+    /**  */
+    public static final String TEXT_NAME_KEY              = "text";
+    public static final String TEXT_TIP_KEY               = "tooltip";
+    public static final String TEXT_HELP_KEY              = "help";
+    public static final String TEXT_IMAGE_KEY             = "image";
 
-    private ListenerChain           listeners                  = new ListenerChain();
+    public static final String ICON_KEY                   = "Icon";
+    public static final String ICON_DISABLED_KEY          = "DisabledIcon";
+    public static final String ICON_DISABLED_SELECTED_KEY = "DisabledSelectedIcon";
+    public static final String ICON_SELECTED_KEY          = "SelectedIcon";
+    public static final String ICON_ROLLOVED_KEY          = "RollovedIcon";
+    public static final String ICON_ROLLOVED_SELECTED_KEY = "RollovedSelectedIcon";
+    public static final String ICON_PRESSED_KEY           = "PressedIcon";
 
-    public static final String      TEXT_NAME_KEY              = "text";
-    public static final String      TEXT_TIP_KEY               = "tooltip";
-    public static final String      TEXT_HELP_KEY              = "help";
-    private static final String     TEXT_IMAGE_KEY             = "image";
+    public static final String PROPERTY_LOCALE            = "res.prop.locale";
+    public static final String PROPERTY_LOADER            = "res.prop.loader";
+    public static final String PROPERTY_BASENAME          = "res.prop.basename";
+    public static final String PROPERTY_ICONPATH          = "res.prop.iconpath";
 
-    public static final String      ICON_KEY                   = "Icon";
-    public static final String      ICON_DISABLED_KEY          = "DisabledIcon";
-    public static final String      ICON_DISABLED_SELECTED_KEY = "DisabledSelectedIcon";
-    public static final String      ICON_SELECTED_KEY          = "SelectedIcon";
-    public static final String      ICON_ROLLOVED_KEY          = "RollovedIcon";
-    public static final String      ICON_ROLLOVED_SELECTED_KEY = "RollovedSelectedIcon";
-    public static final String      ICON_PRESSED_KEY           = "SPressedIcon";
+    private Locale             locale;
+    private ClassLoader        loader;
+    private String             baseName;
+    ResourceBundle             rBundle;
+    private String             iconPath;
+
+    private ListenerChain      listeners                  = new ListenerChain();
+
+    public Resource(String baseName, Locale locale, ClassLoader loader) {
+        this.baseName = baseName;
+        this.locale = locale;
+        this.loader = loader;
+
+        updateBundle();
+    }
 
     public Resource(String baseName, Locale locale) {
-        this.baseName = baseName;
-        rBundle = ResourceBundle.getBundle(baseName, locale);
-        imgClass = this.getClass();
-
-        iconStateMap = new HashMap<String, String>();
-        iconStateMap.put(ICON_KEY, "");
-        iconStateMap.put(ICON_DISABLED_KEY, "-d");
-        iconStateMap.put(ICON_DISABLED_SELECTED_KEY, "-ds");
-        iconStateMap.put(ICON_PRESSED_KEY, "-p");
-        iconStateMap.put(ICON_ROLLOVED_KEY, "-r");
-        iconStateMap.put(ICON_ROLLOVED_SELECTED_KEY, "-rs");
-        iconStateMap.put(ICON_SELECTED_KEY, "-s");
+        this(baseName, locale, ClassLoader.getSystemClassLoader());
     }
 
     public Resource(String baseName, String language, String country) {
@@ -59,44 +59,92 @@ public class Resource implements Cloneable {
         this(baseName, Locale.getDefault());
     }
 
+    private void updateBundle() {
+        rBundle = ResourceBundle.getBundle(baseName, locale, loader);
+    }
+
     @Override
-    @SuppressWarnings("unchecked")
     public Resource clone() {
-        Resource ret = null;
-        ret = new Resource(baseName, this.rBundle.getLocale());
-        ret.imgClass = imgClass;
-        ret.iconStateMap = (HashMap<String, String>) iconStateMap.clone();
-        return ret;
+        return new Resource(baseName, locale, loader);
+    }
+
+    public String getBaseName() {
+        return baseName;
+    }
+
+    public void setBaseName(String bn) {
+        String old = baseName;
+        baseName = bn;
+
+        updateBundle();
+
+        fireEvent(PROPERTY_BASENAME, old, baseName);
+    }
+
+    public Locale getLocale() {
+        return locale;
+    }
+
+    public void setLocale(Locale l) {
+        Locale old = locale;
+        locale = l;
+
+        updateBundle();
+
+        fireEvent(PROPERTY_LOCALE, old, locale);
+    }
+
+    public ClassLoader getClassLoader() {
+        return loader;
+    }
+
+    public void setClassLoader(ClassLoader cl) {
+        ClassLoader old = loader;
+        loader = cl;
+
+        updateBundle();
+
+        fireEvent(PROPERTY_LOADER, old, loader);
+    }
+
+    public String getIconPath() {
+        return iconPath;
+    }
+
+    public void setIconPath(String ip) {
+        String old = iconPath;
+        iconPath = ip;
+
+        fireEvent(PROPERTY_ICONPATH, old, iconPath);
     }
 
     public ImageIcon getIcon(String name) {
         URL url;
         if (name == null) return null;
-        url = imgClass.getResource(name);
+        url = loader.getResource(name);
         if (url == null) return null;
         return new ImageIcon(url);
     }
 
     public ImageIcon getIcon(String name, String state) {
-        String imgName, imgState;
+        String imgState;
+        StringBuffer imgName;
 
         if (name == null) return null;
 
-        imgState = iconStateMap.get(state);
-        if (imgState == null) {
-            throw (new IllegalArgumentException("Invalid icon name of state : "
-                            + state));
-        }
+        imgState = imageSuffix(state);
 
-        imgName = imgPath + getString(name, TEXT_IMAGE_KEY) + imgState + "."
-                        + imgType;
-        return getIcon(imgName);
+        imgName = new StringBuffer(iconPath);
+        imgName.append(getString(name, TEXT_IMAGE_KEY));
+        int i = imgName.lastIndexOf(".");
+        if (imgState != null && i > 0) imgName.insert(i, imgState);
+
+        return getIcon(imgName.toString());
     }
 
     public String getString(String key, String type) {
         String name;
-        if (prefix != null) name = prefix + "." + key;
-        else name = key;
+        name = key;
 
         try {
             return rBundle.getString(name + "." + type);
@@ -132,25 +180,22 @@ public class Resource implements Cloneable {
         return null;
     }
 
-    public Resource withPrefix(String prefix) {
-        Resource ret;
-        ret = this.clone();
-        ret.setPrefix(prefix);
-        return ret;
-    }
-
-    public void setPrefix(String prefix) {
-        String old = this.prefix;
-        this.prefix = prefix;
-        fireEvent("ResourceEvent.PREFIX", old, this.prefix);
-    }
-
     public void addListener(PropertyChangeListener listener) {
         listeners.add(PropertyChangeListener.class, listener);
     }
 
     public void removeListener(PropertyChangeListener listener) {
         listeners.remove(PropertyChangeListener.class, listener);
+    }
+
+    protected String imageSuffix(String type) {
+        if (ICON_DISABLED_KEY.equals(type)) return "-d";
+        else if (ICON_DISABLED_SELECTED_KEY.equals(type)) return "-ds";
+        else if (ICON_PRESSED_KEY.equals(type)) return "-p";
+        else if (ICON_ROLLOVED_KEY.equals(type)) return "-r";
+        else if (ICON_ROLLOVED_SELECTED_KEY.equals(type)) return "-rs";
+        else if (ICON_SELECTED_KEY.equals(type)) return "-s";
+        else return null;
     }
 
     protected void fireEvent(PropertyChangeEvent event) {
@@ -176,7 +221,7 @@ public class Resource implements Cloneable {
         fireEvent(new PropertyChangeEvent(this, prop, oldValue, newValue));
     }
 
-    protected void fireEvent(String prop, String oldValue, String newValue) {
+    protected void fireEvent(String prop, Object oldValue, Object newValue) {
         if (oldValue == null) {
             if (newValue == null) return;
         } else {
