@@ -99,7 +99,6 @@ public class FontProperties {
 
     void updateApperance() {
         form.setTitle(res.getText("properties.form"));
-        form.setIconImages(res.getImages("properties.form"));
 
         tab.setTitleAt(0, res.getText("properties.tab.general"));
         tab.setToolTipTextAt(0, res.getToolTip("properties.tab.general"));

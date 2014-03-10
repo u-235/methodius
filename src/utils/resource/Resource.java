@@ -4,45 +4,56 @@ package utils.resource;
 import java.awt.Image;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import utils.event.ListenerChain;
 
 public class Resource implements Cloneable {
     /**  */
-    public static final String TEXT_NAME_KEY              = "text";
-    public static final String TEXT_TIP_KEY               = "tooltip";
-    public static final String TEXT_HELP_KEY              = "help";
-    public static final String TEXT_IMAGE_KEY             = "image";
+    public static final String    RESOURCE_LOGGER_NAME       = "resource.logger";
+    public static final String    TEXT_NAME_KEY              = "text";
+    public static final String    TEXT_TIP_KEY               = "tooltip";
+    public static final String    TEXT_HELP_KEY              = "help";
+    public static final String    TEXT_IMAGE_KEY             = "image";
 
-    public static final String ICON_KEY                   = "Icon";
-    public static final String ICON_DISABLED_KEY          = "DisabledIcon";
-    public static final String ICON_DISABLED_SELECTED_KEY = "DisabledSelectedIcon";
-    public static final String ICON_SELECTED_KEY          = "SelectedIcon";
-    public static final String ICON_ROLLOVED_KEY          = "RollovedIcon";
-    public static final String ICON_ROLLOVED_SELECTED_KEY = "RollovedSelectedIcon";
-    public static final String ICON_PRESSED_KEY           = "PressedIcon";
+    public static final String    ICON_KEY                   = "Icon";
+    public static final String    ICON_DISABLED_KEY          = "DisabledIcon";
+    public static final String    ICON_DISABLED_SELECTED_KEY = "DisabledSelectedIcon";
+    public static final String    ICON_SELECTED_KEY          = "SelectedIcon";
+    public static final String    ICON_ROLLOVED_KEY          = "RollovedIcon";
+    public static final String    ICON_ROLLOVED_SELECTED_KEY = "RollovedSelectedIcon";
+    public static final String    ICON_PRESSED_KEY           = "PressedIcon";
 
-    public static final String PROPERTY_LOCALE            = "res.prop.locale";
-    public static final String PROPERTY_LOADER            = "res.prop.loader";
-    public static final String PROPERTY_BASENAME          = "res.prop.basename";
-    public static final String PROPERTY_ICONPATH          = "res.prop.iconpath";
+    public static final String    PROPERTY_LOCALE            = "res.prop.locale";
+    public static final String    PROPERTY_LOADER            = "res.prop.loader";
+    public static final String    PROPERTY_BASENAME          = "res.prop.basename";
+    public static final String    PROPERTY_ICONPATH          = "res.prop.iconpath";
 
-    private Locale             locale;
-    private ClassLoader        loader;
-    private String             baseName;
-    ResourceBundle             rBundle;
-    private String             iconPath;
+    protected static final Logger log;
+    private Locale                locale;
+    private ClassLoader           loader;
+    private String                baseName;
+    ResourceBundle                rBundle;
+    private URL                   iconPath;
 
-    private ListenerChain      listeners                  = new ListenerChain();
+    private ListenerChain         listeners                  = new ListenerChain();
+
+    static {
+        log = Logger.getLogger(RESOURCE_LOGGER_NAME);
+    }
 
     public Resource(String baseName, Locale locale, ClassLoader loader) {
         this.baseName = baseName;
         this.locale = locale;
         this.loader = loader;
+        iconPath = loader.getResource("");
 
         updateBundle();
     }
@@ -107,23 +118,52 @@ public class Resource implements Cloneable {
         fireEvent(PROPERTY_LOADER, old, loader);
     }
 
-    public String getIconPath() {
+    public URL getIconPath() {
         return iconPath;
     }
 
-    public void setIconPath(String ip) {
-        String old = iconPath;
+    public void setIconPath(URL ip) {
+        URL old = iconPath;
         iconPath = ip;
 
         fireEvent(PROPERTY_ICONPATH, old, iconPath);
     }
 
+    public void setIconPath(String ip) {
+        URL old = iconPath;
+        iconPath = loader.getResource(ip);
+
+        fireEvent(PROPERTY_ICONPATH, old, iconPath);
+    }
+
     public ImageIcon getIcon(String name) {
-        URL url;
-        if (name == null) return null;
-        url = loader.getResource(name);
-        if (url == null) return null;
-        return new ImageIcon(url);
+        URL link;
+
+        if (iconPath == null) return null;
+
+        try {
+            link = new URL(iconPath, name);
+        } catch (MalformedURLException e1) {
+            log.log(Level.WARNING,
+                            "malformed URL. Path is {0}\nFile name is {1}",
+                            new Object[] { iconPath.toString(), name });
+            return null;
+        }
+
+        try {
+            if (!new File(link.toURI()).canRead()) {
+                log.log(Level.CONFIG, "Can''t read file {0}", link.toString());
+                return null;
+            }
+        } catch (URISyntaxException e) {
+            log.log(Level.WARNING, "URL to URI error {0}", link.toString());
+            return null;
+        } catch (IllegalArgumentException e) {
+            log.log(Level.WARNING, "bad URL {0}", link.toString());
+            return null;
+        }
+
+        return new ImageIcon(link);
     }
 
     public ImageIcon getIcon(String name, String state) {
@@ -133,11 +173,13 @@ public class Resource implements Cloneable {
         if (name == null) return null;
 
         imgState = imageSuffix(state);
-
-        imgName = new StringBuffer(iconPath);
-        imgName.append(getString(name, TEXT_IMAGE_KEY));
-        int i = imgName.lastIndexOf(".");
-        if (imgState != null && i > 0) imgName.insert(i, imgState);
+        try {
+            imgName = new StringBuffer(getString(name, TEXT_IMAGE_KEY));
+            int i = imgName.lastIndexOf(".");
+            if (imgState != null && i > 0) imgName.insert(i, imgState);
+        } catch (NullPointerException e) {
+            return null;
+        }
 
         return getIcon(imgName.toString());
     }
@@ -168,16 +210,6 @@ public class Resource implements Cloneable {
     public Image getImage(String key, String type) {
         // TODO Auto-generated method stub
         return getIcon(key, type).getImage();
-    }
-
-    /**
-     * 
-     * @param key
-     * @return
-     */
-    public List<? extends Image> getImages(String key) {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     public void addListener(PropertyChangeListener listener) {
