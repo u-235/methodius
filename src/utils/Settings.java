@@ -1,67 +1,86 @@
+
 package utils;
 
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.prefs.AbstractPreferences;
 import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 public class Settings extends AbstractPreferences {
+    private SettingsFile              file;
+    private HashMap<String, String>   storage;
+    private HashMap<String, Settings> childs;
+
+    public Settings(SettingsFile file) {
+        this(null, "/");
+        this.file = file;
+    }
 
     protected Settings(AbstractPreferences parent, String name) {
         super(parent, name);
-        // TODO Auto-generated constructor stub
+        storage = new HashMap<String, String>();
+        childs = new HashMap<String, Settings>();
     }
 
     @Override
     protected void putSpi(String key, String value) {
-        // TODO Auto-generated method stub
-
+        storage.put(key, value);
     }
 
     @Override
     protected String getSpi(String key) {
-        // TODO Auto-generated method stub
-        return null;
+        return storage.get(key);
     }
 
     @Override
     protected void removeSpi(String key) {
-        // TODO Auto-generated method stub
-
+        storage.remove(key);
     }
 
     @Override
     protected void removeNodeSpi() throws BackingStoreException {
-        // TODO Auto-generated method stub
-
+        Preferences parent = parent();
+        if (parent instanceof Settings)
+            ((Settings) parent).childs.remove(name());
     }
 
     @Override
     protected String[] keysSpi() throws BackingStoreException {
-        // TODO Auto-generated method stub
-        return null;
+        return storage.keySet().toArray(new String[storage.size()]);
     }
 
     @Override
     protected String[] childrenNamesSpi() throws BackingStoreException {
-        // TODO Auto-generated method stub
-        return null;
+        return childs.keySet().toArray(new String[childs.size()]);
     }
 
     @Override
     protected AbstractPreferences childSpi(String name) {
-        // TODO Auto-generated method stub
-        return null;
+        Settings ret = childs.get(name);
+        if (ret == null) {
+            ret = new Settings(this, name);
+            childs.put(name, ret);
+        }
+        return ret;
     }
 
     @Override
     protected void syncSpi() throws BackingStoreException {
         // TODO Auto-generated method stub
-
     }
 
     @Override
     protected void flushSpi() throws BackingStoreException {
-        // TODO Auto-generated method stub
+        Iterator<String> keys = storage.keySet().iterator();
+        String name;
 
+        file.beginFlush(absolutePath());
+        while (keys.hasNext()) {
+            name = keys.next();
+            file.flushKey(name, storage.get(name));
+        }
+        file.endFlush(absolutePath());
     }
 
 }
