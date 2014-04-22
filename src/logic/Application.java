@@ -8,6 +8,9 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.prefs.BackingStoreException;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
@@ -22,6 +25,8 @@ import microfont.Document;
 import microfont.MFont;
 import microfont.MSymbol;
 import microfont.ls.MFontLoadSave;
+import utils.Settings;
+import utils.ini.IniFile;
 import utils.resource.Resource;
 import forms.EditPanel;
 import forms.FontPanel;
@@ -30,7 +35,7 @@ import forms.WorkShop;
 import gui.ActionX;
 
 public class Application {
-    public static final String            NAME             = "Mifodius";
+    public static final String            NAME             = "Methodius";
     public static final int               VER_MAJOR        = 0;
     public static final int               VER_MINOR        = 8;
 
@@ -56,6 +61,8 @@ public class Application {
     public static final String            ON_HEAP_SIZE     = "heap.size";
 
     public static Resource                res;
+    public static Settings pref;
+    
     static File                           fontFile;
     static String                         fontName         = "new font";
     static boolean                        fontSaved;
@@ -114,6 +121,14 @@ public class Application {
 
         res = new Resource("locale/MainForm");
         res.setIconPath("icons/16/");
+        
+        try {
+            pref=new Settings(new IniFile("./methodius.ini"));
+        } catch (Exception e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
+        
         atFontChange = new OnFontChange();
 
         actions = doActions();
@@ -134,6 +149,12 @@ public class Application {
 
             @Override
             public void windowClosed(WindowEvent e) {
+                try {
+                    pref.flush();
+                } catch (Exception e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
                 exit = true;
             }
         });

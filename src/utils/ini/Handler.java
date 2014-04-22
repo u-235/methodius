@@ -2,7 +2,7 @@
 package utils.ini;
 
 public interface Handler {
-    public void error(int line, int col, int ch);
+    public void error(int state, int ch, int line, int col);
 
     public void comment(String com);
 

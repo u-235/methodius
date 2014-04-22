@@ -12,9 +12,10 @@ public class Settings extends AbstractPreferences {
     private HashMap<String, String>   storage;
     private HashMap<String, Settings> childs;
 
-    public Settings(SettingsFile file) {
-        this(null, "/");
-        this.file = file;
+    public Settings(SettingsFile f) {
+        this(null, "");
+        file = f;
+        file.load(this);
     }
 
     protected Settings(AbstractPreferences parent, String name) {
@@ -74,7 +75,7 @@ public class Settings extends AbstractPreferences {
     protected void flushSpi() throws BackingStoreException {
         Iterator<String> keys = storage.keySet().iterator();
         String name;
-
+        
         file.beginFlush(absolutePath());
         while (keys.hasNext()) {
             name = keys.next();
