@@ -10,7 +10,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.prefs.BackingStoreException;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
@@ -25,8 +24,6 @@ import microfont.Document;
 import microfont.MFont;
 import microfont.MSymbol;
 import microfont.ls.MFontLoadSave;
-import utils.Settings;
-import utils.ini.IniFile;
 import utils.resource.Resource;
 import forms.EditPanel;
 import forms.FontPanel;
@@ -61,7 +58,6 @@ public class Application {
     public static final String            ON_HEAP_SIZE     = "heap.size";
 
     public static Resource                res;
-    public static Settings pref;
     
     static File                           fontFile;
     static String                         fontName         = "new font";
@@ -122,13 +118,6 @@ public class Application {
         res = new Resource("locale/MainForm");
         res.setIconPath("icons/16/");
         
-        try {
-            pref=new Settings(new IniFile("./methodius.ini"));
-        } catch (Exception e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        }
-        
         atFontChange = new OnFontChange();
 
         actions = doActions();
@@ -149,12 +138,6 @@ public class Application {
 
             @Override
             public void windowClosed(WindowEvent e) {
-                try {
-                    pref.flush();
-                } catch (Exception e1) {
-                    // TODO Auto-generated catch block
-                    e1.printStackTrace();
-                }
                 exit = true;
             }
         });
