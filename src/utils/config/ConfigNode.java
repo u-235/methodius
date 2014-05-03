@@ -109,10 +109,8 @@ public class ConfigNode {
      *             удалён вызовом {@link #removeNode()}.
      */
     public ConfigNode parent() {
-        synchronized (root) {
-            checkRemoved();
-            return parent;
-        }
+        checkRemoved();
+        return parent;
     }
 
     /**
@@ -124,10 +122,8 @@ public class ConfigNode {
      * @see #parent()
      */
     public ConfigNode root() {
-        synchronized (root) {
-            checkRemoved();
-            return root;
-        }
+        checkRemoved();
+        return root;
     }
 
     /**
@@ -153,8 +149,8 @@ public class ConfigNode {
      *             удалён вызовом {@link #removeNode()}.
      */
     public String[] childrenNames() {
+        checkRemoved();
         synchronized (root) {
-            checkRemoved();
             return (String[]) childs.keySet().toArray();
         }
     }
@@ -175,28 +171,26 @@ public class ConfigNode {
      *             удалён вызовом {@link #removeNode()}.
      */
     public ConfigNode node(String path) {
+        checkRemoved();
+        if (path == null) throw new NullPointerException("Path name is null.");
+
+        if (path.equals("")) return this;
+        if (path.endsWith("/")) {
+            if (path.length() == 1) return root;
+            throw new IllegalArgumentException("Path name ends with a slash.");
+        }
+
+        StringTokenizer names = new StringTokenizer(path, "/", true);
+        ConfigNode ret;
+        if (path.startsWith("/")) {
+            ret = root;
+            names.nextToken();
+        } else {
+            ret = this;
+        }
+
+        String nn;
         synchronized (root) {
-            checkRemoved();
-            if (path == null)
-                throw new NullPointerException("Path name is null.");
-
-            if (path.equals("")) return this;
-            if (path.endsWith("/")) {
-                if (path.length() == 1) return root;
-                throw new IllegalArgumentException(
-                                "Path name ends with a slash.");
-            }
-
-            StringTokenizer names = new StringTokenizer(path, "/", true);
-            ConfigNode ret;
-            if (path.startsWith("/")) {
-                ret = root;
-                names.nextToken();
-            } else {
-                ret = this;
-            }
-
-            String nn;
             while (names.hasMoreTokens()) {
                 nn = names.nextToken();
                 if (nn.equals("/"))
@@ -212,9 +206,8 @@ public class ConfigNode {
 
                 names.nextToken();
             }
-
-            return ret;
         }
+        return ret;
     }
 
     /**
@@ -232,28 +225,26 @@ public class ConfigNode {
      *             удалён вызовом {@link #removeNode()}.
      */
     public boolean nodeExists(String path) {
+        checkRemoved();
+        if (path == null) throw new NullPointerException("Path name is null.");
+
+        if (path.equals("")) return true;
+        if (path.endsWith("/")) {
+            if (path.length() == 1) return true;
+            throw new IllegalArgumentException("Path name ends with a slash.");
+        }
+
+        StringTokenizer names = new StringTokenizer(path, "/", true);
+        ConfigNode ret;
+        if (path.startsWith("/")) {
+            ret = root;
+            names.nextToken();
+        } else {
+            ret = this;
+        }
+
+        String nn;
         synchronized (root) {
-            checkRemoved();
-            if (path == null)
-                throw new NullPointerException("Path name is null.");
-
-            if (path.equals("")) return true;
-            if (path.endsWith("/")) {
-                if (path.length() == 1) return true;
-                throw new IllegalArgumentException(
-                                "Path name ends with a slash.");
-            }
-
-            StringTokenizer names = new StringTokenizer(path, "/", true);
-            ConfigNode ret;
-            if (path.startsWith("/")) {
-                ret = root;
-                names.nextToken();
-            } else {
-                ret = this;
-            }
-
-            String nn;
             while (names.hasMoreTokens()) {
                 nn = names.nextToken();
                 if (nn.equals("/"))
@@ -266,9 +257,8 @@ public class ConfigNode {
 
                 names.nextToken();
             }
-
-            return true;
         }
+        return true;
     }
 
     /**
@@ -306,18 +296,36 @@ public class ConfigNode {
     //
     // ========================================================
 
+    /**
+     * Возвращает все ключи узла. Если узел не содержит записей, то возвращаемый
+     * массив имеет нулевой размер.
+     * 
+     * @return Названия записей узла.
+     * 
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     */
     public String[] keys() {
+        checkRemoved();
         synchronized (root) {
-            checkRemoved();
             return (String[]) records.keySet().toArray();
         }
     }
 
+    /**
+     * Удаляет запись.
+     * 
+     * @param key Название удаляемой записи.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     */
     public void remove(String key) {
+        checkRemoved();
+        checkKey(key);
         synchronized (root) {
-            checkRemoved();
-            checkKey(key);
-            remove2(key);
+            if (records.containsKey(key)) remove2(key);
         }
     }
 
@@ -326,33 +334,64 @@ public class ConfigNode {
         fireConfigChangeEvent(key, null);
     }
 
+    /**
+     * Удаляет все записи узла.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     */
     public void clear() {
+        checkRemoved();
         synchronized (root) {
-            checkRemoved();
             clear2();
         }
     }
 
     protected final void clear2() {
-        records.clear();
         for (String k : childrenNames()) {
             remove2(k);
         }
     }
 
+    /**
+     * Изменение значения записи.
+     * 
+     * @param key Имя записи.
+     * @param value Новое значение.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws NullPointerException Если {@code value} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     * @see #remove(String)
+     */
     public void put(String key, String value) {
+        checkRemoved();
+        checkKey(key);
+        if (value == null) throw new NullPointerException("Value is null.");
         synchronized (root) {
-            checkRemoved();
-            checkKey(key);
             records.put(key, value);
             fireConfigChangeEvent(key, value);
         }
     }
 
+    /**
+     * Получение значения записи.
+     * 
+     * @param key Имя записи.
+     * @param def Значение по умолчанию, может быть {@code null}.
+     * @return Значение записи или {@code def}, если узел не содержит запись с
+     *         таким именем.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     */
     public String get(String key, String def) {
+        checkRemoved();
+        checkKey(key);
         synchronized (root) {
-            checkRemoved();
-            checkKey(key);
             String ret = records.get(key);
             return ret == null ? def : ret;
         }
@@ -372,6 +411,12 @@ public class ConfigNode {
     protected final static void checkKey(String key) {
         if (key == null) throw new NullPointerException("Key is null");
     }
+
+    // ========================================================
+    //
+    // Работа с комментариями.
+    //
+    // ========================================================
 
     // ========================================================
     //
