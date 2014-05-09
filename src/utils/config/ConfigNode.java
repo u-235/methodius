@@ -293,11 +293,11 @@ public class ConfigNode {
         }
     }
 
-    //=========================================================
+    // =========================================================
     //
     // Работа с записями.
     //
-    //=========================================================
+    // =========================================================
 
     /**
      * Возвращает все ключи узла. Если узел не содержит записей, то возвращаемый
@@ -401,6 +401,137 @@ public class ConfigNode {
         }
     }
 
+    public void putByte(String key, byte value) {
+        put(key, Byte.toString(value));
+    }
+
+    public byte getByte(String key, byte def) {
+        byte ret = def;
+        try {
+            String rec = get(key, null);
+            if (rec != null) ret = Byte.parseByte(rec);
+        } catch (NumberFormatException e) {
+        }
+
+        return ret;
+    }
+
+    public void putShort(String key, short value) {
+        put(key, Short.toString(value));
+    }
+
+    public short getShort(String key, short def) {
+        short ret = def;
+        try {
+            String rec = get(key, null);
+            if (rec != null) ret = Short.parseShort(rec);
+        } catch (NumberFormatException e) {
+        }
+
+        return ret;
+    }
+
+    public void putInt(String key, int value) {
+        put(key, Integer.toString(value));
+    }
+
+    public int getInt(String key, int def) {
+        int ret = def;
+        try {
+            String rec = get(key, null);
+            if (rec != null) ret = Integer.parseInt(rec);
+        } catch (NumberFormatException e) {
+        }
+
+        return ret;
+    }
+
+    public void putLong(String key, long value) {
+        put(key, Long.toString(value));
+    }
+
+    public long getLong(String key, long def) {
+        long ret = def;
+        try {
+            String rec = get(key, null);
+            if (rec != null) ret = Long.parseLong(rec);
+        } catch (NumberFormatException e) {
+        }
+
+        return ret;
+    }
+
+    public void putFloat(String key, float value) {
+        put(key, Float.toString(value));
+    }
+
+    public float getFloat(String key, float def) {
+        float ret = def;
+        try {
+            String rec = get(key, null);
+            if (rec != null) ret = Float.parseFloat(rec);
+        } catch (NumberFormatException e) {
+        }
+
+        return ret;
+    }
+
+    public void putDouble(String key, double value) {
+        put(key, Double.toString(value));
+    }
+
+    public double getDouble(String key, double def) {
+        double ret = def;
+        try {
+            String rec = get(key, null);
+            if (rec != null) ret = Double.parseDouble(rec);
+        } catch (NumberFormatException e) {
+        }
+
+        return ret;
+    }
+
+    public void putBoolean(String key, boolean value) {
+        put(key, Boolean.toString(value));
+    }
+
+    public boolean getBoolean(String key, boolean def) {
+        boolean ret = def;
+        try {
+            String rec = get(key, null);
+            if (rec != null) ret = Boolean.parseBoolean(rec);
+        } catch (NumberFormatException e) {
+        }
+
+        return ret;
+    }
+
+    public void putByteArray(String key, byte[] value) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : value) {
+            sb.append(Byte.toString(b));
+            sb.append(' ');
+        }
+        put(key, sb.toString());
+    }
+
+    public byte[] getByteArray(String key, byte[] def) {
+        byte[] ret = def;
+        try {
+            String rec = get(key, null);
+            if (rec != null) {
+                StringTokenizer st = new StringTokenizer(rec, " ", false);
+                ret = new byte[st.countTokens()];
+                for (int i = 0; st.hasMoreTokens(); i++) {
+                    ret[i] = Byte.parseByte(st.nextToken());
+                }
+            }
+        } catch (NumberFormatException e) {
+        }
+
+        return ret;
+    }
+
     /**
      * Проверка был ли удалён текущий узел.
      * 
@@ -416,12 +547,19 @@ public class ConfigNode {
         if (key == null) throw new NullPointerException("Key is null");
     }
 
-    //=========================================================
+    // ==========================================================
     //
     // Работа с комментариями.
     //
-    //=========================================================
+    // ==========================================================
 
+    /**
+     * Изменение комментария узла.
+     * 
+     * @param comm Новый комментарий, может быть {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     */
     public void putComment(String comm) {
         checkRemoved();
         synchronized (root) {
@@ -429,6 +567,13 @@ public class ConfigNode {
         }
     }
 
+    /**
+     * Получение комментария узла.
+     * 
+     * @return Комментарий узла. Может быть {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     */
     public String getComment() {
         checkRemoved();
         synchronized (root) {
@@ -436,6 +581,12 @@ public class ConfigNode {
         }
     }
 
+    /**
+     * Удаление комментария узла.
+     * 
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     */
     public void removeComment() {
         checkRemoved();
         synchronized (root) {
@@ -443,6 +594,14 @@ public class ConfigNode {
         }
     }
 
+    /**
+     * Изменение комментария записи.
+     * 
+     * @param key Имя записи.
+     * @param comm Комментарий записи. Может быть {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     */
     public void putComment(String key, String comm) {
         checkRemoved();
         checkKey(key);
@@ -452,6 +611,14 @@ public class ConfigNode {
         }
     }
 
+    /**
+     * Получение комментария записи.
+     * 
+     * @param key Имя записи.
+     * @return Комментарий записи. Может быть {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     */
     public String getComment(String key) {
         checkRemoved();
         checkKey(key);
@@ -460,6 +627,12 @@ public class ConfigNode {
         }
     }
 
+    /**
+     * 
+     * @param key
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     */
     public void removeComment(String key) {
         checkRemoved();
         checkKey(key);
@@ -468,11 +641,11 @@ public class ConfigNode {
         }
     }
 
-    //=========================================================
+    // =========================================================
     //
     // Работа со получателями сообщений.
     //
-    //=========================================================
+    // =========================================================
 
     /**
      * Добавление получателя сообщений о изменении записей.
@@ -499,7 +672,7 @@ public class ConfigNode {
     /**
      * Добавление получателя сообщений о изменениях узла конфигурации.
      * 
-     * @param ccl Получатель сообщений о изменении узла конфигурации.
+     * @param ncl Получатель сообщений о изменении узла конфигурации.
      */
     public void addNodeChangeListener(NodeChangeListener ncl) {
         synchronized (listeners) {
@@ -510,7 +683,7 @@ public class ConfigNode {
     /**
      * Удаление получателя сообщений о изменениях узла конфигурации.
      * 
-     * @param ccl Получатель сообщений о изменении узла конфигурации.
+     * @param ncl Получатель сообщений о изменении узла конфигурации.
      */
     public void removeNodeChangeListener(NodeChangeListener ncl) {
         synchronized (listeners) {
