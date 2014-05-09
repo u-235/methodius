@@ -14,14 +14,9 @@ public class Parser {
     public final static int KEY_BEGIN     = 5;
     public final static int KEY_END       = 6;
     public final static int VALUE         = 7;
-    IniStyle                style;
-    Handler                 handler;
 
-    public void setHandler(Handler handler) {
-        this.handler = handler;
-    }
-
-    public void parse(InputStream input) throws IOException {
+    public static void parse(InputStream input, Handler handler, IniStyle style)
+                    throws IOException {
         if (input == null || handler == null) return;
         if (style == null) style = IniStyle.flexible();
 

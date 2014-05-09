@@ -67,6 +67,8 @@ public class ConfigNode {
     protected final Map<String, ConfigNode> childs;
     protected final Map<String, String>     records;
     protected final ListenerChain           listeners;
+    private String                          nodeComment;
+    protected final Map<String, String>     comments;
     private boolean                         removed;
 
     /**
@@ -97,6 +99,7 @@ public class ConfigNode {
         removed = false;
         childs = new HashMap<String, ConfigNode>();
         records = new HashMap<String, String>();
+        comments = new HashMap<String, String>();
         listeners = new ListenerChain();
     }
 
@@ -290,11 +293,11 @@ public class ConfigNode {
         }
     }
 
-    // ========================================================
+    //=========================================================
     //
     // Работа с записями.
     //
-    // ========================================================
+    //=========================================================
 
     /**
      * Возвращает все ключи узла. Если узел не содержит записей, то возвращаемый
@@ -331,6 +334,7 @@ public class ConfigNode {
 
     protected final void remove2(String key) {
         records.remove(key);
+        comments.remove(key);
         fireConfigChangeEvent(key, null);
     }
 
@@ -412,17 +416,63 @@ public class ConfigNode {
         if (key == null) throw new NullPointerException("Key is null");
     }
 
-    // ========================================================
+    //=========================================================
     //
     // Работа с комментариями.
     //
-    // ========================================================
+    //=========================================================
 
-    // ========================================================
+    public void putComment(String comm) {
+        checkRemoved();
+        synchronized (root) {
+            nodeComment = comm;
+        }
+    }
+
+    public String getComment() {
+        checkRemoved();
+        synchronized (root) {
+            return nodeComment;
+        }
+    }
+
+    public void removeComment() {
+        checkRemoved();
+        synchronized (root) {
+            nodeComment = null;
+        }
+    }
+
+    public void putComment(String key, String comm) {
+        checkRemoved();
+        checkKey(key);
+        synchronized (root) {
+            if (!records.containsKey(key)) return;
+            comments.put(key, comm);
+        }
+    }
+
+    public String getComment(String key) {
+        checkRemoved();
+        checkKey(key);
+        synchronized (root) {
+            return comments.get(key);
+        }
+    }
+
+    public void removeComment(String key) {
+        checkRemoved();
+        checkKey(key);
+        synchronized (root) {
+            comments.remove(key);
+        }
+    }
+
+    //=========================================================
     //
     // Работа со получателями сообщений.
     //
-    // ========================================================
+    //=========================================================
 
     /**
      * Добавление получателя сообщений о изменении записей.

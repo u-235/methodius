@@ -1,35 +1,63 @@
 
 package utils.ini;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.util.prefs.BackingStoreException;
-import java.util.prefs.Preferences;
+import java.io.InputStream;
+import java.io.OutputStream;
+import utils.config.RootNode;
+import utils.config.ConfigNode;
 
-public class IniFile {
-    Parser         parser;
-    String         address;
-    BufferedWriter out;
-    int flushCount;
-    
-    public IniFile(String addr) {
-        address = addr;
+public class IniFile extends RootNode {
+    IniStyle style;
+
+    public IniFile(String file) {
+        super(file);
+        load();
+    }
+
+    public IniFile(String file, IniStyle style) {
+        super(file);
+        this.style = style;
+        load();
+    }
+
+    public IniFile(File file) {
+        super(file);
+        load();
+    }
+
+    public IniFile(File file, IniStyle style) {
+        super(file);
+        this.style = style;
+        load();
+    }
+
+    @Override
+    protected void loadS(InputStream in) {
+        // TODO Auto-generated method stub
+        try {
+            Parser.parse(in, new IniHandler(), style);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void saveS(OutputStream out) {
+        // TODO Auto-generated method stub
+
     }
 
     class IniHandler implements Handler {
-        Preferences work;
-        String      key;
+        ConfigNode work;
+        String     key;
+        String     comment;
 
-        IniHandler(Preferences root) {
-            work = root;
+        IniHandler() {
+            work = IniFile.this.root;
+            comment = null;
         }
 
         @Override
@@ -44,12 +72,18 @@ public class IniFile {
         public void comment(String com) {
             System.out.println("comments : " + com);
             // TODO Auto-generated method stub
+            if (comment == null) comment = com;
+            else comment = comment + "\n" + com;
         }
 
         @Override
         public void section(String sec) {
             System.out.println("section  : " + sec);
-            work = work.node(sec);
+            work = work.root().node(sec);
+            if (comment != null) {
+                work.putComment(comment);
+                comment = null;
+            }
         }
 
         @Override
@@ -61,8 +95,14 @@ public class IniFile {
         @Override
         public void value(String value) {
             System.out.println("value    : " + value);
-            work.put(key, value);
+            if (key != null) {
+                work.put(key, value);
+                key = null;
+                if (comment != null) {
+                    work.putComment(key, comment);
+                }
+            }
+            comment = null;
         }
-
     }
 }
