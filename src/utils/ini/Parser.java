@@ -63,11 +63,9 @@ public class Parser {
                 break;
             case COMMENT:
                 if (style.isLineEnd(curr)) {
-                    handler.comment(buf.toString());
+                    if (buf.length() > 0) handler.comment(buf.toString());
+                    else handler.comment("\n ");
                     state = NEW_LINE;
-                    continue;
-                } else if (style.isWhiteSpace(curr)) {
-                    if (buf.length() != 0) buf.appendCodePoint(curr);
                     continue;
                 } else if (Character.isDefined(curr)) {
                     buf.appendCodePoint(curr);

@@ -13,7 +13,7 @@ public class IniStyle {
     public static IniStyle flexible() {
         IniStyle ret = new IniStyle();
         ret.charset = Charset.forName("utf-8");
-        ret.commentStart = "#;";
+        ret.commentStart = ";#";
         ret.lineEnd = System.getProperty("line.separator");
         return ret;
     }

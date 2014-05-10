@@ -3,26 +3,29 @@ package utils.ini;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.Writer;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.util.StringTokenizer;
 
 public class Saver {
     private BufferedWriter out;
+    IniStyle               style;
 
-    public Saver(Writer out) {
-        this.out = new BufferedWriter(out);
+    public Saver(OutputStream out, IniStyle style) {
+        this.out = new BufferedWriter(new OutputStreamWriter(out));
+
+        if (style == null) this.style = IniStyle.flexible();
+        else this.style = style;
     }
 
-    @Override
-    protected void finalize() {
-        try {
-            close();
-        } catch (IOException e) {
-        }
+    public Saver(OutputStream out) {
+        this(out, null);
     }
 
-    private void close() throws IOException {
+    public void close() throws IOException {
         if (out == null) return;
         out.close();
+        out = null;
     }
 
     private void putKey(String key) throws IOException {
@@ -41,7 +44,7 @@ public class Saver {
      * заменён на \s. Так же должны быть заменены символы возврата каретки и
      * перевода строки на \r и \n
      */
-    private String checkString(String s) {
+    private static String checkString(String s) {
         if (s.isEmpty()) return null;
 
         s = s.replace("\\", "\\\\");
@@ -101,39 +104,40 @@ public class Saver {
     }
 
     public void newLine() throws IOException {
-        if (out == null) return;
-        out.newLine();
+        out.write(style.lineEnd);
     }
 
     public void comment(String com) throws IOException {
-        String[] s;
         if (out == null) return;
         if (com == null || com.isEmpty()) return;
-        s = com.split("\n");
-        for (int i = 0; i < s.length; i++) {
-            out.write(';');
-            if (s[i] != null && !s[i].isEmpty()) out.write(s[i]);
-            out.newLine();
+
+        StringTokenizer st = new StringTokenizer(com, "\n", true);
+        while (st.hasMoreTokens()) {
+            String sc = st.nextToken();
+            if (sc.equals("\n")) {
+                out.write(style.lineEnd);
+            } else {
+                out.write(style.commentStart.charAt(0));
+                out.write(sc);
+            }
         }
+        out.write(style.lineEnd);
     }
 
     public void section(String sec) throws IOException {
-        String s;
         if (out == null) return;
         if (sec == null)
             throw (new IllegalArgumentException("section is null"));
-        s = sec.trim();
-        if (s.isEmpty())
-            throw (new IllegalArgumentException("section is empty"));
         out.write('[');
-        out.write(sec.trim());
+        out.write(sec);
         out.write(']');
-        out.newLine();
+        out.write(style.lineEnd);
     }
 
     public void key(String key, String value) throws IOException {
         putKey(key);
         putValue(value);
+        newLine();
     }
 
     public void key(String key, boolean value) throws IOException {

@@ -46,8 +46,42 @@ public class IniFile extends RootNode {
 
     @Override
     protected void saveS(OutputStream out) {
-        // TODO Auto-generated method stub
+        Saver svr = new Saver(out, style);
+        save(this, svr);
+        try {
+            svr.close();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
 
+    protected void save(ConfigNode node, Saver svr) {
+        try {
+            String comment = node.getComment();
+
+            svr.comment(comment);
+
+            String section = node.absolutePath().substring(1);
+            if (section.length() > 0 || comment!=null) svr.section(section);
+            System.out.println(section);
+
+            for (String k : node.keys()) {
+                svr.comment(node.getComment(k));
+                System.out.println("  " + k);
+                System.out.println("    " + node.get(k, null));
+                svr.key(k, node.get(k, null));
+            }
+            svr.newLine();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return;
+        }
+
+        for (String n : node.childrenNames()) {
+            save(node.node(n), svr);
+        }
     }
 
     class IniHandler implements Handler {
@@ -97,10 +131,10 @@ public class IniFile extends RootNode {
             System.out.println("value    : " + value);
             if (key != null) {
                 work.put(key, value);
-                key = null;
                 if (comment != null) {
                     work.putComment(key, comment);
                 }
+                key = null;
             }
             comment = null;
         }
