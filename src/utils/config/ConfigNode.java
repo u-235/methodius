@@ -55,8 +55,8 @@ import utils.event.ListenerChain;
  * допустимым путём.
  * </ul>
  * 
- * @see <a href="http://commons.apache.org/proper/commons-configuration/"
- *      >Apache Commons Configuration</a> - продвинутая система настроек.
+ * @see <a href="http://commons.apache.org/proper/commons-configuration/">Apache
+ *      Commons Configuration</a> - продвинутая система настроек.
  * @author Nickolay Egorov
  */
 public class ConfigNode {
@@ -78,7 +78,6 @@ public class ConfigNode {
      *            узел.
      * @param name Имя узла, не должно содержать символ наклонной черты ("/").
      *            При создании корневого узла имя игнорируется.
-     * @see #isValidName(String)
      */
     protected ConfigNode(ConfigNode parent, String name) {
         if (parent == null) {
@@ -93,8 +92,11 @@ public class ConfigNode {
             this.parent = parent;
             this.root = parent.root;
             this.name = name;
-            this.absolutePath = parent.absolutePath + "/" + name;
+            parent.childs.put(name, this);
+            if (parent != root) absolutePath = parent.absolutePath + "/" + name;
+            else absolutePath = "/" + name;
         }
+        System.out.println(absolutePath);
 
         removed = false;
         childs = new HashMap<String, ConfigNode>();
@@ -154,7 +156,7 @@ public class ConfigNode {
     public String[] childrenNames() {
         checkRemoved();
         synchronized (root) {
-            return (String[]) childs.keySet().toArray();
+            return childs.keySet().toArray(new String[childs.size()]);
         }
     }
 
@@ -183,31 +185,35 @@ public class ConfigNode {
             throw new IllegalArgumentException("Path name ends with a slash.");
         }
 
-        StringTokenizer names = new StringTokenizer(path, "/", true);
+        StringTokenizer tokens = new StringTokenizer(path, "/", true);
         ConfigNode ret;
+        boolean slash;
         if (path.startsWith("/")) {
             ret = root;
-            names.nextToken();
+            slash = true;
         } else {
             ret = this;
+            slash = false;
         }
 
-        String nn;
+        String element;
         synchronized (root) {
-            while (names.hasMoreTokens()) {
-                nn = names.nextToken();
-                if (nn.equals("/"))
+            while (tokens.hasMoreTokens()) {
+                if (slash) tokens.nextToken();
+                element = tokens.nextToken();
+
+                if (element.equals("/"))
                     throw new IllegalArgumentException(
                                     "Path name contains consecutive slash.");
 
-                if (ret.childs.containsKey(nn)) {
-                    ret = ret.childs.get(nn);
+                if (ret.childs.containsKey(element)) {
+                    ret = ret.childs.get(element);
                 } else {
-                    ret = new ConfigNode(ret, name);
+                    ret = new ConfigNode(ret, element);
                     ret.parent.fireChildAddedEvent(ret);
                 }
 
-                names.nextToken();
+                slash = true;
             }
         }
         return ret;
@@ -239,17 +245,21 @@ public class ConfigNode {
 
         StringTokenizer names = new StringTokenizer(path, "/", true);
         ConfigNode ret;
+        boolean slash;
         if (path.startsWith("/")) {
             ret = root;
-            names.nextToken();
+            slash = true;
         } else {
             ret = this;
+            slash = false;
         }
 
         String nn;
         synchronized (root) {
             while (names.hasMoreTokens()) {
+                if (slash) names.nextToken();
                 nn = names.nextToken();
+
                 if (nn.equals("/"))
                     throw new IllegalArgumentException(
                                     "Path name contains consecutive slash.");
@@ -258,7 +268,7 @@ public class ConfigNode {
                     ret = ret.childs.get(nn);
                 } else return false;
 
-                names.nextToken();
+                slash = true;
             }
         }
         return true;
@@ -311,7 +321,7 @@ public class ConfigNode {
     public String[] keys() {
         checkRemoved();
         synchronized (root) {
-            return (String[]) records.keySet().toArray();
+            return records.keySet().toArray(new String[records.size()]);
         }
     }
 
