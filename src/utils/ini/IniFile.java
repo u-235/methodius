@@ -58,21 +58,28 @@ public class IniFile extends RootNode {
 
     protected void save(ConfigNode node, Saver svr) {
         try {
-            String comment = node.getComment();
+            if (!node.isEmpty()) {
+                String com;
+                String val;
 
-            svr.comment(comment);
+                try {
+                    com = node.getComment();
+                    val = node.absolutePath().substring(1);
 
-            String section = node.absolutePath().substring(1);
-            if (section.length() > 0 || comment!=null) svr.section(section);
-            System.out.println(section);
+                    svr.comment(com);
+                    svr.section(val);
 
-            for (String k : node.keys()) {
-                svr.comment(node.getComment(k));
-                System.out.println("  " + k);
-                System.out.println("    " + node.get(k, null));
-                svr.key(k, node.get(k, null));
+                    for (String k : node.keys()) {
+                        com = node.getComment(k);
+                        val = node.get(k, null);
+                        svr.comment(com);
+                        svr.key(k, val);
+                    }
+                } catch (IllegalStateException ignore) {
+                }
+
+                svr.newLine();
             }
-            svr.newLine();
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
