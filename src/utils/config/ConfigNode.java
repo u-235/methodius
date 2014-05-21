@@ -130,6 +130,17 @@ public class ConfigNode {
         checkRemoved();
         return root;
     }
+    
+    /**
+     * Возвращает {@code true} если узел не содержит информации. Это значит, что
+     * нет ни одной записи и комментарий узла пуст или равен {@code null}.
+     * @return
+     */
+    public boolean isEmpty(){
+        if (nodeComment != null && !nodeComment.isEmpty()) return false;
+        if (records.isEmpty())  return true;
+        return false;
+    }
 
     /**
      * Возвращает имя узла.
@@ -292,7 +303,7 @@ public class ConfigNode {
 
         synchronized (root) {
             removed = true;
-            parent.childs.remove(this);
+            parent.childs.remove(name);
             parent.fireChildRemovedEvent(this);
             clear2();
 

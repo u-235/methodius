@@ -11,7 +11,7 @@ import java.io.OutputStream;
 
 public abstract class RootNode extends ConfigNode {
     File   file;
-    String name;
+    String fName;
 
     public RootNode() {
         super(null, null);
@@ -19,7 +19,7 @@ public abstract class RootNode extends ConfigNode {
 
     public RootNode(String name) {
         this();
-        this.name = name;
+        fName = name;
     }
 
     public RootNode(File file) {
@@ -28,7 +28,7 @@ public abstract class RootNode extends ConfigNode {
     }
 
     public final void load() {
-        if (name != null) load(name);
+        if (fName != null) load(fName);
         else if (file != null) load(file);
     }
 
@@ -41,12 +41,13 @@ public abstract class RootNode extends ConfigNode {
 
         try {
             in = new FileInputStream(file);
-            loadS(in);
         } catch (FileNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
             return;
         }
+        
+        loadS(in);
 
         try {
             in.close();
@@ -59,7 +60,7 @@ public abstract class RootNode extends ConfigNode {
     protected abstract void loadS(InputStream in);
 
     public final void save() {
-        if (name != null) save(name);
+        if (fName != null) save(fName);
         else if (file != null) save(file);
     }
 
