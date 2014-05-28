@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.logging.Level;
 
 public abstract class RootNode extends ConfigNode {
     File   file;
@@ -39,25 +40,33 @@ public abstract class RootNode extends ConfigNode {
     public final void load(File file) {
         FileInputStream in;
 
+        if (file == null) {
+            throw new NullPointerException();
+        }
+
         try {
             in = new FileInputStream(file);
         } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            log.log(Level.INFO, "File {0} not found", file.getAbsolutePath());
             return;
         }
-        
-        loadS(in);
+
+        try {
+            loadS(in);
+        } catch (IOException e) {
+            log.log(Level.INFO, "Error while load file {0}",
+                            file.getAbsolutePath());
+        }
 
         try {
             in.close();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            log.log(Level.WARNING, "Error while close file {0}",
+                            file.getAbsolutePath());
         }
     }
 
-    protected abstract void loadS(InputStream in);
+    protected abstract void loadS(InputStream in) throws IOException;
 
     public final void save() {
         if (fName != null) save(fName);
@@ -71,22 +80,31 @@ public abstract class RootNode extends ConfigNode {
     public final void save(File file) {
         FileOutputStream out;
 
+        if (file == null) {
+            throw new NullPointerException();
+        }
+
         try {
             out = new FileOutputStream(file);
-            saveS(out);
         } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            log.log(Level.INFO, "File {0} not found", file.getAbsolutePath());
             return;
+        }
+
+        try {
+            saveS(out);
+        } catch (IOException e1) {
+            log.log(Level.INFO, "Error while save file {0}",
+                            file.getAbsolutePath());
         }
 
         try {
             out.close();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            log.log(Level.WARNING, "Error while close file {0}",
+                            file.getAbsolutePath());
         }
     }
 
-    protected abstract void saveS(OutputStream out);
+    protected abstract void saveS(OutputStream out) throws IOException;
 }

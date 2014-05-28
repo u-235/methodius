@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.logging.Logger;
 import utils.event.ListenerChain;
 
 /**
@@ -56,7 +57,7 @@ import utils.event.ListenerChain;
  * </ul>
  * 
  * @see <a href="http://commons.apache.org/proper/commons-configuration/">Apache
- *      Commons Configuration</a> - продвинутая система настроек.
+ *      Commons Configuration</a> - продвинутая система управления настройками.
  * @author Nickolay Egorov
  */
 public class ConfigNode {
@@ -70,6 +71,11 @@ public class ConfigNode {
     private String                          nodeComment;
     protected final Map<String, String>     comments;
     private boolean                         removed;
+    protected final static Logger           log;
+
+    static {
+        log = Logger.getLogger("u235.utils.config");
+    }
 
     /**
      * Создание узла.
@@ -130,16 +136,15 @@ public class ConfigNode {
         checkRemoved();
         return root;
     }
-    
+
     /**
      * Возвращает {@code true} если узел не содержит информации. Это значит, что
      * нет ни одной записи и комментарий узла пуст или равен {@code null}.
-     * @return
      */
-    public boolean isEmpty(){
+    public boolean isEmpty() {
         if (nodeComment != null && !nodeComment.isEmpty()) return false;
-        if (records.isEmpty())  return true;
-        return false;
+        if (!records.isEmpty()) return false;
+        return true;
     }
 
     /**
