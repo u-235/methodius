@@ -139,8 +139,12 @@ public class ConfigNode {
     /**
      * Возвращает {@code true} если узел не содержит информации. Это значит, что
      * нет ни одной записи и комментарий узла пуст или равен {@code null}.
+     * 
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
      */
     public boolean isEmpty() {
+        checkRemoved();
         if (nodeComment != null && !nodeComment.isEmpty()) return false;
         if (!records.isEmpty()) return false;
         return true;
@@ -200,6 +204,12 @@ public class ConfigNode {
             throw new IllegalArgumentException("Path name ends with a slash.");
         }
 
+        // Предварительная проверка двойной косой черты, что бы не делать
+        // узлов в процессе разбора пути path.
+        if (path.indexOf("//") >= 0)
+            throw new IllegalArgumentException(
+                            "Path name contains consecutive slash.");
+
         StringTokenizer tokens = new StringTokenizer(path, "/", true);
         ConfigNode ret;
         boolean slash;
@@ -216,10 +226,6 @@ public class ConfigNode {
             while (tokens.hasMoreTokens()) {
                 if (slash) tokens.nextToken();
                 element = tokens.nextToken();
-
-                if (element.equals("/"))
-                    throw new IllegalArgumentException(
-                                    "Path name contains consecutive slash.");
 
                 if (ret.childs.containsKey(element)) {
                     ret = ret.childs.get(element);
@@ -270,6 +276,7 @@ public class ConfigNode {
         }
 
         String nn;
+        boolean result = true;
         synchronized (root) {
             while (names.hasMoreTokens()) {
                 if (slash) names.nextToken();
@@ -281,12 +288,12 @@ public class ConfigNode {
 
                 if (ret.childs.containsKey(nn)) {
                     ret = ret.childs.get(nn);
-                } else return false;
+                } else result = false;
 
                 slash = true;
             }
         }
-        return true;
+        return result;
     }
 
     /**
@@ -308,12 +315,13 @@ public class ConfigNode {
         synchronized (root) {
             removed = true;
             parent.childs.remove(name);
-            parent.fireChildRemovedEvent(this);
             clear2();
+            parent.fireChildRemovedEvent(this);
 
-            Iterator<ConfigNode> i = childs.values().iterator();
-            while (i.hasNext()) {
-                i.next().removeNode();
+            ConfigNode[] nodes = childs.values().toArray(
+                            new ConfigNode[childs.size()]);
+            for (ConfigNode i : nodes) {
+                i.removeNode();
             }
         }
     }
@@ -378,8 +386,9 @@ public class ConfigNode {
     }
 
     protected final void clear2() {
-        for (String k : childrenNames()) {
-            remove2(k);
+        Iterator<String> i = records.keySet().iterator();
+        while (i.hasNext()) {
+            remove2(i.next());
         }
     }
 
