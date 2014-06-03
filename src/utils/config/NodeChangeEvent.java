@@ -8,7 +8,8 @@ import java.util.EventObject;
  * дочернего узла конфигурации.
  */
 public class NodeChangeEvent extends EventObject {
-    protected ConfigNode child;
+    private static final long serialVersionUID = 1965484138604443640L;
+    protected ConfigNode      child;
 
     /**
      * Создание сообщения.

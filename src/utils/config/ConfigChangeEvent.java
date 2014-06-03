@@ -8,8 +8,9 @@ import java.util.EventObject;
  * изменения записи конфигурации.
  */
 public class ConfigChangeEvent extends EventObject {
-    protected String key;
-    protected String value;
+    private static final long serialVersionUID = 8098307480574279265L;
+    protected String          key;
+    protected String          value;
 
     /**
      * Создание сообщения.

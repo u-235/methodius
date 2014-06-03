@@ -102,7 +102,6 @@ public class ConfigNode {
             if (parent != root) absolutePath = parent.absolutePath + "/" + name;
             else absolutePath = "/" + name;
         }
-        System.out.println(absolutePath);
 
         removed = false;
         childs = new HashMap<String, ConfigNode>();
