@@ -146,8 +146,7 @@ public class ConfigNode {
     public boolean isEmpty() {
         checkRemoved();
         if (nodeComment != null && !nodeComment.isEmpty()) return false;
-        if (!records.isEmpty()) return false;
-        return true;
+        return records.isEmpty();
     }
 
     /**
@@ -374,7 +373,6 @@ public class ConfigNode {
     /**
      * Удаляет все записи узла.
      * 
-     * @throws NullPointerException Если {@code key} равен {@code null}.
      * @throws IllegalStateException Если текущий узел (или его предок) был
      *             удалён вызовом {@link #removeNode()}.
      */
@@ -386,10 +384,7 @@ public class ConfigNode {
     }
 
     protected final void clear2() {
-        Iterator<String> i = records.keySet().iterator();
-        while (i.hasNext()) {
-            remove2(i.next());
-        }
+        records.clear();
     }
 
     /**
