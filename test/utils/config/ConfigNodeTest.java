@@ -1,15 +1,22 @@
 
 package utils.config;
 
-import utils.config.ConfigNode;
 import static org.junit.Assert.*;
 import org.junit.Test;
+import utils.config.ConfigNode;
 
 public class ConfigNodeTest {
     class TestNode extends ConfigNode {
         public TestNode(ConfigNode parent, String name) {
             super(parent, name);
         }
+    }
+
+    public boolean exist(String[] a, String f) {
+        for (String s : a) {
+            if (s.equals(f)) return true;
+        }
+        return false;
     }
 
     @Test
@@ -348,7 +355,6 @@ public class ConfigNodeTest {
     @Test
     public void testKeys() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
 
         boolean result = false;
         try {
@@ -363,456 +369,709 @@ public class ConfigNodeTest {
 
         assertTrue(root.keys().length == 0);
 
-        root.put("a", "v");
-        root.put("b", "v");
-        root.put("c", "v");
+        root.put("a", "v1");
+        root.put("b", "v2");
+        root.put("c", "v3");
 
         assertTrue(root.keys().length == 3);
 
-        fail("Not yet implemented");
+        String ks[] = root.keys();
+        assertTrue(exist(ks, "a"));
+        assertTrue(exist(ks, "b"));
+        assertTrue(exist(ks, "c"));
+
+        assertFalse(exist(ks, "v1"));
+        assertFalse(exist(ks, "v2"));
+        assertFalse(exist(ks, "v3"));
     }
 
     @Test
     public void testRemove() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
 
         boolean result = false;
         try {
-            ConfigNode removed = root.node("removed");
-            removed.removeNode();
-
-            // TODO attempt operation with removed
-        } catch (IllegalStateException e) {
+            root.removeNode();
+        } catch (UnsupportedOperationException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        result = false;
+        try {
+            ConfigNode removed = root.node("removed");
+            removed.removeNode();
+
+            removed.removeNode();
+        } catch (IllegalStateException e) {
+            result = true;
+        }
+        assertTrue(result);
     }
 
     @Test
     public void testClear() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
 
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
             removed.removeNode();
 
-            // TODO attempt operation with removed
+            removed.clear();
         } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        root.put("a", "v1");
+        root.put("b", "v2");
+        root.put("c", "v3");
+        root.node("child");
+
+        root.clear();
+        assertTrue(root.keys().length == 0);
+        assertTrue(root.nodeExists("child"));
     }
 
     @Test
     public void testPut() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
+        ConfigNode node = root.node("child");
 
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
             removed.removeNode();
 
-            // TODO attempt operation with removed
+            removed.put("key", "value");
         } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        result = false;
+        try {
+            root.put(null, "value");
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        result = false;
+        try {
+            root.put("key", null);
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        node.put("test key", "some value");
+        assertSame("some value", node.get("test key", null));
     }
 
     @Test
     public void testGet() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
+        ConfigNode node = root.node("child");
 
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
             removed.removeNode();
 
-            // TODO attempt operation with removed
+            removed.get("key", "default");
         } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        result = false;
+        try {
+            root.get(null, "value");
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        result = true;
+        try {
+            root.get("key", null);
+        } catch (NullPointerException e) {
+            result = false;
+        }
+        assertTrue(result);
+
+        node.put("test key", "some value");
+        assertSame("some value", node.get("test key", null));
+        assertSame("default value", node.get("not exist key", "default value"));
+        assertSame(null, node.get("not exist key", null));
     }
 
     @Test
     public void testPutByte() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
 
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
             removed.removeNode();
 
-            // TODO attempt operation with removed
+            removed.putByte("key", (byte) 0);
         } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        result = false;
+        try {
+            root.putByte(null, (byte) 0);
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        root.putByte("zero", (byte) 0);
+        root.putByte("pos", (byte) 13);
+        root.putByte("neg", (byte) -7);
+
+        assertTrue(root.getByte("zero", (byte) -7) == 0);
+        assertTrue(root.getByte("pos", (byte) -7) == 13);
+        assertTrue(root.getByte("neg", (byte) 17) == -7);
     }
 
     @Test
     public void testGetByte() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
 
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
             removed.removeNode();
 
-            // TODO attempt operation with removed
+            removed.getByte("key", (byte) 0);
         } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        result = false;
+        try {
+            root.getByte(null, (byte) 0);
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        root.putByte("key", (byte) 13);
+        assertTrue(root.getByte("key", (byte) -7) == 13);
+        assertTrue(root.getByte("not def", (byte) 29) == 29);
     }
 
     @Test
     public void testPutShort() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
 
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
             removed.removeNode();
 
-            // TODO attempt operation with removed
+            removed.putShort("key", (short) 0);
         } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        result = false;
+        try {
+            root.putShort(null, (short) 0);
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        root.putShort("zero", (short) 0);
+        root.putShort("pos", (short) 13);
+        root.putShort("neg", (short) -7);
+
+        assertTrue(root.getShort("zero", (short) -7) == 0);
+        assertTrue(root.getShort("pos", (short) -7) == 13);
+        assertTrue(root.getShort("neg", (short) 17) == -7);
     }
 
     @Test
     public void testGetShort() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
 
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
             removed.removeNode();
 
-            // TODO attempt operation with removed
+            removed.getShort("key", (short) 0);
         } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        result = false;
+        try {
+            root.getShort(null, (short) 0);
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        root.putShort("key", (short) 13);
+        assertTrue(root.getShort("key", (short) -7) == 13);
+        assertTrue(root.getShort("not def", (short) 29) == 29);
     }
 
     @Test
     public void testPutInt() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
 
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
             removed.removeNode();
 
-            // TODO attempt operation with removed
+            removed.putInt("key", 0);
         } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        result = false;
+        try {
+            root.putInt(null, 0);
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        root.putInt("zero", 0);
+        root.putInt("pos", 13);
+        root.putInt("neg", -7);
+
+        assertTrue(root.getInt("zero", -7) == 0);
+        assertTrue(root.getInt("pos", -7) == 13);
+        assertTrue(root.getInt("neg", 17) == -7);
     }
 
     @Test
     public void testGetInt() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
 
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
             removed.removeNode();
 
-            // TODO attempt operation with removed
+            removed.getInt("key", 0);
         } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        result = false;
+        try {
+            root.getInt(null, 0);
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        root.putInt("key", 13);
+        assertTrue(root.getInt("key", -7) == 13);
+        assertTrue(root.getInt("not def", 29) == 29);
     }
 
     @Test
     public void testPutLong() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
 
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
             removed.removeNode();
 
-            // TODO attempt operation with removed
+            removed.putLong("key", 0);
         } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        result = false;
+        try {
+            root.putLong(null, 0);
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        root.putLong("zero", 0);
+        root.putLong("pos", 13);
+        root.putLong("neg", -7);
+
+        assertTrue(root.getLong("zero", -7) == 0);
+        assertTrue(root.getLong("pos", -7) == 13);
+        assertTrue(root.getLong("neg", 17) == -7);
     }
 
     @Test
     public void testGetLong() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
 
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
             removed.removeNode();
 
-            // TODO attempt operation with removed
+            removed.getLong("key", 0);
         } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        result = false;
+        try {
+            root.getLong(null, 0);
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        root.putLong("key", 13);
+        assertTrue(root.getLong("key", -7) == 13);
+        assertTrue(root.getLong("not def", 29) == 29);
     }
 
     @Test
     public void testPutFloat() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
 
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
             removed.removeNode();
 
-            // TODO attempt operation with removed
+            removed.putFloat("key", 0);
         } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        result = false;
+        try {
+            root.putFloat(null, 0);
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        root.putFloat("zero", 0);
+        root.putFloat("pos", (float) 13.666);
+        root.putFloat("neg", (float) -7.0707);
+
+        assertTrue(root.getFloat("zero", -7) == 0);
+        assertTrue(root.getFloat("pos", -7) == (float) 13.666);
+        assertTrue(root.getFloat("neg", 17) == (float) -7.0707);
     }
 
     @Test
     public void testGetFloat() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
 
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
             removed.removeNode();
 
-            // TODO attempt operation with removed
+            removed.getFloat("key", 0);
         } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        result = false;
+        try {
+            root.getFloat(null, 0);
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        root.putFloat("key", (float) 13.777);
+        assertTrue(root.getFloat("key", (float) -7.002) == (float) 13.777);
+        assertTrue(root.getFloat("not def", (float) 29.001) == (float) 29.001);
     }
 
     @Test
     public void testPutDouble() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
 
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
             removed.removeNode();
 
-            // TODO attempt operation with removed
+            removed.putDouble("key", 0);
         } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        result = false;
+        try {
+            root.putDouble(null, 0);
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        root.putDouble("zero", 0);
+        root.putDouble("pos", 13.666);
+        root.putDouble("neg", -7.0707);
+
+        assertTrue(root.getDouble("zero", -7) == 0);
+        assertTrue(root.getDouble("pos", -7) == 13.666);
+        assertTrue(root.getDouble("neg", 17) == -7.0707);
     }
 
     @Test
     public void testGetDouble() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
 
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
             removed.removeNode();
 
-            // TODO attempt operation with removed
+            removed.getDouble("key", 0);
         } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        result = false;
+        try {
+            root.getDouble(null, 0);
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        root.putDouble("key", 13.777);
+        assertTrue(root.getDouble("key", -7.002) == 13.777);
+        assertTrue(root.getDouble("not def", 29.00) == 29.00);
     }
 
     @Test
     public void testPutBoolean() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
 
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
             removed.removeNode();
 
-            // TODO attempt operation with removed
+            removed.putBoolean("key", false);
         } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        result = false;
+        try {
+            root.putBoolean(null, true);
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        root.putBoolean("yes", true);
+        root.putBoolean("no", false);
+        root.putBoolean("tr", true);
+
+        assertTrue(root.getBoolean("yes", false));
+        assertFalse(root.getBoolean("no", true));
+        assertTrue(root.getBoolean("tr", false));
     }
 
     @Test
     public void testGetBoolean() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
 
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
             removed.removeNode();
 
-            // TODO attempt operation with removed
+            removed.getBoolean("key", true);
         } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        result = false;
+        try {
+            root.getBoolean(null, true);
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        root.putBoolean("key", true);
+        assertTrue(root.getBoolean("key", false));
+
+        root.putBoolean("key", false);
+        assertFalse(root.getBoolean("key", true));
+
+        assertTrue(root.getBoolean("no rec", true));
+        assertFalse(root.getBoolean("no rec", false));
     }
 
     @Test
     public void testPutByteArray() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
+        byte[] aa = new byte[] { 17, 25, 83, 101 };
+        byte[] bb = new byte[] { 1, 3, 7, -9, 12, 19 };
+        byte[] cc = new byte[] { 0, -3, 54, 111, 127 };
 
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
             removed.removeNode();
 
-            // TODO attempt operation with removed
+            removed.putByteArray("key", aa);
         } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        result = false;
+        try {
+            root.putByteArray(null, cc);
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+        result = false;
+        try {
+            root.putByteArray("key", null);
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        root.putByteArray("ar1", aa);
+        root.putByteArray("ar2", bb);
+        root.putByteArray("ar3", cc);
+
+        assertArrayEquals(aa, root.getByteArray("ar1", null));
+        assertArrayEquals(bb, root.getByteArray("ar2", null));
+        assertArrayEquals(cc, root.getByteArray("ar3", null));
     }
 
     @Test
     public void testGetByteArray() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
+        byte[] aa = new byte[] { 17, 25, 83, 101 };
+        byte[] bb = new byte[] { 1, 3, 7, -9, 12, 19 };
 
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
             removed.removeNode();
 
-            // TODO attempt operation with removed
+            removed.getByteArray("key", aa);
         } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        result = false;
+        try {
+            root.getByteArray(null, aa);
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        root.putByteArray("key", aa);
+        assertArrayEquals(aa, root.getByteArray("key", null));
+        assertArrayEquals(bb, root.getByteArray("no key", bb));
+        assertArrayEquals(null, root.getByteArray("no key", null));
     }
 
     @Test
     public void testPutCommentString() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
 
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
             removed.removeNode();
 
-            // TODO attempt operation with removed
+            removed.putComment("");
         } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        root.putComment("comment for node");
+
+        assertSame("comment for node", root.getComment());
     }
 
     @Test
     public void testGetComment() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
 
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
             removed.removeNode();
 
-            // TODO attempt operation with removed
+            removed.getComment();
         } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        assertSame(null, root.getComment());
+
+        root.putComment("comment for node");
+
+        assertSame("comment for node", root.getComment());
     }
 
     @Test
     public void testRemoveComment() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
 
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
             removed.removeNode();
 
-            // TODO attempt operation with removed
+            removed.removeComment();
         } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        root.putComment("comment for node");        
+        root.removeComment();
+
+        assertSame(null, root.getComment());
     }
 
     @Test
     public void testPutCommentStringString() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
 
         boolean result = false;
         try {
