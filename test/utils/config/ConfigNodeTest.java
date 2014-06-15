@@ -12,6 +12,30 @@ public class ConfigNodeTest {
         }
     }
 
+    class ConfigListener implements ConfigChangeListener {
+        ConfigChangeEvent change = null;
+
+        @Override
+        public void configChange(ConfigChangeEvent e) {
+            change = e;
+        }
+    }
+
+    class NodeListener implements NodeChangeListener {
+        NodeChangeEvent added   = null;
+        NodeChangeEvent removed = null;
+
+        @Override
+        public void childAdded(NodeChangeEvent e) {
+            added = e;
+        }
+
+        @Override
+        public void childRemoved(NodeChangeEvent e) {
+            removed = e;
+        }
+    }
+
     public boolean exist(String[] a, String f) {
         for (String s : a) {
             if (s.equals(f)) return true;
@@ -391,22 +415,29 @@ public class ConfigNodeTest {
 
         boolean result = false;
         try {
-            root.removeNode();
-        } catch (UnsupportedOperationException e) {
+            ConfigNode removed = root.node("removed");
+            removed.removeNode();
+
+            removed.remove("key");
+        } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
         result = false;
         try {
-            ConfigNode removed = root.node("removed");
-            removed.removeNode();
-
-            removed.removeNode();
-        } catch (IllegalStateException e) {
+            root.remove(null);
+        } catch (NullPointerException e) {
             result = true;
         }
         assertTrue(result);
+
+        root.put("key", "value");
+        root.putComment("key", "comm");
+        root.remove("key");
+
+        assertSame(null, root.get("key", null));
+        assertSame(null, root.getComment("key"));
     }
 
     @Test
@@ -1063,7 +1094,7 @@ public class ConfigNodeTest {
         }
         assertTrue(result);
 
-        root.putComment("comment for node");        
+        root.putComment("comment for node");
         root.removeComment();
 
         assertSame(null, root.getComment());
@@ -1084,65 +1115,169 @@ public class ConfigNodeTest {
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        root.put("key", "");
+        root.putComment("key", "short comm");
+        assertSame(root.getComment("key"), "short comm");
+
+        root.putComment("no key", "comm");
+        assertSame(root.getComment("no key"), "comm");
     }
 
     @Test
     public void testGetCommentString() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
 
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
             removed.removeNode();
 
-            // TODO attempt operation with removed
+            removed.getComment("k");
         } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        result = false;
+        try {
+            root.getComment(null);
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        root.putComment("key", "short comm");
+        assertSame(root.getComment("key"), "short comm");
     }
 
     @Test
     public void testRemoveCommentString() {
         ConfigNode root = new TestNode(null, null);
-        ConfigNode node;
 
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
             removed.removeNode();
 
-            // TODO attempt operation with removed
+            removed.removeComment("k");
         } catch (IllegalStateException e) {
             result = true;
         }
         assertTrue(result);
 
-        fail("Not yet implemented");
+        result = false;
+        try {
+            root.removeComment(null);
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        root.put("key", "value");
+        root.putComment("key", "short comm");
+        root.removeComment("key");
+        assertSame(null, root.getComment("key"));
+        assertSame("value", root.get("key", null));
     }
 
     @Test
     public void testAddConfigChangeListener() {
-        fail("Not yet implemented");
+        ConfigNode root = new TestNode(null, null);
+        ConfigListener ccl = new ConfigListener();
+        
+        boolean result = false;
+        try {
+            ConfigNode removed = root.node("removed");
+            removed.removeNode();
+
+            removed.addConfigChangeListener(ccl);
+        } catch (IllegalStateException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        root.addConfigChangeListener(ccl);
+        ((TestNode) root).fireConfigChangeEvent("key", "val");
+        assertTrue(ccl.change != null);
+        assertSame("key", ccl.change.getKey());
+        assertSame("val", ccl.change.getNewValue());
     }
 
     @Test
     public void testRemoveConfigChangeListener() {
-        fail("Not yet implemented");
+        ConfigNode root = new TestNode(null, null);
+        ConfigListener ccl = new ConfigListener();
+        
+        boolean result = false;
+        try {
+            ConfigNode removed = root.node("removed");
+            removed.removeNode();
+
+            removed.removeConfigChangeListener(ccl);
+        } catch (IllegalStateException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        root.addConfigChangeListener(ccl);
+        root.addConfigChangeListener(ccl);
+        root.removeConfigChangeListener(ccl);
+
+        ((TestNode) root).fireConfigChangeEvent("key", "val");
+
+        assertTrue(ccl.change == null);
     }
 
     @Test
     public void testAddNodeChangeListener() {
-        fail("Not yet implemented");
+        ConfigNode root = new TestNode(null, null);
+        NodeListener ncl = new NodeListener();
+        
+        boolean result = false;
+        try {
+            ConfigNode removed = root.node("removed");
+            removed.removeNode();
+
+            removed.addNodeChangeListener(ncl);
+        } catch (IllegalStateException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        root.addNodeChangeListener(ncl);
+
+        ((TestNode) root).fireChildAddedEvent(null);
+        ((TestNode) root).fireChildRemovedEvent(null);
+
+        assertTrue(ncl.added != null);
+        assertTrue(ncl.removed != null);
     }
 
     @Test
     public void testRemoveNodeChangeListener() {
-        fail("Not yet implemented");
+        ConfigNode root = new TestNode(null, null);
+        NodeListener ncl = new NodeListener();
+        
+        boolean result = false;
+        try {
+            ConfigNode removed = root.node("removed");
+            removed.removeNode();
+
+            removed.removeNodeChangeListener(ncl);
+        } catch (IllegalStateException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        root.addNodeChangeListener(ncl);
+        root.addNodeChangeListener(ncl);
+        root.removeNodeChangeListener(ncl);
+
+        ((TestNode) root).fireChildAddedEvent(null);
+        ((TestNode) root).fireChildRemovedEvent(null);
+
+        assertTrue(ncl.added == null);
+        assertTrue(ncl.removed == null);
     }
 
 }
