@@ -2,7 +2,6 @@
 package utils.config;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
@@ -635,7 +634,7 @@ public class ConfigNode {
         checkRemoved();
         checkKey(key);
         synchronized (root) {
-            if (!records.containsKey(key)) return;
+            if (!records.containsKey(key)) put(key, "");
             comments.put(key, comm);
         }
     }
@@ -680,8 +679,11 @@ public class ConfigNode {
      * Добавление получателя сообщений о изменении записей.
      * 
      * @param ccl Получатель сообщений о изменении записей узла конфигурации.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
      */
     public void addConfigChangeListener(ConfigChangeListener ccl) {
+        checkRemoved();
         synchronized (listeners) {
             listeners.add(ConfigChangeListener.class, ccl);
         }
@@ -691,8 +693,11 @@ public class ConfigNode {
      * Удаление получателя сообщений о изменении записей.
      * 
      * @param ccl Получатель сообщений о изменении записей узла конфигурации.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
      */
     public void removeConfigChangeListener(ConfigChangeListener ccl) {
+        checkRemoved();
         synchronized (listeners) {
             listeners.remove(ConfigChangeListener.class, ccl);
         }
@@ -702,8 +707,11 @@ public class ConfigNode {
      * Добавление получателя сообщений о изменениях узла конфигурации.
      * 
      * @param ncl Получатель сообщений о изменении узла конфигурации.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
      */
     public void addNodeChangeListener(NodeChangeListener ncl) {
+        checkRemoved();
         synchronized (listeners) {
             listeners.add(NodeChangeListener.class, ncl);
         }
@@ -713,8 +721,11 @@ public class ConfigNode {
      * Удаление получателя сообщений о изменениях узла конфигурации.
      * 
      * @param ncl Получатель сообщений о изменении узла конфигурации.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
      */
     public void removeNodeChangeListener(NodeChangeListener ncl) {
+        checkRemoved();
         synchronized (listeners) {
             listeners.remove(NodeChangeListener.class, ncl);
         }
