@@ -12,8 +12,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class RootNodeTest extends ConfigNodeTest {
-    static String TEST_FILE="testRootNode.txt";
-    
+    static String TEST_FILE = "testRootNode.txt";
+
     class TestRoot extends RootNode {
         TestRoot() {
             super();
@@ -30,7 +30,6 @@ public class RootNodeTest extends ConfigNodeTest {
         @Override
         protected void loadS(InputStream in) throws IOException {
             // TODO Auto-generated method stub
-
         }
 
         @Override
@@ -39,10 +38,26 @@ public class RootNodeTest extends ConfigNodeTest {
 
         }
     }
-    
-    @Before
-    public void beforeTests(){
 
+    @Override
+    public ConfigNode doNode() {
+        return new TestRoot();
+    }
+
+    public RootNode doRoot() {
+        return new TestRoot();
+    }
+
+    public RootNode doRoot(String name) {
+        return new TestRoot(name);
+    }
+
+    public RootNode doRoot(File name) {
+        return new TestRoot(name);
+    }
+
+    @Before
+    public void beforeTests() {
         try {
             FileOutputStream out = new FileOutputStream(new File(TEST_FILE));
             out.close();
@@ -57,7 +72,7 @@ public class RootNodeTest extends ConfigNodeTest {
 
     @Test
     public void testRootNode() {
-        RootNode root = new TestRoot();
+        RootNode root = doRoot();
 
         assertSame(null, root.fName);
         assertSame(null, root.file);
@@ -65,16 +80,16 @@ public class RootNodeTest extends ConfigNodeTest {
 
     @Test
     public void testRootNodeString() {
-        RootNode root = new TestRoot("name");
+        RootNode root = doRoot(TEST_FILE);
 
-        assertSame("name", root.fName);
+        assertSame(TEST_FILE, root.fName);
         assertSame(null, root.file);
     }
 
     @Test
-    public void testRootNodeFile() { 
-        File file=new File("name");
-        RootNode root = new TestRoot(file);
+    public void testRootNodeFile() {
+        File file = new File(TEST_FILE);
+        RootNode root = doRoot(file);
 
         assertSame(null, root.fName);
         assertSame(file, root.file);
@@ -82,8 +97,8 @@ public class RootNodeTest extends ConfigNodeTest {
 
     @Test
     public void testLoad() {
-        RootNode root = new TestRoot(TEST_FILE);
-        
+        RootNode root = doRoot(TEST_FILE);
+
         root.load();
         fail("Not yet implemented");
     }
@@ -100,8 +115,8 @@ public class RootNodeTest extends ConfigNodeTest {
 
     @Test
     public void testSave() {
-        RootNode root = new TestRoot(TEST_FILE);
-        
+        RootNode root = doRoot(TEST_FILE);
+
         root.save();
         fail("Not yet implemented");
     }

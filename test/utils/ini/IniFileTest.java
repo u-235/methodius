@@ -1,10 +1,33 @@
+
 package utils.ini;
 
 import static org.junit.Assert.*;
+import java.io.File;
 import org.junit.Test;
+import utils.config.ConfigNode;
+import utils.config.RootNode;
 import utils.config.RootNodeTest;
 
 public class IniFileTest extends RootNodeTest {
+    @Override
+    public ConfigNode doNode() {
+        return new IniFile();
+    }
+
+    @Override
+    public RootNode doRoot() {
+        return new IniFile();
+    }
+
+    @Override
+    public RootNode doRoot(String name) {
+        return new IniFile(name);
+    }
+
+    @Override
+    public RootNode doRoot(File name) {
+        return new IniFile(name);
+    }
 
     @Test
     public void testLoadS() {
@@ -40,5 +63,4 @@ public class IniFileTest extends RootNodeTest {
     public void testSaveConfigNodeSaver() {
         fail("Not yet implemented");
     }
-
 }

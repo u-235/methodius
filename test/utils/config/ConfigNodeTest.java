@@ -6,10 +6,9 @@ import org.junit.Test;
 import utils.config.ConfigNode;
 
 public class ConfigNodeTest {
-    class TestNode extends ConfigNode {
-        public TestNode(ConfigNode parent, String name) {
-            super(parent, name);
-        }
+    public ConfigNode doNode() {
+        return new ConfigNode(null, null) {
+        };
     }
 
     class ConfigListener implements ConfigChangeListener {
@@ -45,7 +44,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testParent() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
         ConfigNode node = root.node("test_parent");
 
         boolean result = false;
@@ -66,7 +65,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testRoot() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
         ConfigNode node = root.node("test_root");
 
         boolean result = false;
@@ -89,7 +88,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testIsEmpty() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
         ConfigNode noChild = root.node("no_child");
         ConfigNode withChild = root.node("with_child");
         withChild.node("child");
@@ -130,7 +129,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testName() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
         ConfigNode node;
 
         assertTrue(root.name().equals(""));
@@ -153,7 +152,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testAbsolutePath() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
         ConfigNode node;
 
         assertTrue(root.absolutePath().equals("/"));
@@ -175,7 +174,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testChildrenNames() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
 
         boolean result = false;
         try {
@@ -199,7 +198,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testNode() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
         ConfigNode first;
 
         boolean result = false;
@@ -267,7 +266,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testNodeExists() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
         ConfigNode node;
 
         boolean result = false;
@@ -336,7 +335,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testRemoveNode() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
         ConfigNode node = root.node("child");
         node.node("a");
         node.node("b");
@@ -378,7 +377,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testKeys() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
 
         boolean result = false;
         try {
@@ -411,7 +410,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testRemove() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
 
         boolean result = false;
         try {
@@ -442,7 +441,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testClear() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
 
         boolean result = false;
         try {
@@ -467,7 +466,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testPut() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
         ConfigNode node = root.node("child");
 
         boolean result = false;
@@ -503,7 +502,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testGet() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
         ConfigNode node = root.node("child");
 
         boolean result = false;
@@ -541,7 +540,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testPutByte() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
 
         boolean result = false;
         try {
@@ -573,7 +572,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testGetByte() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
 
         boolean result = false;
         try {
@@ -601,7 +600,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testPutShort() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
 
         boolean result = false;
         try {
@@ -633,7 +632,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testGetShort() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
 
         boolean result = false;
         try {
@@ -661,7 +660,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testPutInt() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
 
         boolean result = false;
         try {
@@ -693,7 +692,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testGetInt() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
 
         boolean result = false;
         try {
@@ -721,7 +720,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testPutLong() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
 
         boolean result = false;
         try {
@@ -753,7 +752,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testGetLong() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
 
         boolean result = false;
         try {
@@ -781,7 +780,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testPutFloat() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
 
         boolean result = false;
         try {
@@ -813,7 +812,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testGetFloat() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
 
         boolean result = false;
         try {
@@ -841,7 +840,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testPutDouble() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
 
         boolean result = false;
         try {
@@ -873,7 +872,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testGetDouble() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
 
         boolean result = false;
         try {
@@ -901,7 +900,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testPutBoolean() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
 
         boolean result = false;
         try {
@@ -933,7 +932,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testGetBoolean() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
 
         boolean result = false;
         try {
@@ -966,7 +965,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testPutByteArray() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
         byte[] aa = new byte[] { 17, 25, 83, 101 };
         byte[] bb = new byte[] { 1, 3, 7, -9, 12, 19 };
         byte[] cc = new byte[] { 0, -3, 54, 111, 127 };
@@ -1008,7 +1007,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testGetByteArray() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
         byte[] aa = new byte[] { 17, 25, 83, 101 };
         byte[] bb = new byte[] { 1, 3, 7, -9, 12, 19 };
 
@@ -1039,7 +1038,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testPutCommentString() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
 
         boolean result = false;
         try {
@@ -1059,7 +1058,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testGetComment() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
 
         boolean result = false;
         try {
@@ -1081,7 +1080,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testRemoveComment() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
 
         boolean result = false;
         try {
@@ -1102,7 +1101,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testPutCommentStringString() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
 
         boolean result = false;
         try {
@@ -1125,7 +1124,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testGetCommentString() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
 
         boolean result = false;
         try {
@@ -1152,7 +1151,7 @@ public class ConfigNodeTest {
 
     @Test
     public void testRemoveCommentString() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
 
         boolean result = false;
         try {
@@ -1182,9 +1181,9 @@ public class ConfigNodeTest {
 
     @Test
     public void testAddConfigChangeListener() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
         ConfigListener ccl = new ConfigListener();
-        
+
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
@@ -1197,7 +1196,7 @@ public class ConfigNodeTest {
         assertTrue(result);
 
         root.addConfigChangeListener(ccl);
-        ((TestNode) root).fireConfigChangeEvent("key", "val");
+        root.fireConfigChangeEvent("key", "val");
         assertTrue(ccl.change != null);
         assertSame("key", ccl.change.getKey());
         assertSame("val", ccl.change.getNewValue());
@@ -1205,9 +1204,9 @@ public class ConfigNodeTest {
 
     @Test
     public void testRemoveConfigChangeListener() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
         ConfigListener ccl = new ConfigListener();
-        
+
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
@@ -1223,16 +1222,16 @@ public class ConfigNodeTest {
         root.addConfigChangeListener(ccl);
         root.removeConfigChangeListener(ccl);
 
-        ((TestNode) root).fireConfigChangeEvent("key", "val");
+        root.fireConfigChangeEvent("key", "val");
 
         assertTrue(ccl.change == null);
     }
 
     @Test
     public void testAddNodeChangeListener() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
         NodeListener ncl = new NodeListener();
-        
+
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
@@ -1246,8 +1245,8 @@ public class ConfigNodeTest {
 
         root.addNodeChangeListener(ncl);
 
-        ((TestNode) root).fireChildAddedEvent(null);
-        ((TestNode) root).fireChildRemovedEvent(null);
+        root.fireChildAddedEvent(null);
+        root.fireChildRemovedEvent(null);
 
         assertTrue(ncl.added != null);
         assertTrue(ncl.removed != null);
@@ -1255,9 +1254,9 @@ public class ConfigNodeTest {
 
     @Test
     public void testRemoveNodeChangeListener() {
-        ConfigNode root = new TestNode(null, null);
+        ConfigNode root = doNode();
         NodeListener ncl = new NodeListener();
-        
+
         boolean result = false;
         try {
             ConfigNode removed = root.node("removed");
@@ -1273,8 +1272,8 @@ public class ConfigNodeTest {
         root.addNodeChangeListener(ncl);
         root.removeNodeChangeListener(ncl);
 
-        ((TestNode) root).fireChildAddedEvent(null);
-        ((TestNode) root).fireChildRemovedEvent(null);
+        root.fireChildAddedEvent(null);
+        root.fireChildRemovedEvent(null);
 
         assertTrue(ncl.added == null);
         assertTrue(ncl.removed == null);
