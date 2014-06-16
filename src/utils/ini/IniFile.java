@@ -12,6 +12,10 @@ import utils.config.ConfigNode;
 public class IniFile extends RootNode {
     IniStyle style;
 
+    public IniFile() {
+        super();
+    }
+
     public IniFile(String file) {
         super(file);
         load();
