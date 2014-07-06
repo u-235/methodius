@@ -1037,6 +1037,79 @@ public class ConfigNodeTest {
     }
 
     @Test
+    public void testPutIntArray() {
+        ConfigNode root = doNode();
+        int[] aa = new int[] { 17, 25, 83, 101 };
+        int[] bb = new int[] { 1, 3, 7, -9, 12, 19 };
+        int[] cc = new int[] { 0, -3, 54, 111, 127 };
+
+        boolean result = false;
+        try {
+            ConfigNode removed = root.node("removed");
+            removed.removeNode();
+
+            removed.putIntArray("key", aa);
+        } catch (IllegalStateException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        result = false;
+        try {
+            root.putIntArray(null, cc);
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+        result = false;
+        try {
+            root.putIntArray("key", null);
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        root.putIntArray("ar1", aa);
+        root.putIntArray("ar2", bb);
+        root.putIntArray("ar3", cc);
+
+        assertArrayEquals(aa, root.getIntArray("ar1", null));
+        assertArrayEquals(bb, root.getIntArray("ar2", null));
+        assertArrayEquals(cc, root.getIntArray("ar3", null));
+    }
+
+    @Test
+    public void testGetIntArray() {
+        ConfigNode root = doNode();
+        int[] aa = new int[] { 17, 25, 83, 101 };
+        int[] bb = new int[] { 1, 3, 7, -9, 12, 19 };
+
+        boolean result = false;
+        try {
+            ConfigNode removed = root.node("removed");
+            removed.removeNode();
+
+            removed.getIntArray("key", null);
+        } catch (IllegalStateException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        result = false;
+        try {
+            root.getIntArray(null, aa);
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        root.putIntArray("key", aa);
+        assertArrayEquals(aa, root.getIntArray("key", null));
+        assertArrayEquals(bb, root.getIntArray("no key", bb));
+        assertArrayEquals(null, root.getIntArray("no key", null));
+    }
+
+    @Test
     public void testPutCommentString() {
         ConfigNode root = doNode();
 

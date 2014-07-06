@@ -1,6 +1,8 @@
 
 package utils.config;
 
+import java.awt.Color;
+import java.awt.Rectangle;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -429,10 +431,33 @@ public class ConfigNode {
         }
     }
 
+    /**
+     * Запись нового значения.
+     * 
+     * @param key Имя записи.
+     * @param value Новое значение.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     * @see #remove(String)
+     */
     public void putByte(String key, byte value) {
         put(key, Byte.toString(value));
     }
 
+    /**
+     * Получение значения записи.
+     * 
+     * @param key Имя записи.
+     * @param def Значение по умолчанию, может быть {@code null}.
+     * @return Значение записи или {@code def}, если узел не содержит запись с
+     *         таким именем.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     */
     public byte getByte(String key, byte def) {
         byte ret = def;
         try {
@@ -444,10 +469,33 @@ public class ConfigNode {
         return ret;
     }
 
+    /**
+     * Запись нового значения.
+     * 
+     * @param key Имя записи.
+     * @param value Новое значение.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     * @see #remove(String)
+     */
     public void putShort(String key, short value) {
         put(key, Short.toString(value));
     }
 
+    /**
+     * Получение значения записи.
+     * 
+     * @param key Имя записи.
+     * @param def Значение по умолчанию, может быть {@code null}.
+     * @return Значение записи или {@code def}, если узел не содержит запись с
+     *         таким именем.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     */
     public short getShort(String key, short def) {
         short ret = def;
         try {
@@ -459,10 +507,33 @@ public class ConfigNode {
         return ret;
     }
 
+    /**
+     * Запись нового значения.
+     * 
+     * @param key Имя записи.
+     * @param value Новое значение.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     * @see #remove(String)
+     */
     public void putInt(String key, int value) {
         put(key, Integer.toString(value));
     }
 
+    /**
+     * Получение значения записи.
+     * 
+     * @param key Имя записи.
+     * @param def Значение по умолчанию, может быть {@code null}.
+     * @return Значение записи или {@code def}, если узел не содержит запись с
+     *         таким именем.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     */
     public int getInt(String key, int def) {
         int ret = def;
         try {
@@ -474,10 +545,33 @@ public class ConfigNode {
         return ret;
     }
 
+    /**
+     * Запись нового значения.
+     * 
+     * @param key Имя записи.
+     * @param value Новое значение.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     * @see #remove(String)
+     */
     public void putLong(String key, long value) {
         put(key, Long.toString(value));
     }
 
+    /**
+     * Получение значения записи.
+     * 
+     * @param key Имя записи.
+     * @param def Значение по умолчанию, может быть {@code null}.
+     * @return Значение записи или {@code def}, если узел не содержит запись с
+     *         таким именем.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     */
     public long getLong(String key, long def) {
         long ret = def;
         try {
@@ -489,10 +583,33 @@ public class ConfigNode {
         return ret;
     }
 
+    /**
+     * Запись нового значения.
+     * 
+     * @param key Имя записи.
+     * @param value Новое значение.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     * @see #remove(String)
+     */
     public void putFloat(String key, float value) {
         put(key, Float.toString(value));
     }
 
+    /**
+     * Получение значения записи.
+     * 
+     * @param key Имя записи.
+     * @param def Значение по умолчанию, может быть {@code null}.
+     * @return Значение записи или {@code def}, если узел не содержит запись с
+     *         таким именем.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     */
     public float getFloat(String key, float def) {
         float ret = def;
         try {
@@ -504,10 +621,33 @@ public class ConfigNode {
         return ret;
     }
 
+    /**
+     * Запись нового значения.
+     * 
+     * @param key Имя записи.
+     * @param value Новое значение.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     * @see #remove(String)
+     */
     public void putDouble(String key, double value) {
         put(key, Double.toString(value));
     }
 
+    /**
+     * Получение значения записи.
+     * 
+     * @param key Имя записи.
+     * @param def Значение по умолчанию, может быть {@code null}.
+     * @return Значение записи или {@code def}, если узел не содержит запись с
+     *         таким именем.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     */
     public double getDouble(String key, double def) {
         double ret = def;
         try {
@@ -519,10 +659,33 @@ public class ConfigNode {
         return ret;
     }
 
+    /**
+     * Запись нового значения.
+     * 
+     * @param key Имя записи.
+     * @param value Новое значение.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     * @see #remove(String)
+     */
     public void putBoolean(String key, boolean value) {
         put(key, Boolean.toString(value));
     }
 
+    /**
+     * Получение значения записи.
+     * 
+     * @param key Имя записи.
+     * @param def Значение по умолчанию, может быть {@code null}.
+     * @return Значение записи или {@code def}, если узел не содержит запись с
+     *         таким именем.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     */
     public boolean getBoolean(String key, boolean def) {
         boolean ret = def;
         try {
@@ -534,6 +697,18 @@ public class ConfigNode {
         return ret;
     }
 
+    /**
+     * Запись нового значения.
+     * 
+     * @param key Имя записи.
+     * @param value Новое значение.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws NullPointerException Если {@code value} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     * @see #remove(String)
+     */
     public void putByteArray(String key, byte[] value) {
         StringBuilder sb = new StringBuilder();
         for (byte b : value) {
@@ -543,6 +718,18 @@ public class ConfigNode {
         put(key, sb.toString());
     }
 
+    /**
+     * Получение значения записи.
+     * 
+     * @param key Имя записи.
+     * @param def Значение по умолчанию, может быть {@code null}.
+     * @return Значение записи или {@code def}, если узел не содержит запись с
+     *         таким именем.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     */
     public byte[] getByteArray(String key, byte[] def) {
         byte[] ret = def;
         try {
@@ -558,6 +745,129 @@ public class ConfigNode {
         }
 
         return ret;
+    }
+
+    /**
+     * Запись нового значения.
+     * 
+     * @param key Имя записи.
+     * @param value Новое значение.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws NullPointerException Если {@code value} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     * @see #remove(String)
+     */
+    public void putIntArray(String key, int[] value) {
+        StringBuilder sb = new StringBuilder();
+        for (int b : value) {
+            sb.append(Integer.toString(b));
+            sb.append(' ');
+        }
+        put(key, sb.toString());
+    }
+
+    /**
+     * Получение значения записи.
+     * 
+     * @param key Имя записи.
+     * @param def Значение по умолчанию, может быть {@code null}.
+     * @return Значение записи или {@code def}, если узел не содержит запись с
+     *         таким именем.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     */
+    public int[] getIntArray(String key, int[] def) {
+        int[] ret = def;
+        try {
+            String rec = get(key, null);
+            if (rec != null) {
+                StringTokenizer st = new StringTokenizer(rec, " ", false);
+                ret = new int[st.countTokens()];
+                for (int i = 0; st.hasMoreTokens(); i++) {
+                    ret[i] = Integer.parseInt(st.nextToken());
+                }
+            }
+        } catch (NumberFormatException e) {
+        }
+
+        return ret;
+    }
+
+    /**
+     * Запись нового значения.
+     * 
+     * @param key Имя записи.
+     * @param value Новое значение.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws NullPointerException Если {@code value} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     * @see #remove(String)
+     */
+    public void putColor(String key, Color value) {
+        putInt(key, value.getRGB());
+    }
+
+    /**
+     * Получение значения записи.
+     * 
+     * @param key Имя записи.
+     * @param def Значение по умолчанию, может быть {@code null}.
+     * @return Значение записи или {@code def}, если узел не содержит запись с
+     *         таким именем.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     */
+    public Color getColor(String key, Color def) {
+        try {
+            String rec = get(key, null);
+            if (rec != null) return new Color(Integer.parseInt(rec));
+        } catch (NumberFormatException e) {
+        }
+
+        return def;
+    }
+
+    /**
+     * Запись нового значения.
+     * 
+     * @param key Имя записи.
+     * @param value Новое значение.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws NullPointerException Если {@code value} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     * @see #remove(String)
+     */
+    public void putRectangle(String key, Rectangle value) {
+        putIntArray(key, new int[] { value.x, value.y, value.width,
+                value.height });
+    }
+
+    /**
+     * Получение значения записи.
+     * 
+     * @param key Имя записи.
+     * @param def Значение по умолчанию, может быть {@code null}.
+     * @return Значение записи или {@code def}, если узел не содержит запись с
+     *         таким именем.
+     * 
+     * @throws NullPointerException Если {@code key} равен {@code null}.
+     * @throws IllegalStateException Если текущий узел (или его предок) был
+     *             удалён вызовом {@link #removeNode()}.
+     */
+    public Rectangle getRectangle(String key, Rectangle def) {
+        int[] pt = getIntArray(key, null);
+        if (pt == null || pt.length < 4) return def;
+        return new Rectangle(pt[0], pt[1], pt[2], pt[3]);
     }
 
     /**

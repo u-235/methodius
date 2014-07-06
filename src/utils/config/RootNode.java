@@ -11,16 +11,14 @@ import java.io.OutputStream;
 import java.util.logging.Level;
 
 public abstract class RootNode extends ConfigNode {
-    File   file;
-    String fName;
+    File file;
 
     public RootNode() {
         super(null, null);
     }
 
     public RootNode(String name) {
-        this();
-        fName = name;
+        this(new File(name));
     }
 
     public RootNode(File file) {
@@ -28,16 +26,28 @@ public abstract class RootNode extends ConfigNode {
         this.file = file;
     }
 
-    public final void load() {
-        if (fName != null) load(fName);
-        else if (file != null) load(file);
+    public void setFile(File f) {
+        file = f;
     }
 
-    public final void load(String name) {
+    public void setFile(String name) {
+        if (name == null) file = null;
+        else file = new File(name);
+    }
+
+    public File getFile() {
+        return file;
+    }
+
+    public final synchronized void load() {
+        if (file != null) load(file);
+    }
+
+    public final synchronized void load(String name) {
         load(new File(name));
     }
 
-    public final void load(File file) {
+    public final synchronized void load(File file) {
         FileInputStream in;
 
         if (file == null) {
@@ -68,16 +78,15 @@ public abstract class RootNode extends ConfigNode {
 
     protected abstract void loadS(InputStream in) throws IOException;
 
-    public final void save() {
-        if (fName != null) save(fName);
-        else if (file != null) save(file);
+    public final synchronized void save() {
+        if (file != null) save(file);
     }
 
-    public final void save(String name) {
+    public final synchronized void save(String name) {
         save(new File(name));
     }
 
-    public final void save(File file) {
+    public final synchronized void save(File file) {
         FileOutputStream out;
 
         if (file == null) {

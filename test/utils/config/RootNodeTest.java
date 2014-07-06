@@ -35,7 +35,6 @@ public class RootNodeTest extends ConfigNodeTest {
         @Override
         protected void saveS(OutputStream out) throws IOException {
             // TODO Auto-generated method stub
-
         }
     }
 
@@ -74,16 +73,14 @@ public class RootNodeTest extends ConfigNodeTest {
     public void testRootNode() {
         RootNode root = doRoot();
 
-        assertSame(null, root.fName);
         assertSame(null, root.file);
     }
 
     @Test
     public void testRootNodeString() {
-        RootNode root = doRoot(TEST_FILE);
+        RootNode root = doRoot("some_file.txt");
 
-        assertSame(TEST_FILE, root.fName);
-        assertSame(null, root.file);
+        assertTrue(root.getFile().compareTo(new File("some_file.txt")) == 0);
     }
 
     @Test
@@ -91,8 +88,7 @@ public class RootNodeTest extends ConfigNodeTest {
         File file = new File(TEST_FILE);
         RootNode root = doRoot(file);
 
-        assertSame(null, root.fName);
-        assertSame(file, root.file);
+        assertSame(file, root.getFile());
     }
 
     @Test
