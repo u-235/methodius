@@ -69,7 +69,7 @@ import utils.event.ListenerChain;
  * Для записи в журнал используйте статический метод {@link #logger()}.
  */
 public class AbstractMFont implements PixselMapListener, PropertyChangeListener {
-    public static final String MFONT_LOGGER_NAME  = "methodius.microfont";
+    public static final String LOGGER             = "methodius.microfont";
     public static final String PROPERTY_CODE_PAGE = "mf.CodePage";
     public static final String PROPERTY_CHARSET   = "mf.CharSet";
     public static final String PROPERTY_FIXSED    = "mf.fixsed";
@@ -77,7 +77,7 @@ public class AbstractMFont implements PixselMapListener, PropertyChangeListener 
     public static final String PROPERTY_SYMBOLS   = "mf.symbols";
     public static final String PROPERTY_WIDTH     = "mf.width";
 
-    private static Logger      log                = Logger.getLogger(MFONT_LOGGER_NAME);
+    private static Logger      log                = Logger.getLogger(LOGGER);
     private MSymbol[]          symbols;
     private boolean            fixsed;
     private String             codePage;

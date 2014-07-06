@@ -93,23 +93,16 @@ public class IniFile extends RootNode {
 
         @Override
         public void error(int state, int ch, int line, int col) {
-            // XXX print
-            log.log(Level.CONFIG, "error at " + line + " line in " + col
-                            + " column, character code point = " + ch);
         }
 
         @Override
         public void comment(String com) {
-            // XXX print
-            log.log(Level.CONFIG, "comments : " + com);
             if (comment == null) comment = com;
             else comment = comment + "\n" + com;
         }
 
         @Override
         public void section(String sec) {
-            // XXX print
-            log.log(Level.CONFIG, "section  : " + sec);
             work = work.root().node(sec);
             if (comment != null) {
                 work.putComment(comment);
@@ -119,16 +112,11 @@ public class IniFile extends RootNode {
 
         @Override
         public void key(String k) {
-            // XXX print
-            log.log(Level.CONFIG, "key      : " + k);
             key = k;
         }
 
         @Override
         public void value(String value) {
-            // XXX print
-            log.log(Level.CONFIG, "value    : {0}", value);
-
             if (key != null) {
                 work.put(key, value);
                 if (comment != null) {

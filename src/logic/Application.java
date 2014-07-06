@@ -65,17 +65,14 @@ public class Application {
     Resource                   res;
 
     public Application() {
-        // TODO Auto-generated constructor stub
-
-        String dir = System.getProperty("user.dir");
-        dir = this.getClass().getClassLoader().getResource("").getPath();
+        String dir = this.getClass().getClassLoader().getResource("").getPath();
 
         config = new IniFile(dir + "methodius.ini");
         config.load();
 
         String l = config.node("user").get("locale", null);
         if (l == null) loc = Locale.getDefault();
-        else loc =new Locale(l);
+        else loc = new Locale(l);
 
         res = new Resource("locale/MainForm", loc);
         res.setIconPath("icons/16/");

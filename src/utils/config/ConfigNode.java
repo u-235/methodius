@@ -72,10 +72,11 @@ public class ConfigNode {
     private String                          nodeComment;
     protected final Map<String, String>     comments;
     private boolean                         removed;
+    public static final String              LOGGER = "u235.utils.config";
     protected final static Logger           log;
 
     static {
-        log = Logger.getLogger("u235.utils.config");
+        log = Logger.getLogger(LOGGER);
     }
 
     /**

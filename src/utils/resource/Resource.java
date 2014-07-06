@@ -16,7 +16,7 @@ import utils.event.ListenerChain;
 
 public class Resource implements Cloneable {
     /**  */
-    public static final String    RESOURCE_LOGGER_NAME       = "resource.logger";
+    public static final String    LOGGER                     = "resource.logger";
     public static final String    TEXT_NAME_KEY              = "text";
     public static final String    TEXT_TIP_KEY               = "tooltip";
     public static final String    TEXT_HELP_KEY              = "help";
@@ -45,7 +45,7 @@ public class Resource implements Cloneable {
     private ListenerChain         listeners                  = new ListenerChain();
 
     static {
-        log = Logger.getLogger(RESOURCE_LOGGER_NAME);
+        log = Logger.getLogger(LOGGER);
     }
 
     public Resource(String baseName, Locale locale, ClassLoader loader) {
@@ -149,8 +149,8 @@ public class Resource implements Cloneable {
             return null;
         }
 
-        ImageIcon ret=new ImageIcon(link);
-        if (ret.getImageLoadStatus() != MediaTracker.COMPLETE){
+        ImageIcon ret = new ImageIcon(link);
+        if (ret.getImageLoadStatus() != MediaTracker.COMPLETE) {
             log.log(Level.CONFIG, "Can''t load icon {0}", link);
             return null;
         }
