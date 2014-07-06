@@ -2,11 +2,10 @@
 package utils.resource;
 
 import java.awt.Image;
+import java.awt.MediaTracker;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.File;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -145,25 +144,17 @@ public class Resource implements Cloneable {
             link = new URL(iconPath, name);
         } catch (MalformedURLException e1) {
             log.log(Level.WARNING,
-                            "malformed URL. Path is {0}\nFile name is {1}",
+                            "Malformed URL. Path is {0}\nFile name is {1}",
                             new Object[] { iconPath.toString(), name });
             return null;
         }
 
-        try {
-            if (!new File(link.toURI()).canRead()) {
-                log.log(Level.CONFIG, "Can''t read file {0}", link.toString());
-                return null;
-            }
-        } catch (URISyntaxException e) {
-            log.log(Level.WARNING, "URL to URI error {0}", link.toString());
-            return null;
-        } catch (IllegalArgumentException e) {
-            log.log(Level.WARNING, "bad URL {0}", link.toString());
+        ImageIcon ret=new ImageIcon(link);
+        if (ret.getImageLoadStatus() != MediaTracker.COMPLETE){
+            log.log(Level.CONFIG, "Can''t load icon {0}", link);
             return null;
         }
-
-        return new ImageIcon(link);
+        return ret;
     }
 
     public ImageIcon getIcon(String name, String state) {
