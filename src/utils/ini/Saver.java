@@ -34,7 +34,7 @@ public class Saver {
      * перевода строки на \r и \n
      */
     private static String checkString(String s) {
-        if (s.isEmpty()) return null;
+        if (s.isEmpty()) return s;
 
         s = s.replace("\\", "\\\\");
         s = s.replace("\n", "\\n");
@@ -77,7 +77,8 @@ public class Saver {
 
     public void key(String key, String value) throws IOException {
         if (key == null) throw (new IllegalArgumentException("key is null"));
-        if (key.isEmpty()) throw (new IllegalArgumentException("key is empty"));
+        if (key.isEmpty())
+            throw (new IllegalArgumentException("key is empty"));
 
         out.write(key);
         out.write(" = ");

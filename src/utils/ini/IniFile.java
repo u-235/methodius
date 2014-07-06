@@ -18,24 +18,20 @@ public class IniFile extends RootNode {
 
     public IniFile(String file) {
         super(file);
-        load();
     }
 
     public IniFile(String file, IniStyle style) {
         super(file);
         this.style = style;
-        load();
     }
 
     public IniFile(File file) {
         super(file);
-        load();
     }
 
     public IniFile(File file, IniStyle style) {
         super(file);
         this.style = style;
-        load();
     }
 
     @Override
@@ -52,6 +48,7 @@ public class IniFile extends RootNode {
             svr.close();
             throw e;
         }
+        svr.close();
     }
 
     protected void save(ConfigNode node, Saver svr) throws IOException {
