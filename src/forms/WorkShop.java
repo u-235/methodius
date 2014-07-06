@@ -19,6 +19,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import utils.resource.Resource;
 import logic.Application;
+import static logic.Application.*;
 
 public class WorkShop extends JFrame {
     private static final long serialVersionUID = 1L;
@@ -55,7 +56,7 @@ public class WorkShop extends JFrame {
 
         mb = new JMenuBar();
 
-        mFile = new IMenu(Application.res.getString("menubar.file",
+        mFile = new IMenu(resource().getString("menubar.file",
                         Resource.TEXT_NAME_KEY));
         mFile.add(am.get(Application.ON_OPEN_FONT));
         mFile.add(am.get(Application.ON_NEW_FONT));
@@ -68,12 +69,12 @@ public class WorkShop extends JFrame {
         mFile.add(am.get(Application.ON_EXIT));
         mb.add(mFile);
 
-        mEdit = new IMenu(Application.res.getString("menubar.edit",
+        mEdit = new IMenu(resource().getString("menubar.edit",
                         Resource.TEXT_NAME_KEY));
         mEdit.add(am.get(Application.ON_UNDO));
         mEdit.add(am.get(Application.ON_REDO));
         mEdit.addSeparator();
-        shift = new JMenu(Application.res.getString("shift",
+        shift = new JMenu(resource().getString("shift",
                         Resource.TEXT_NAME_KEY));
         shift.add(am.get(Application.ON_SHIFT_LEFT));
         shift.add(am.get(Application.ON_SHIFT_RIGHT));
@@ -81,20 +82,20 @@ public class WorkShop extends JFrame {
         shift.add(am.get(Application.ON_SHIFT_DOWN));
         mEdit.add(shift);
         mEdit.addSeparator();
-        refl = new JMenu(Application.res.getString("reflect",
+        refl = new JMenu(resource().getString("reflect",
                         Resource.TEXT_NAME_KEY));
         refl.add(am.get(Application.ON_REFLECT_HOR));
         refl.add(am.get(Application.ON_REFLECT_VERT));
         mEdit.add(refl);
         mb.add(mEdit);
 
-        mView = new IMenu(Application.res.getString("menubar.view",
+        mView = new IMenu(resource().getString("menubar.view",
                         Resource.TEXT_NAME_KEY));
         mb.add(mView);
 
-        mTools = new IMenu(Application.res.getString("menubar.tools",
+        mTools = new IMenu(resource().getString("menubar.tools",
                         Resource.TEXT_NAME_KEY));
-        mode = new IMenu(Application.res.getString("mode",
+        mode = new IMenu(resource().getString("mode",
                         Resource.TEXT_NAME_KEY));
         mode.add(new ICheckBoxMenuItem(am.get(Application.ON_MODE_POINTER)));
         mode.add(new ICheckBoxMenuItem(am.get(Application.ON_MODE_XPENSIL)));
@@ -103,7 +104,7 @@ public class WorkShop extends JFrame {
         mTools.add(mode);
         mb.add(mTools);
 
-        mHelp = new IMenu(Application.res.getString("menubar.help",
+        mHelp = new IMenu(resource().getString("menubar.help",
                         Resource.TEXT_NAME_KEY));
         mb.add(mHelp);
 

@@ -184,8 +184,8 @@ public class AbstractMFont implements PixselMapListener, PropertyChangeListener 
     @Override
     public AbstractMFont clone() {
         AbstractMFont ret = new AbstractMFont();
-    
-        ret.copy(this);    
+
+        ret.copy(this);
         return ret;
     }
 

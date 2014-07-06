@@ -1,6 +1,7 @@
 
 package logic;
 
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -8,8 +9,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.util.Locale;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
@@ -24,6 +24,8 @@ import microfont.Document;
 import microfont.MFont;
 import microfont.MSymbol;
 import microfont.ls.MFontLoadSave;
+import utils.config.RootNode;
+import utils.ini.IniFile;
 import utils.resource.Resource;
 import forms.EditPanel;
 import forms.FontPanel;
@@ -32,35 +34,75 @@ import forms.WorkShop;
 import gui.ActionX;
 
 public class Application {
-    public static final String            NAME             = "Methodius";
-    public static final int               VER_MAJOR        = 0;
-    public static final int               VER_MINOR        = 8;
+    public static final String NAME             = "Methodius";
+    public static final int    VER_MAJOR        = 0;
+    public static final int    VER_MINOR        = 8;
 
-    public static final String            ON_NEW_FONT      = "font.new";
-    public static final String            ON_OPEN_FONT     = "font.open";
-    public static final String            ON_SAVE_FONT     = "font.save";
-    public static final String            ON_SAVE_AS       = "font.save.as";
-    public static final String            ON_UNDO          = "undo";
-    public static final String            ON_REDO          = "redo";
-    public static final String            ON_REFLECT_HOR   = "refl.hor";
-    public static final String            ON_REFLECT_VERT  = "refl.vert";
-    public static final String            ON_PROPERTIES    = "font.prop";
-    public static final String            ON_EXIT          = "exit";
-    public static final String            ON_SHIFT_LEFT    = "shift.left";
-    public static final String            ON_SHIFT_RIGHT   = "shift.right";
-    public static final String            ON_SHIFT_UP      = "shift.up";
-    public static final String            ON_SHIFT_DOWN    = "shift.down";
-    public static final String            ON_MODE_POINTER  = "mode.point";
-    public static final String            ON_MODE_XPENSIL  = "mode.x.pensil";
-    public static final String            ON_MODE_PENSIL   = "mode.pensil";
-    public static final String            ON_MODE_RUBER    = "mode.ruber";
-    public static final String            ON_SYMBOL_CHANGE = "symbol.change";
-    public static final String            ON_HEAP_SIZE     = "heap.size";
+    public static final String ON_NEW_FONT      = "font.new";
+    public static final String ON_OPEN_FONT     = "font.open";
+    public static final String ON_SAVE_FONT     = "font.save";
+    public static final String ON_SAVE_AS       = "font.save.as";
+    public static final String ON_UNDO          = "undo";
+    public static final String ON_REDO          = "redo";
+    public static final String ON_REFLECT_HOR   = "refl.hor";
+    public static final String ON_REFLECT_VERT  = "refl.vert";
+    public static final String ON_PROPERTIES    = "font.prop";
+    public static final String ON_EXIT          = "exit";
+    public static final String ON_SHIFT_LEFT    = "shift.left";
+    public static final String ON_SHIFT_RIGHT   = "shift.right";
+    public static final String ON_SHIFT_UP      = "shift.up";
+    public static final String ON_SHIFT_DOWN    = "shift.down";
+    public static final String ON_MODE_POINTER  = "mode.point";
+    public static final String ON_MODE_XPENSIL  = "mode.x.pensil";
+    public static final String ON_MODE_PENSIL   = "mode.pensil";
+    public static final String ON_MODE_RUBER    = "mode.ruber";
+    public static final String ON_SYMBOL_CHANGE = "symbol.change";
+    public static final String ON_HEAP_SIZE     = "heap.size";
 
-    public static Resource                res;
-    
+    static Application         SINGLE           = new Application();
+    RootNode                   config;
+    Locale                     loc;
+    Resource                   res;
+
+    public Application() {
+        // TODO Auto-generated constructor stub
+
+        String dir = System.getProperty("user.dir");
+        dir = this.getClass().getClassLoader().getResource("").getPath();
+
+        config = new IniFile(dir + "methodius.ini");
+        config.load();
+
+        String l = config.node("user").get("locale", null);
+        if (l == null) loc = Locale.getDefault();
+        else loc =new Locale(l);
+
+        res = new Resource("locale/MainForm", loc);
+        res.setIconPath("icons/16/");
+    }
+
+    public static RootNode config() {
+        return SINGLE.config;
+    }
+
+    public static Locale locale() {
+        return SINGLE.loc;
+    }
+
+    public static void locale(Locale loc) {
+        SINGLE.setLocale(loc);
+    }
+
+    private void setLocale(Locale loc) {
+        this.loc = loc;
+    }
+
+    public static Resource resource() {
+        return SINGLE.res;
+    }
+
     static File                           fontFile;
-    static String                         fontName         = "new font";
+    static String                         fontName = "new font";
     static boolean                        fontSaved;
     public static boolean                 exit;
 
@@ -115,9 +157,6 @@ public class Application {
 
         doc = new Document();
 
-        res = new Resource("locale/MainForm");
-        res.setIconPath("icons/16/");
-        
         atFontChange = new OnFontChange();
 
         actions = doActions();
@@ -139,6 +178,9 @@ public class Application {
             @Override
             public void windowClosed(WindowEvent e) {
                 exit = true;
+                config().node("apperance").putRectangle("position",
+                                work.getBounds());
+                config().save();
             }
         });
         editPanel = new EditPanel(actions);
@@ -151,7 +193,14 @@ public class Application {
         // updateTitle();
         setSaved(true);
 
-        work.pack();
+        Rectangle pos = config().node("apperance").getRectangle("position",
+                        null);
+
+        if (pos == null) {
+            work.pack();
+        } else {
+            work.setBounds(pos);
+        }
         work.setVisible(true);
 
         new Thread() {
@@ -205,7 +254,7 @@ public class Application {
             FileNameExtensionFilter filter = new FileNameExtensionFilter(
                             "MicroFont", "mfnt");
             chooserSave.setFileFilter(filter);
-            chooserSave.setDialogTitle("Save font as.");
+            chooserSave.setDialogTitle("Сохранить шрифт как...");
             chooserSave.setAcceptAllFileFilterUsed(false);
             chooserSave.setFileSelectionMode(JFileChooser.FILES_ONLY);
         }
@@ -238,11 +287,15 @@ public class Application {
     public static boolean checkSaveFont() {
         int r;
         if (fontSaved) return true;
+        Object[] options = { "Сохранить", "Забить", "Отменить" };
 
-        r = JOptionPane.showConfirmDialog(
+        r = JOptionPane.showOptionDialog(
                         null,
-                        new String[] { "Current file has changed, but not saved.\nSave it?\nAlso your may cancel this operation." },
-                        "alert", JOptionPane.YES_NO_CANCEL_OPTION);
+                        "Файл\n"
+                                        + fontFile.getAbsolutePath()
+                                        + "\nбыл изменён, но не сохранён. Сохранить его?\nИли отменить.",
+                        "Чё делать???", JOptionPane.YES_NO_CANCEL_OPTION,
+                        JOptionPane.QUESTION_MESSAGE, null, options, options[2]);
 
         if (r == JOptionPane.CANCEL_OPTION || r == JOptionPane.CLOSED_OPTION)
             return false;
@@ -256,11 +309,19 @@ public class Application {
         while (true) {
             int returnVal = chooserSave.showSaveDialog(work);
             ret = chooserSave.getSelectedFile();
-            if (returnVal != JFileChooser.APPROVE_OPTION) return null;
+            if (ret == null || returnVal != JFileChooser.APPROVE_OPTION) {
+                JOptionPane.showMessageDialog(null, "Файл не выбран, печаль((",
+                                "Твою мать!", JOptionPane.WARNING_MESSAGE);
+                return null;
+            }
+            // if (returnVal != JFileChooser.APPROVE_OPTION) return null;
             if (!ret.exists()) break;
-            returnVal = JOptionPane.showConfirmDialog(null,
-                            "Selected file already exsist.\nOwerride it?",
-                            "warning", JOptionPane.YES_NO_OPTION);
+            Object[] options = { "Канешна", "Чо, дурак???" };
+            returnVal = JOptionPane.showOptionDialog(null,
+                            "Выбранный файл существует.\nПерезаписать его?",
+                            "Опа-на", JOptionPane.YES_NO_OPTION,
+                            JOptionPane.WARNING_MESSAGE, null, options,
+                            options[1]);
             if (returnVal == JOptionPane.YES_OPTION) break;
         }
 
@@ -372,7 +433,7 @@ public class Application {
         private static final long serialVersionUID = 1L;
 
         public OnNew() {
-            super("new", res);
+            super("new", resource());
         }
 
         @Override
@@ -384,7 +445,7 @@ public class Application {
         private static final long serialVersionUID = 1L;
 
         public OnOpen() {
-            super("open", res);
+            super("open", resource());
         }
 
         @Override
@@ -441,7 +502,7 @@ public class Application {
         private static final long serialVersionUID = 1L;
 
         public OnSave() {
-            super("save", res);
+            super("save", resource());
         }
 
         @Override
@@ -454,7 +515,7 @@ public class Application {
         private static final long serialVersionUID = 1L;
 
         public OnSaveAs() {
-            super("save.as", res);
+            super("save.as", resource());
         }
 
         @Override
@@ -467,7 +528,7 @@ public class Application {
         private static final long serialVersionUID = 1L;
 
         public OnUndo() {
-            super("undo", res);
+            super("undo", resource());
         }
 
         @Override
@@ -484,7 +545,7 @@ public class Application {
         private static final long serialVersionUID = 1L;
 
         public OnRedo() {
-            super("redo", res);
+            super("redo", resource());
         }
 
         @Override
@@ -501,7 +562,7 @@ public class Application {
         private static final long serialVersionUID = 1L;
 
         public OnReflectHorz() {
-            super("reflect.horizontale", res);
+            super("reflect.horizontale", resource());
         }
 
         @Override
@@ -520,7 +581,7 @@ public class Application {
         private static final long serialVersionUID = 1L;
 
         public OnReflectVert() {
-            super("reflect.verticale", res);
+            super("reflect.verticale", resource());
         }
 
         @Override
@@ -539,7 +600,7 @@ public class Application {
         private static final long serialVersionUID = 1L;
 
         public OnShiftLeft() {
-            super("shift.left", res);
+            super("shift.left", resource());
         }
 
         @Override
@@ -558,7 +619,7 @@ public class Application {
         private static final long serialVersionUID = 1L;
 
         public OnShiftRight() {
-            super("shift.right", res);
+            super("shift.right", resource());
         }
 
         @Override
@@ -577,7 +638,7 @@ public class Application {
         private static final long serialVersionUID = 1L;
 
         public OnShiftUp() {
-            super("shift.up", res);
+            super("shift.up", resource());
         }
 
         @Override
@@ -596,7 +657,7 @@ public class Application {
         private static final long serialVersionUID = 1L;
 
         public OnShiftDown() {
-            super("shift.down", res);
+            super("shift.down", resource());
         }
 
         @Override
@@ -615,7 +676,7 @@ public class Application {
         private static final long serialVersionUID = 1L;
 
         public OnExit() {
-            super("exit", res);
+            super("exit", resource());
         }
 
         @Override
@@ -629,14 +690,14 @@ public class Application {
         private static final long serialVersionUID = 1L;
 
         public OnProperties() {
-            super("properties", res);
+            super("properties", resource());
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
             MFont font = doc.getFont();
             MFont c;
-            if (fpf == null) fpf = new FontProperties(work, res);
+            if (fpf == null) fpf = new FontProperties(work, resource());
 
             if (font == null) return;
             c = font.clone();
@@ -654,7 +715,7 @@ public class Application {
         private static final long serialVersionUID = 1L;
 
         public OnModeXPensil() {
-            super("mode.xpensil", res);
+            super("mode.xpensil", resource());
         }
 
         @Override
@@ -668,7 +729,7 @@ public class Application {
         private static final long serialVersionUID = 1L;
 
         public OnModePensil() {
-            super("mode.pensil", res);
+            super("mode.pensil", resource());
         }
 
         @Override
@@ -682,7 +743,7 @@ public class Application {
         private static final long serialVersionUID = 1L;
 
         public OnModeRuber() {
-            super("mode.ruber", res);
+            super("mode.ruber", resource());
         }
 
         @Override
@@ -696,7 +757,7 @@ public class Application {
         private static final long serialVersionUID = 1L;
 
         public OnModePointer() {
-            super("mode.pointer", res);
+            super("mode.pointer", resource());
         }
 
         @Override
