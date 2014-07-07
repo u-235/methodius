@@ -811,7 +811,9 @@ public class ConfigNode {
      * @see #remove(String)
      */
     public void putColor(String key, Color value) {
-        putInt(key, value.getRGB());
+        putIntArray(key,
+                        new int[] { value.getRed(), value.getGreen(),
+                                value.getBlue() });
     }
 
     /**
@@ -827,13 +829,10 @@ public class ConfigNode {
      *             удалён вызовом {@link #removeNode()}.
      */
     public Color getColor(String key, Color def) {
-        try {
-            String rec = get(key, null);
-            if (rec != null) return new Color(Integer.parseInt(rec));
-        } catch (NumberFormatException e) {
-        }
-
-        return def;
+        int[] pt = getIntArray(key, null);
+        if (pt == null || pt.length < 3) return def;
+        if (pt.length == 3) return new Color(pt[0], pt[1], pt[2]);
+        return new Color(pt[0], pt[1], pt[2], pt[4]);
     }
 
     /**
