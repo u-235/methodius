@@ -9,6 +9,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Locale;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -63,16 +65,28 @@ public class Application {
     RootNode                   config;
     Locale                     loc;
     Resource                   res;
+    File                       lastDir;
 
     public Application() {
-        String dir = this.getClass().getClassLoader().getResource("").getPath();
+        File dir;
+        try {
+            dir = new File(URLDecoder.decode(getClass().getClassLoader().getResource("").getPath(),"UTF-8"));
 
-        config = new IniFile(dir + "methodius.ini");
+        } catch (UnsupportedEncodingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            dir =new File("");
+        }
+        
+        config = new IniFile(new File(dir, "methodius.ini"));
         config.load();
 
         String l = config.node("user").get("locale", null);
         if (l == null) loc = Locale.getDefault();
         else loc = new Locale(l);
+
+        lastDir = new File(config.node("files").get("last",
+                        new File(dir, "microfonts").getPath()));
 
         res = new Resource("locale/MainForm", loc);
         res.setIconPath("icons/16/");
@@ -304,6 +318,8 @@ public class Application {
         File ret;
         doChooserSave();
         while (true) {
+
+            chooserSave.setCurrentDirectory(SINGLE.lastDir);
             int returnVal = chooserSave.showSaveDialog(work);
             ret = chooserSave.getSelectedFile();
             if (ret == null || returnVal != JFileChooser.APPROVE_OPTION) {
@@ -331,6 +347,9 @@ public class Application {
                 name = name.substring(0, i);
             name += ".mfnt";
             ret = new File(ret.getParentFile(), name);
+
+            SINGLE.lastDir = ret;
+            config().node("files").put("last", ret.getParentFile().getPath());
         }
 
         return ret;
@@ -454,12 +473,17 @@ public class Application {
 
             doChooserOpen();
 
+            chooserOpen.setCurrentDirectory(SINGLE.lastDir);
+
             int returnVal = chooserOpen.showOpenDialog(work);
             if (returnVal == JFileChooser.APPROVE_OPTION) file = chooserOpen
                             .getSelectedFile();
             else return;
 
             if (file == null) return;
+
+            SINGLE.lastDir = file;
+            config().node("files").put("last", file.getParentFile().getPath());
 
             try {
                 font = MFontLoadSave.load(file, null);
