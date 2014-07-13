@@ -28,6 +28,7 @@ import microfont.MSymbol;
 import microfont.ls.MFontLoadSave;
 import utils.config.RootNode;
 import utils.ini.IniFile;
+import utils.recent.RecentFiles;
 import utils.resource.Resource;
 import forms.EditPanel;
 import forms.FontPanel;
@@ -65,31 +66,35 @@ public class Application {
     RootNode                   config;
     Locale                     loc;
     Resource                   res;
-    File                       lastDir;
+    File                       runDir;
+    File                       workDir;
+    RecentFiles                files;
 
     public Application() {
-        File dir;
         try {
-            dir = new File(URLDecoder.decode(getClass().getClassLoader().getResource("").getPath(),"UTF-8"));
+            runDir = new File(URLDecoder.decode(getClass().getClassLoader()
+                            .getResource("").getPath(), "UTF-8"));
 
         } catch (UnsupportedEncodingException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-            dir =new File("");
+            runDir = new File("");
         }
-        
-        config = new IniFile(new File(dir, "methodius.ini"));
+
+        config = new IniFile(new File(runDir, "methodius.ini"));
         config.load();
 
         String l = config.node("user").get("locale", null);
         if (l == null) loc = Locale.getDefault();
         else loc = new Locale(l);
 
-        lastDir = new File(config.node("files").get("last",
-                        new File(dir, "microfonts").getPath()));
+        workDir = new File(config.node("files").get("last",
+                        new File(runDir, "microfonts").getPath()));
 
         res = new Resource("locale/MainForm", loc);
         res.setIconPath("icons/16/");
+
+        files = new RecentFiles();
     }
 
     public static RootNode config() {
@@ -102,6 +107,10 @@ public class Application {
 
     public static void locale(Locale loc) {
         SINGLE.setLocale(loc);
+    }
+
+    public static RecentFiles files() {
+        return SINGLE.files;
     }
 
     private void setLocale(Locale loc) {
@@ -319,7 +328,7 @@ public class Application {
         doChooserSave();
         while (true) {
 
-            chooserSave.setCurrentDirectory(SINGLE.lastDir);
+            chooserSave.setCurrentDirectory(SINGLE.workDir);
             int returnVal = chooserSave.showSaveDialog(work);
             ret = chooserSave.getSelectedFile();
             if (ret == null || returnVal != JFileChooser.APPROVE_OPTION) {
@@ -348,7 +357,7 @@ public class Application {
             name += ".mfnt";
             ret = new File(ret.getParentFile(), name);
 
-            SINGLE.lastDir = ret;
+            SINGLE.workDir = ret;
             config().node("files").put("last", ret.getParentFile().getPath());
         }
 
@@ -473,7 +482,7 @@ public class Application {
 
             doChooserOpen();
 
-            chooserOpen.setCurrentDirectory(SINGLE.lastDir);
+            chooserOpen.setCurrentDirectory(SINGLE.workDir);
 
             int returnVal = chooserOpen.showOpenDialog(work);
             if (returnVal == JFileChooser.APPROVE_OPTION) file = chooserOpen
@@ -482,7 +491,7 @@ public class Application {
 
             if (file == null) return;
 
-            SINGLE.lastDir = file;
+            SINGLE.workDir = file;
             config().node("files").put("last", file.getParentFile().getPath());
 
             try {
@@ -493,13 +502,16 @@ public class Application {
                 return;
             }
 
-            if (font == null)
+            if (font == null) {
                 JOptionPane.showMessageDialog(null, "Error on load font.",
                                 "Error", JOptionPane.OK_OPTION);
+                return;
+            }
 
             undoCount = 0;
             updateUndoRedo();
             fontFile = file;
+            files().setLastFile(file, font.getName());
             setMFont(font);
         }
     }

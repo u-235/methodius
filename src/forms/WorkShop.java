@@ -63,6 +63,7 @@ public class WorkShop extends JFrame {
         mFile.addSeparator();
         mFile.add(am.get(Application.ON_SAVE_FONT));
         mFile.add(am.get(Application.ON_SAVE_AS));
+        mFile.add(files().menu());
         mFile.addSeparator();
         mFile.add(am.get(Application.ON_PROPERTIES));
         mFile.addSeparator();
@@ -74,16 +75,15 @@ public class WorkShop extends JFrame {
         mEdit.add(am.get(Application.ON_UNDO));
         mEdit.add(am.get(Application.ON_REDO));
         mEdit.addSeparator();
-        shift = new JMenu(resource().getString("shift",
-                        Resource.TEXT_NAME_KEY));
+        shift = new JMenu(resource().getString("shift", Resource.TEXT_NAME_KEY));
         shift.add(am.get(Application.ON_SHIFT_LEFT));
         shift.add(am.get(Application.ON_SHIFT_RIGHT));
         shift.add(am.get(Application.ON_SHIFT_UP));
         shift.add(am.get(Application.ON_SHIFT_DOWN));
         mEdit.add(shift);
         mEdit.addSeparator();
-        refl = new JMenu(resource().getString("reflect",
-                        Resource.TEXT_NAME_KEY));
+        refl = new JMenu(resource()
+                        .getString("reflect", Resource.TEXT_NAME_KEY));
         refl.add(am.get(Application.ON_REFLECT_HOR));
         refl.add(am.get(Application.ON_REFLECT_VERT));
         mEdit.add(refl);
@@ -95,8 +95,7 @@ public class WorkShop extends JFrame {
 
         mTools = new IMenu(resource().getString("menubar.tools",
                         Resource.TEXT_NAME_KEY));
-        mode = new IMenu(resource().getString("mode",
-                        Resource.TEXT_NAME_KEY));
+        mode = new IMenu(resource().getString("mode", Resource.TEXT_NAME_KEY));
         mode.add(new ICheckBoxMenuItem(am.get(Application.ON_MODE_POINTER)));
         mode.add(new ICheckBoxMenuItem(am.get(Application.ON_MODE_XPENSIL)));
         mode.add(new ICheckBoxMenuItem(am.get(Application.ON_MODE_PENSIL)));
