@@ -63,7 +63,7 @@ public class MSymbolView extends AbstractView {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        
+
         if (code != null)
             g.drawString(code, elementsPos[ELEMENT_INDEX_CODE].x,
                             elementsPos[ELEMENT_INDEX_CODE].y + 20);

@@ -19,7 +19,7 @@ public class IniStyle {
     }
 
     public boolean isLineEnd(int ch) {
-        return ch =='\n' || ch=='\r';
+        return ch == '\n' || ch == '\r';
     }
 
     public boolean isWhiteSpace(int ch) {

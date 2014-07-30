@@ -1,3 +1,4 @@
+
 package microfont.gui;
 
 import java.awt.Component;
@@ -7,11 +8,11 @@ import java.awt.LayoutManager;
 import java.awt.Rectangle;
 
 public class MSymbolEditorLayout implements LayoutManager {
-    Dimension pref;
+    Dimension     pref;
     MSymbolEditor owner;
 
-    public  MSymbolEditorLayout( MSymbolEditor editor) {
-        owner=editor;
+    public MSymbolEditorLayout(MSymbolEditor editor) {
+        owner = editor;
     }
 
     @Override
@@ -28,7 +29,8 @@ public class MSymbolEditorLayout implements LayoutManager {
 
     @Override
     public Dimension preferredLayoutSize(Container parent) {
-        return new Dimension(owner.render().getWidth(), owner.render().getHeight());
+        return new Dimension(owner.render().getWidth(), owner.render()
+                        .getHeight());
     }
 
     @Override
@@ -41,10 +43,10 @@ public class MSymbolEditorLayout implements LayoutManager {
     public void layoutContainer(Container parent) {
         int w = parent.getWidth();
         int h = parent.getHeight();
-        
-        Rectangle renderPos=owner.elementPosition(0);
-        renderPos.width=owner.render().getWidth();
-        renderPos.height=owner.render().getHeight();
+
+        Rectangle renderPos = owner.elementPosition(0);
+        renderPos.width = owner.render().getWidth();
+        renderPos.height = owner.render().getHeight();
 
         if (renderPos.width >= w) renderPos.x = 0;
         else renderPos.x = (w - renderPos.width) / 2;

@@ -49,8 +49,8 @@ public class MSymbolViewLayout implements LayoutManager {
     }
 
     void calculate() {
-        pref.width = owner.render().getWidth()+90;
-        pref.height = owner.render().getHeight()+10;
+        pref.width = owner.render().getWidth() + 90;
+        pref.height = owner.render().getHeight() + 10;
     }
 
     void layout() {

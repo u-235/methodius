@@ -7,7 +7,7 @@ import javax.swing.AbstractAction;
 import utils.resource.Resource;
 
 public abstract class ActionX extends AbstractAction implements
-PropertyChangeListener {
+                PropertyChangeListener {
     private static final long  serialVersionUID                 = 1L;
 
     private Resource           resource;

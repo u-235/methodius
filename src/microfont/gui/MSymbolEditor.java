@@ -66,7 +66,7 @@ public class MSymbolEditor extends AbstractView {
                     MouseWheelListener {
         Rectangle rect;
         PointInfo info;
-        boolean paint;
+        boolean   paint;
 
         @Override
         public void mouseWheelMoved(MouseWheelEvent e) {
@@ -115,8 +115,7 @@ public class MSymbolEditor extends AbstractView {
                         pm.setPixsel(info.getX(), info.getY(), true);
                     if (e.getButton() == MouseEvent.BUTTON3)
                         pm.setPixsel(info.getX(), info.getY(), false);
-                    if (document != null)
-                        document.endEdit();
+                    if (document != null) document.endEdit();
                 }
             }
         }
@@ -131,10 +130,8 @@ public class MSymbolEditor extends AbstractView {
             } else {
                 AbstractPixselMap apm = getPixselMap();
                 if (apm instanceof PixselMap) {
-                    if (e.getButton() == MouseEvent.BUTTON1)
-                       paint= true;
-                    if (e.getButton() == MouseEvent.BUTTON3)
-                        paint= false;
+                    if (e.getButton() == MouseEvent.BUTTON1) paint = true;
+                    if (e.getButton() == MouseEvent.BUTTON3) paint = false;
 
                     PixselMap pm = (PixselMap) apm;
                     if (document != null)

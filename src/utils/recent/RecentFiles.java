@@ -40,16 +40,35 @@ public class RecentFiles {
             files.add(0, last);
             adjustFiles();
 
-            if (name == null) name=last.getName();            
+            if (name == null) name = last.getName();
             JMenuItem mi = new JMenuItem(name);
             mi.setToolTipText(last.getPath());
-            
+
             pMenu.add(mi, 0);
             adjustItems();
 
             mi.addActionListener(new Listener(last));
         } else if (i > 0) {
             // Replace item to top
+            if (i < maxFiles) {
+                files.remove(i);
+                files.add(0, last);
+            } else {
+                files.add(0, last);
+                adjustFiles();
+            }
+
+            JMenuItem mi;
+            if (i < maxItems) {
+                mi = pMenu.getItem(i);
+                pMenu.remove(i);
+                pMenu.add(mi, 0);
+            } else {
+                mi = new JMenuItem(name);
+                mi.setToolTipText(last.getPath());
+                pMenu.add(mi, 0);
+                adjustItems();
+            }
         } else {
             // Item always in top.
         }
@@ -73,9 +92,9 @@ public class RecentFiles {
 
     }
 
-    public JMenu menu() {
+    protected synchronized JMenu doMenu(String name) {
         if (pMenu == null) {
-            pMenu = new JMenu("recent files");
+            pMenu = new JMenu(name);
             JMenuItem mi;
             File f;
             for (int i = 0; i < files.size() && i < maxFiles && i < maxItems; i++) {
@@ -86,6 +105,14 @@ public class RecentFiles {
             }
         }
         return pMenu;
+    }
+
+    public JMenu menu(String name) {
+        return doMenu(name);
+    }
+
+    public JMenu menu() {
+        return doMenu("recent files");
     }
 
     public int getMaxItems() {
