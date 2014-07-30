@@ -56,46 +56,48 @@ public class WorkShop extends JFrame {
 
         mb = new JMenuBar();
 
-        mFile = new IMenu(resource().getString("menubar.file",
+        mFile = new IMenu(application().resource().getString("menubar.file",
                         Resource.TEXT_NAME_KEY));
         mFile.add(am.get(Application.ON_OPEN_FONT));
         mFile.add(am.get(Application.ON_NEW_FONT));
         mFile.addSeparator();
         mFile.add(am.get(Application.ON_SAVE_FONT));
         mFile.add(am.get(Application.ON_SAVE_AS));
-        mFile.add(files().menu());
+        mFile.add(application().files().menu());
         mFile.addSeparator();
         mFile.add(am.get(Application.ON_PROPERTIES));
         mFile.addSeparator();
         mFile.add(am.get(Application.ON_EXIT));
         mb.add(mFile);
 
-        mEdit = new IMenu(resource().getString("menubar.edit",
+        mEdit = new IMenu(application().resource().getString("menubar.edit",
                         Resource.TEXT_NAME_KEY));
         mEdit.add(am.get(Application.ON_UNDO));
         mEdit.add(am.get(Application.ON_REDO));
         mEdit.addSeparator();
-        shift = new JMenu(resource().getString("shift", Resource.TEXT_NAME_KEY));
+        shift = new JMenu(application().resource().getString("shift",
+                        Resource.TEXT_NAME_KEY));
         shift.add(am.get(Application.ON_SHIFT_LEFT));
         shift.add(am.get(Application.ON_SHIFT_RIGHT));
         shift.add(am.get(Application.ON_SHIFT_UP));
         shift.add(am.get(Application.ON_SHIFT_DOWN));
         mEdit.add(shift);
         mEdit.addSeparator();
-        refl = new JMenu(resource()
-                        .getString("reflect", Resource.TEXT_NAME_KEY));
+        refl = new JMenu(application().resource().getString("reflect",
+                        Resource.TEXT_NAME_KEY));
         refl.add(am.get(Application.ON_REFLECT_HOR));
         refl.add(am.get(Application.ON_REFLECT_VERT));
         mEdit.add(refl);
         mb.add(mEdit);
 
-        mView = new IMenu(resource().getString("menubar.view",
+        mView = new IMenu(application().resource().getString("menubar.view",
                         Resource.TEXT_NAME_KEY));
         mb.add(mView);
 
-        mTools = new IMenu(resource().getString("menubar.tools",
+        mTools = new IMenu(application().resource().getString("menubar.tools",
                         Resource.TEXT_NAME_KEY));
-        mode = new IMenu(resource().getString("mode", Resource.TEXT_NAME_KEY));
+        mode = new IMenu(application().resource().getString("mode",
+                        Resource.TEXT_NAME_KEY));
         mode.add(new ICheckBoxMenuItem(am.get(Application.ON_MODE_POINTER)));
         mode.add(new ICheckBoxMenuItem(am.get(Application.ON_MODE_XPENSIL)));
         mode.add(new ICheckBoxMenuItem(am.get(Application.ON_MODE_PENSIL)));
@@ -103,7 +105,7 @@ public class WorkShop extends JFrame {
         mTools.add(mode);
         mb.add(mTools);
 
-        mHelp = new IMenu(resource().getString("menubar.help",
+        mHelp = new IMenu(application().resource().getString("menubar.help",
                         Resource.TEXT_NAME_KEY));
         mb.add(mHelp);
 

@@ -29,6 +29,7 @@ import microfont.ls.MFontLoadSave;
 import utils.config.RootNode;
 import utils.ini.IniFile;
 import utils.recent.RecentFiles;
+import utils.recent.SelectFileListener;
 import utils.resource.Resource;
 import forms.EditPanel;
 import forms.FontPanel;
@@ -97,52 +98,56 @@ public class Application {
         files = new RecentFiles();
     }
 
-    public static RootNode config() {
-        return SINGLE.config;
+    public static Application application() {
+        return SINGLE;
     }
 
-    public static Locale locale() {
-        return SINGLE.loc;
+    public RootNode config() {
+        return config;
     }
 
-    public static void locale(Locale loc) {
-        SINGLE.setLocale(loc);
+    public Locale locale() {
+        return loc;
     }
 
-    public static RecentFiles files() {
-        return SINGLE.files;
+    public void locale(Locale loc) {
+        setLocale(loc);
+    }
+
+    public RecentFiles files() {
+        return files;
     }
 
     private void setLocale(Locale loc) {
         this.loc = loc;
     }
 
-    public static Resource resource() {
-        return SINGLE.res;
+    public Resource resource() {
+        return res;
     }
 
-    static File                           fontFile;
-    static String                         fontName = "new font";
-    static boolean                        fontSaved;
-    public static boolean                 exit;
+    File                           fontFile;
+    String                         fontName = "new font";
+    boolean                        fontSaved;
+    public boolean                 exit;
 
-    static ActionMap                      actions;
+    ActionMap                      actions;
 
-    private static OnUndoRedo             atUndoRedo;
-    static UndoManager                    uManager;
-    static int                            undoCount;
+    private OnUndoRedo             atUndoRedo;
+    UndoManager                    uManager;
+    int                            undoCount;
 
-    static WorkShop                       work;
-    static FontPanel                      fontPanel;
-    static EditPanel                      editPanel;
-    static JFileChooser                   chooserSave;
-    static JFileChooser                   chooserOpen;
-    static FontProperties                 fpf;
+    WorkShop                       work;
+    FontPanel                      fontPanel;
+    EditPanel                      editPanel;
+    JFileChooser                   chooserSave;
+    JFileChooser                   chooserOpen;
+    FontProperties                 fpf;
 
     // private static MFont font;
-    private static Document               doc;
-    private static PropertyChangeListener atFontChange;
-    private static int                    mode;
+    private Document               doc;
+    private PropertyChangeListener atFontChange;
+    private int                    mode;
 
     public static void main(String[] args) {
         Runtime r;
@@ -150,19 +155,19 @@ public class Application {
         String heaps;
 
         Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-        doWorkShop();
+        application().doWorkShop();
 
         Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
         r = Runtime.getRuntime();
 
-        while (!exit) {
+        while (!application().exit) {
             us = r.totalMemory() - r.freeMemory();
             heaps = "heap : " + us / 1000 + " kb ("
                             + (us * 100 / r.totalMemory()) + "%)";
 
-            if (actions.get(ON_HEAP_SIZE) != null)
-                actions.get(ON_HEAP_SIZE).actionPerformed(
-                                new ActionEvent(work,
+            if (application().actions.get(ON_HEAP_SIZE) != null)
+                application().actions.get(ON_HEAP_SIZE).actionPerformed(
+                                new ActionEvent(application().work,
                                                 ActionEvent.ACTION_PERFORMED,
                                                 heaps));
             try {
@@ -172,7 +177,7 @@ public class Application {
         }/* */
     }
 
-    public static void doWorkShop() {
+    public void doWorkShop() {
         if (work != null) return;
 
         doc = new Document();
@@ -192,15 +197,15 @@ public class Application {
         work.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                if (Application.checkSaveFont()) work.dispose();
+                if (checkSaveFont()) work.dispose();
             }
 
             @Override
             public void windowClosed(WindowEvent e) {
                 exit = true;
-                config().node("apperance").putRectangle("position",
-                                work.getBounds());
-                config().save();
+                application().config().node("apperance")
+                                .putRectangle("position", work.getBounds());
+                application().config().save();
             }
         });
         editPanel = new EditPanel(actions);
@@ -213,8 +218,8 @@ public class Application {
         // updateTitle();
         setSaved(true);
 
-        Rectangle pos = config().node("apperance").getRectangle("position",
-                        null);
+        Rectangle pos = application().config().node("apperance")
+                        .getRectangle("position", null);
 
         if (pos == null) {
             work.pack();
@@ -233,7 +238,7 @@ public class Application {
         }.start();
     }
 
-    static ActionMap doActions() {
+    ActionMap doActions() {
         ActionMap am = new ActionMap();
 
         am.put(ON_OPEN_FONT, new OnOpen());
@@ -256,10 +261,17 @@ public class Application {
         am.put(ON_MODE_POINTER, new OnModePointer());
         am.put(ON_SYMBOL_CHANGE, new OnSymbolChange());
 
+        SINGLE.files.addSelectFileListener(new SelectFileListener() {
+            @Override
+            public void fileSelected(File f) {
+                SINGLE.loadMFont(f);
+            }
+        });
+
         return am;
     }
 
-    static synchronized void doChooserOpen() {
+    synchronized void doChooserOpen() {
         if (chooserOpen != null) return;
         chooserOpen = new JFileChooser();
         FileNameExtensionFilter filter = new FileNameExtensionFilter(
@@ -268,7 +280,7 @@ public class Application {
         chooserOpen.setDialogTitle("Open font.");
     }
 
-    static synchronized void doChooserSave() {
+    synchronized void doChooserSave() {
         if (chooserSave == null) {
             chooserSave = new JFileChooser();
             FileNameExtensionFilter filter = new FileNameExtensionFilter(
@@ -280,7 +292,33 @@ public class Application {
         }
     }
 
-    static synchronized void setMFont(MFont newFont) {
+    public void loadMFont(File file) {
+        MFont font;
+
+        if (file == null) return;
+
+        try {
+            font = MFontLoadSave.load(file, null);
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(null, "Can't open file.", "Error",
+                            JOptionPane.OK_OPTION);
+            return;
+        }
+
+        if (font == null) {
+            JOptionPane.showMessageDialog(null, "Error on load font.", "Error",
+                            JOptionPane.OK_OPTION);
+            return;
+        }
+
+        undoCount = 0;
+        updateUndoRedo();
+        fontFile = file;
+        files().setLastFile(file, font.getName());
+        setMFont(font);
+    }
+
+    synchronized void setMFont(MFont newFont) {
         MFont font = doc.getFont();
         if (font != null) {
             font.removePropertyChangeListener(atFontChange);
@@ -304,7 +342,7 @@ public class Application {
         setSaved(true);
     }
 
-    public static boolean checkSaveFont() {
+    public boolean checkSaveFont() {
         int r;
         if (fontSaved) return true;
         Object[] options = { "Сохранить", "Забить", "Отменить" };
@@ -323,7 +361,7 @@ public class Application {
         return true;
     }
 
-    private static File getSaveFile() {
+    private File getSaveFile() {
         File ret;
         doChooserSave();
         while (true) {
@@ -357,14 +395,14 @@ public class Application {
             name += ".mfnt";
             ret = new File(ret.getParentFile(), name);
 
-            SINGLE.workDir = ret;
+            workDir = ret;
             config().node("files").put("last", ret.getParentFile().getPath());
         }
 
         return ret;
     }
 
-    private static boolean saveFontFile(boolean saveAs) {
+    private boolean saveFontFile(boolean saveAs) {
         File file;
         MFont font = doc.getFont();
 
@@ -394,7 +432,7 @@ public class Application {
         return true;
     }
 
-    static void setSaved(boolean saved) {
+    void setSaved(boolean saved) {
         boolean old = fontSaved;
 
         if (old != saved) {
@@ -403,7 +441,7 @@ public class Application {
         }
     }
 
-    public static void updateButtonMode() {
+    public void updateButtonMode() {
         ActionX actModePointer = (ActionX) actions.get(ON_MODE_POINTER);
         ActionX actModeXPensil = (ActionX) actions.get(ON_MODE_XPENSIL);
         ActionX actModePensil = (ActionX) actions.get(ON_MODE_PENSIL);
@@ -422,14 +460,14 @@ public class Application {
         else actModeRuber.setSelected(false);
     }
 
-    static void updateTitle() {
+    void updateTitle() {
         String title = Application.NAME;
         if (fontName != null) title += " : " + fontName;
         if (fontFile != null) title += " (" + fontFile.getName() + ")";
         work.setTitle(title);
     }
 
-    private static class OnUndoRedo implements UndoableEditListener {
+    private class OnUndoRedo implements UndoableEditListener {
         @Override
         public void undoableEditHappened(UndoableEditEvent e) {
             if (undoCount < 0) undoCount = Integer.MIN_VALUE;
@@ -438,14 +476,14 @@ public class Application {
         }
     }
 
-    private static class OnFontChange implements PropertyChangeListener {
+    private class OnFontChange implements PropertyChangeListener {
         @Override
         public void propertyChange(PropertyChangeEvent change) {
             updateUndoRedo();
         }
     }
 
-    public static class OnSymbolChange extends AbstractAction {
+    public class OnSymbolChange extends AbstractAction {
         private static final long serialVersionUID = 1L;
 
         @Override
@@ -454,7 +492,7 @@ public class Application {
         }
     }
 
-    public static class OnNew extends ActionX {
+    public class OnNew extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnNew() {
@@ -466,7 +504,7 @@ public class Application {
         }
     }
 
-    public static class OnOpen extends ActionX {
+    public class OnOpen extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnOpen() {
@@ -476,7 +514,6 @@ public class Application {
         @Override
         public void actionPerformed(ActionEvent e) {
             File file;
-            MFont font;
 
             if (!checkSaveFont()) return;
 
@@ -489,34 +526,11 @@ public class Application {
                             .getSelectedFile();
             else return;
 
-            if (file == null) return;
-
-            SINGLE.workDir = file;
-            config().node("files").put("last", file.getParentFile().getPath());
-
-            try {
-                font = MFontLoadSave.load(file, null);
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(null, "Can't open file.",
-                                "Error", JOptionPane.OK_OPTION);
-                return;
-            }
-
-            if (font == null) {
-                JOptionPane.showMessageDialog(null, "Error on load font.",
-                                "Error", JOptionPane.OK_OPTION);
-                return;
-            }
-
-            undoCount = 0;
-            updateUndoRedo();
-            fontFile = file;
-            files().setLastFile(file, font.getName());
-            setMFont(font);
+            SINGLE.loadMFont(file);
         }
     }
 
-    static void updateUndoRedo() {
+    void updateUndoRedo() {
         Action undo = actions.get(ON_UNDO);
         Action redo = actions.get(ON_REDO);
 
@@ -531,7 +545,7 @@ public class Application {
         setSaved(undoCount == 0);
     }
 
-    public static class OnSave extends ActionX {
+    public class OnSave extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnSave() {
@@ -544,7 +558,7 @@ public class Application {
         }
     }
 
-    public static class OnSaveAs extends ActionX {
+    public class OnSaveAs extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnSaveAs() {
@@ -557,7 +571,7 @@ public class Application {
         }
     }
 
-    public static class OnUndo extends ActionX {
+    public class OnUndo extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnUndo() {
@@ -574,7 +588,7 @@ public class Application {
         }
     }
 
-    public static class OnRedo extends ActionX {
+    public class OnRedo extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnRedo() {
@@ -591,7 +605,7 @@ public class Application {
         }
     }
 
-    public static class OnReflectHorz extends ActionX {
+    public class OnReflectHorz extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnReflectHorz() {
@@ -610,7 +624,7 @@ public class Application {
         }
     }
 
-    public static class OnReflectVert extends ActionX {
+    public class OnReflectVert extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnReflectVert() {
@@ -629,7 +643,7 @@ public class Application {
         }
     }
 
-    public static class OnShiftLeft extends ActionX {
+    public class OnShiftLeft extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnShiftLeft() {
@@ -648,7 +662,7 @@ public class Application {
         }
     }
 
-    public static class OnShiftRight extends ActionX {
+    public class OnShiftRight extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnShiftRight() {
@@ -667,7 +681,7 @@ public class Application {
         }
     }
 
-    public static class OnShiftUp extends ActionX {
+    public class OnShiftUp extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnShiftUp() {
@@ -686,7 +700,7 @@ public class Application {
         }
     }
 
-    public static class OnShiftDown extends ActionX {
+    public class OnShiftDown extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnShiftDown() {
@@ -705,7 +719,7 @@ public class Application {
         }
     }
 
-    public static class OnExit extends ActionX {
+    public class OnExit extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnExit() {
@@ -719,7 +733,7 @@ public class Application {
 
     }
 
-    public static class OnProperties extends ActionX {
+    public class OnProperties extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnProperties() {
@@ -744,7 +758,7 @@ public class Application {
 
     }
 
-    public static class OnModeXPensil extends ActionX {
+    public class OnModeXPensil extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnModeXPensil() {
@@ -758,7 +772,7 @@ public class Application {
         }
     }
 
-    public static class OnModePensil extends ActionX {
+    public class OnModePensil extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnModePensil() {
@@ -772,7 +786,7 @@ public class Application {
         }
     }
 
-    public static class OnModeRuber extends ActionX {
+    public class OnModeRuber extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnModeRuber() {
@@ -786,7 +800,7 @@ public class Application {
         }
     }
 
-    public static class OnModePointer extends ActionX {
+    public class OnModePointer extends ActionX {
         private static final long serialVersionUID = 1L;
 
         public OnModePointer() {

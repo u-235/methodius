@@ -29,7 +29,7 @@ public class EditPanel extends JPanel {
 
         edit = new MSymbolEditor();
 
-        ConfigNode cn = config().node("editor");
+        ConfigNode cn = application().config().node("editor");
         cn.addConfigChangeListener(new ConfigChangeListener() {
             @Override
             public void configChange(ConfigChangeEvent ev) {
@@ -45,7 +45,7 @@ public class EditPanel extends JPanel {
         btnXPensil = new IToggleButton(am.get(Application.ON_MODE_XPENSIL));
         btnPensil = new IToggleButton(am.get(Application.ON_MODE_PENSIL));
         btnRuber = new IToggleButton(am.get(Application.ON_MODE_RUBER));
-        Application.updateButtonMode();
+        application().updateButtonMode();
 
         tools.add(btnPointer);
         tools.add(btnXPensil);
