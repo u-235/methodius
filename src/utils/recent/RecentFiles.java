@@ -9,6 +9,9 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import utils.event.ListenerChain;
 
+/**
+ * Класс для хранения списка недавних файлов (recent files) и формирования меню.
+ */
 public class RecentFiles {
     ArrayList<File> files     = new ArrayList<File>();
     JMenu           pMenu;
@@ -16,15 +19,25 @@ public class RecentFiles {
     int             maxItems  = 8;
     ListenerChain   listeners = new ListenerChain();
 
+    /**
+     * Вспомогательный класс для получения сообщений о выборе пункта меню. Это
+     * сообщение приводит к выпуску {@linkplain SelectFileListener сообщения о
+     * выборе файла}.
+     * 
+     */
     class Listener implements ActionListener {
         File f;
 
+        /**
+         * Конструктор получателя сообщений о выборе пункта меню.
+         * @param fl Файл, который соответствует пункту меню.
+         */
         Listener(File fl) {
             f = fl;
         }
-
         @Override
         public void actionPerformed(ActionEvent e) {
+            // Просто выдаём сообщение.
             fireSelectFile(f);
         }
     }
