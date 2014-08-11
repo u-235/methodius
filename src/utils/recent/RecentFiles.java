@@ -30,11 +30,13 @@ public class RecentFiles {
 
         /**
          * Конструктор получателя сообщений о выборе пункта меню.
+         * 
          * @param fl Файл, который соответствует пункту меню.
          */
         Listener(File fl) {
             f = fl;
         }
+
         @Override
         public void actionPerformed(ActionEvent e) {
             // Просто выдаём сообщение.
@@ -42,10 +44,22 @@ public class RecentFiles {
         }
     }
 
+    /**
+     * Возвращает последний файл или {@code null}, если метод
+     * {@link #setLastFile(File, String)} ни разу не вызывался.
+     */
     public File getLastFile() {
         return files.get(0);
     }
 
+    /**
+     * Устанавливает последний открытый файл.
+     * 
+     * @param last Последний файл. Полный путь используется как всплывающая
+     *            подсказка пункта меню.
+     * @param name Имя файла, отображаемое в пункте меню. Если равно
+     *            {@code null}, то имя берётся из {@code last}.
+     */
     public void setLastFile(File last, String name) {
         int i = files.indexOf(last);
         if (i < 0) {
@@ -71,16 +85,18 @@ public class RecentFiles {
                 adjustFiles();
             }
 
-            JMenuItem mi;
-            if (i < maxItems) {
-                mi = pMenu.getItem(i);
-                pMenu.remove(i);
-                pMenu.add(mi, 0);
-            } else {
-                mi = new JMenuItem(name);
-                mi.setToolTipText(last.getPath());
-                pMenu.add(mi, 0);
-                adjustItems();
+            if (pMenu != null) {
+                JMenuItem mi;
+                if (i < maxItems) {
+                    mi = pMenu.getItem(i);
+                    pMenu.remove(i);
+                    pMenu.add(mi, 0);
+                } else {
+                    mi = new JMenuItem(name);
+                    mi.setToolTipText(last.getPath());
+                    pMenu.add(mi, 0);
+                    adjustItems();
+                }
             }
         } else {
             // Item always in top.
@@ -88,7 +104,7 @@ public class RecentFiles {
     }
 
     public File[] getFiles() {
-        return null;
+        return files.toArray(new File[files.size()]);
     }
 
     public int getMaxFiles() {
@@ -101,8 +117,9 @@ public class RecentFiles {
     }
 
     private void adjustFiles() {
-        // TODO Auto-generated method stub
-
+        while (files.size() > maxFiles) {
+            files.remove(files.size() - 1);
+        }
     }
 
     protected synchronized JMenu doMenu(String name) {
@@ -138,8 +155,11 @@ public class RecentFiles {
     }
 
     private void adjustItems() {
-        // TODO Auto-generated method stub
+        if (pMenu == null) return;
 
+        while (pMenu.getItemCount() > maxItems) {
+            pMenu.remove(pMenu.getItemCount() - 1);
+        }
     }
 
     public void addSelectFileListener(SelectFileListener listener) {
