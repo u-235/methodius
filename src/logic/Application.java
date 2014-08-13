@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Locale;
-import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.JFileChooser;
@@ -35,43 +34,68 @@ import forms.EditPanel;
 import forms.FontPanel;
 import forms.FontProperties;
 import forms.WorkShop;
-import gui.ActionX;
 
 public class Application {
-    public static final String NAME             = "Methodius";
-    public static final int    VER_MAJOR        = 0;
-    public static final int    VER_MINOR        = 8;
+    public static final String     NAME         = "Methodius";
+    public static final int        VER_MAJOR    = 0;
+    public static final int        VER_MINOR    = 8;
 
-    public static final String ON_NEW_FONT      = "font.new";
-    public static final String ON_OPEN_FONT     = "font.open";
-    public static final String ON_SAVE_FONT     = "font.save";
-    public static final String ON_SAVE_AS       = "font.save.as";
-    public static final String ON_UNDO          = "undo";
-    public static final String ON_REDO          = "redo";
-    public static final String ON_REFLECT_HOR   = "refl.hor";
-    public static final String ON_REFLECT_VERT  = "refl.vert";
-    public static final String ON_PROPERTIES    = "font.prop";
-    public static final String ON_EXIT          = "exit";
-    public static final String ON_SHIFT_LEFT    = "shift.left";
-    public static final String ON_SHIFT_RIGHT   = "shift.right";
-    public static final String ON_SHIFT_UP      = "shift.up";
-    public static final String ON_SHIFT_DOWN    = "shift.down";
-    public static final String ON_MODE_POINTER  = "mode.point";
-    public static final String ON_MODE_XPENSIL  = "mode.x.pensil";
-    public static final String ON_MODE_PENSIL   = "mode.pensil";
-    public static final String ON_MODE_RUBER    = "mode.ruber";
-    public static final String ON_SYMBOL_CHANGE = "symbol.change";
-    public static final String ON_HEAP_SIZE     = "heap.size";
+    public static final String     ON_HEAP_SIZE = "heap.size";
 
-    static Application         SINGLE           = new Application();
-    RootNode                   config;
-    Locale                     loc;
-    Resource                   res;
-    File                       runDir;
-    File                       workDir;
-    RecentFiles                files;
+    static Application             SINGLE       = new Application();
+    RootNode                       config;
+    Locale                         loc;
+    Resource                       res;
+    File                           runDir;
+    File                           workDir;
+    RecentFiles                    files;
 
-    public Application() {
+    File                           fontFile;
+    String                         fontName     = "new font";
+    boolean                        fontSaved;
+    public boolean                 exit;
+
+    ActionMap                      actions;
+    UndoManager                    uManager;
+    int                            undoCount;
+
+    WorkShop                       work;
+    FontPanel                      fontPanel;
+    EditPanel                      editPanel;
+    JFileChooser                   chooserSave;
+    JFileChooser                   chooserOpen;
+    FontProperties                 fpf;
+
+    private Document               doc;
+    private PropertyChangeListener atFontChange;
+
+    public static void main(String[] args) {
+        Runtime r;
+        long us;
+        String heaps;
+
+        application().doWorkShop();
+
+        r = Runtime.getRuntime();
+
+        while (!application().exit) {
+            us = r.totalMemory() - r.freeMemory();
+            heaps = "heap : " + us / 1000 + " kb ("
+                            + (us * 100 / r.totalMemory()) + "%)";
+
+            if (application().actions.get(ON_HEAP_SIZE) != null)
+                application().actions.get(ON_HEAP_SIZE).actionPerformed(
+                                new ActionEvent(application().work,
+                                                ActionEvent.ACTION_PERFORMED,
+                                                heaps));
+            try {
+                java.lang.Thread.sleep(750);
+            } catch (InterruptedException e) {
+            }
+        }/* */
+    }
+
+    protected Application() {
         try {
             runDir = new File(URLDecoder.decode(getClass().getClassLoader()
                             .getResource("").getPath(), "UTF-8"));
@@ -96,6 +120,12 @@ public class Application {
         res.setIconPath("icons/16/");
 
         files = new RecentFiles();
+        files.addSelectFileListener(new SelectFileListener() {
+            @Override
+            public void fileSelected(File f) {
+                loadMFont(f);
+            }
+        });
     }
 
     public static Application application() {
@@ -114,7 +144,7 @@ public class Application {
         setLocale(loc);
     }
 
-    public RecentFiles files() {
+    public RecentFiles recent() {
         return files;
     }
 
@@ -126,78 +156,38 @@ public class Application {
         return res;
     }
 
-    File                           fontFile;
-    String                         fontName = "new font";
-    boolean                        fontSaved;
-    public boolean                 exit;
-
-    ActionMap                      actions;
-
-    private OnUndoRedo             atUndoRedo;
-    UndoManager                    uManager;
-    int                            undoCount;
-
-    WorkShop                       work;
-    FontPanel                      fontPanel;
-    EditPanel                      editPanel;
-    JFileChooser                   chooserSave;
-    JFileChooser                   chooserOpen;
-    FontProperties                 fpf;
-
-    // private static MFont font;
-    private Document               doc;
-    private PropertyChangeListener atFontChange;
-    private int                    mode;
-
-    public static void main(String[] args) {
-        Runtime r;
-        long us;
-        String heaps;
-
-        Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-        application().doWorkShop();
-
-        Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
-        r = Runtime.getRuntime();
-
-        while (!application().exit) {
-            us = r.totalMemory() - r.freeMemory();
-            heaps = "heap : " + us / 1000 + " kb ("
-                            + (us * 100 / r.totalMemory()) + "%)";
-
-            if (application().actions.get(ON_HEAP_SIZE) != null)
-                application().actions.get(ON_HEAP_SIZE).actionPerformed(
-                                new ActionEvent(application().work,
-                                                ActionEvent.ACTION_PERFORMED,
-                                                heaps));
-            try {
-                java.lang.Thread.sleep(750);
-            } catch (InterruptedException e) {
-            }
-        }/* */
-    }
-
     public void doWorkShop() {
         if (work != null) return;
 
         doc = new Document();
 
-        atFontChange = new OnFontChange();
+        atFontChange = new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent change) {
+                updateUndoRedo();
+            }
+        };
 
-        actions = doActions();
+        actions = new Actions(res);
         work = new WorkShop(actions);
 
-        atUndoRedo = new OnUndoRedo();
         uManager = new UndoManager();
         doc.addUndoableEditListener(uManager);
-        doc.addUndoableEditListener(atUndoRedo);
+        doc.addUndoableEditListener(new UndoableEditListener() {
+            @Override
+            public void undoableEditHappened(UndoableEditEvent e) {
+                if (undoCount < 0) undoCount = Integer.MIN_VALUE;
+                undoCount++;
+                updateUndoRedo();
+            }
+        });
         updateUndoRedo();
 
         work.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         work.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                if (checkSaveFont()) work.dispose();
+                exit();
             }
 
             @Override
@@ -231,56 +221,29 @@ public class Application {
         new Thread() {
             @Override
             public void run() {
-                doChooserOpen();
-                doChooserSave();
+                chooserOpen();
+                chooserSave();
             }
 
         }.start();
     }
 
-    ActionMap doActions() {
-        ActionMap am = new ActionMap();
-
-        am.put(ON_OPEN_FONT, new OnOpen());
-        am.put(ON_NEW_FONT, new OnNew());
-        am.put(ON_SAVE_FONT, new OnSave());
-        am.put(ON_SAVE_AS, new OnSaveAs());
-        am.put(ON_EXIT, new OnExit());
-        am.put(ON_UNDO, new OnUndo());
-        am.put(ON_REDO, new OnRedo());
-        am.put(ON_REFLECT_HOR, new OnReflectHorz());
-        am.put(ON_REFLECT_VERT, new OnReflectVert());
-        am.put(ON_SHIFT_LEFT, new OnShiftLeft());
-        am.put(ON_SHIFT_RIGHT, new OnShiftRight());
-        am.put(ON_SHIFT_UP, new OnShiftUp());
-        am.put(ON_SHIFT_DOWN, new OnShiftDown());
-        am.put(ON_PROPERTIES, new OnProperties());
-        am.put(ON_MODE_XPENSIL, new OnModeXPensil());
-        am.put(ON_MODE_PENSIL, new OnModePensil());
-        am.put(ON_MODE_RUBER, new OnModeRuber());
-        am.put(ON_MODE_POINTER, new OnModePointer());
-        am.put(ON_SYMBOL_CHANGE, new OnSymbolChange());
-
-        SINGLE.files.addSelectFileListener(new SelectFileListener() {
-            @Override
-            public void fileSelected(File f) {
-                SINGLE.loadMFont(f);
-            }
-        });
-
-        return am;
+    public void exit() {
+        if (checkSaveFont()) work.dispose();
     }
 
-    synchronized void doChooserOpen() {
-        if (chooserOpen != null) return;
-        chooserOpen = new JFileChooser();
-        FileNameExtensionFilter filter = new FileNameExtensionFilter(
-                        "MicroFont", "mfnt");
-        chooserOpen.setFileFilter(filter);
-        chooserOpen.setDialogTitle("Open font.");
+    public synchronized JFileChooser chooserOpen() {
+        if (chooserOpen == null) {
+            chooserOpen = new JFileChooser();
+            FileNameExtensionFilter filter = new FileNameExtensionFilter(
+                            "MicroFont", "mfnt");
+            chooserOpen.setFileFilter(filter);
+            chooserOpen.setDialogTitle("Open font.");
+        }
+        return chooserOpen;
     }
 
-    synchronized void doChooserSave() {
+    public synchronized JFileChooser chooserSave() {
         if (chooserSave == null) {
             chooserSave = new JFileChooser();
             FileNameExtensionFilter filter = new FileNameExtensionFilter(
@@ -290,6 +253,7 @@ public class Application {
             chooserSave.setAcceptAllFileFilterUsed(false);
             chooserSave.setFileSelectionMode(JFileChooser.FILES_ONLY);
         }
+        return chooserSave;
     }
 
     public void loadMFont(File file) {
@@ -314,7 +278,7 @@ public class Application {
         undoCount = 0;
         updateUndoRedo();
         fontFile = file;
-        files().setLastFile(file, font.getName());
+        recent().setLastFile(file, font.getName());
         setMFont(font);
     }
 
@@ -334,7 +298,7 @@ public class Application {
         } else {
             fontName = null;
         }
-        actions.get(ON_SAVE_AS).setEnabled(font != null);
+        actions.get(Actions.ON_SAVE_AS).setEnabled(font != null);
 
         fontPanel.setMFont(font);
         updateTitle();
@@ -363,7 +327,7 @@ public class Application {
 
     private File getSaveFile() {
         File ret;
-        doChooserSave();
+        chooserSave();
         while (true) {
 
             chooserSave.setCurrentDirectory(SINGLE.workDir);
@@ -402,7 +366,7 @@ public class Application {
         return ret;
     }
 
-    private boolean saveFontFile(boolean saveAs) {
+    public boolean saveFontFile(boolean saveAs) {
         File file;
         MFont font = doc.getFont();
 
@@ -437,27 +401,8 @@ public class Application {
 
         if (old != saved) {
             fontSaved = saved;
-            actions.get(ON_SAVE_FONT).setEnabled(!fontSaved);
+            actions.get(Actions.ON_SAVE_FONT).setEnabled(!fontSaved);
         }
-    }
-
-    public void updateButtonMode() {
-        ActionX actModePointer = (ActionX) actions.get(ON_MODE_POINTER);
-        ActionX actModeXPensil = (ActionX) actions.get(ON_MODE_XPENSIL);
-        ActionX actModePensil = (ActionX) actions.get(ON_MODE_PENSIL);
-        ActionX actModeRuber = (ActionX) actions.get(ON_MODE_RUBER);
-
-        if (mode == 0) actModePointer.setSelected(true);
-        else actModePointer.setSelected(false);
-
-        if (mode == 1) actModeXPensil.setSelected(true);
-        else actModeXPensil.setSelected(false);
-
-        if (mode == 2) actModePensil.setSelected(true);
-        else actModePensil.setSelected(false);
-
-        if (mode == 3) actModeRuber.setSelected(true);
-        else actModeRuber.setSelected(false);
     }
 
     void updateTitle() {
@@ -476,63 +421,9 @@ public class Application {
         }
     }
 
-    private class OnFontChange implements PropertyChangeListener {
-        @Override
-        public void propertyChange(PropertyChangeEvent change) {
-            updateUndoRedo();
-        }
-    }
-
-    public class OnSymbolChange extends AbstractAction {
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            editPanel.setMSymbol(fontPanel.getSelectedSymbol());
-        }
-    }
-
-    public class OnNew extends ActionX {
-        private static final long serialVersionUID = 1L;
-
-        public OnNew() {
-            super("new", resource());
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-        }
-    }
-
-    public class OnOpen extends ActionX {
-        private static final long serialVersionUID = 1L;
-
-        public OnOpen() {
-            super("open", resource());
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            File file;
-
-            if (!checkSaveFont()) return;
-
-            doChooserOpen();
-
-            chooserOpen.setCurrentDirectory(SINGLE.workDir);
-
-            int returnVal = chooserOpen.showOpenDialog(work);
-            if (returnVal == JFileChooser.APPROVE_OPTION) file = chooserOpen
-                            .getSelectedFile();
-            else return;
-
-            SINGLE.loadMFont(file);
-        }
-    }
-
     void updateUndoRedo() {
-        Action undo = actions.get(ON_UNDO);
-        Action redo = actions.get(ON_REDO);
+        Action undo = actions.get(Actions.ON_UNDO);
+        Action redo = actions.get(Actions.ON_REDO);
 
         undo.setEnabled(uManager.canUndo());
         undo.putValue(Action.SHORT_DESCRIPTION,
@@ -545,272 +436,94 @@ public class Application {
         setSaved(undoCount == 0);
     }
 
-    public class OnSave extends ActionX {
-        private static final long serialVersionUID = 1L;
-
-        public OnSave() {
-            super("save", resource());
+    public void undo() {
+        if (uManager.canUndo()) {
+            undoCount--;
+            uManager.undo();
         }
+        updateUndoRedo();
+    }
 
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            saveFontFile(false);
+    public void redo() {
+        if (uManager.canRedo()) {
+            undoCount++;
+            uManager.redo();
+        }
+        updateUndoRedo();
+    }
+
+    public void reflectHorz() {
+        try {
+            MSymbol symbol = editPanel.getMSymbol();
+            doc.symbolEdit("reflect horizontale");
+            symbol.reflectHorizontale();
+            doc.endEdit();
+        } catch (NullPointerException ex) {
         }
     }
 
-    public class OnSaveAs extends ActionX {
-        private static final long serialVersionUID = 1L;
-
-        public OnSaveAs() {
-            super("save.as", resource());
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            saveFontFile(true);
+    public void reflectVert() {
+        try {
+            MSymbol symbol = editPanel.getMSymbol();
+            doc.symbolEdit("reflect verticale");
+            symbol.reflectVerticale();
+            doc.endEdit();
+        } catch (NullPointerException ex) {
         }
     }
 
-    public class OnUndo extends ActionX {
-        private static final long serialVersionUID = 1L;
-
-        public OnUndo() {
-            super("undo", resource());
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (uManager.canUndo()) {
-                undoCount--;
-                uManager.undo();
-            }
-            updateUndoRedo();
+    public void shiftLeft() {
+        try {
+            MSymbol symbol = editPanel.getMSymbol();
+            doc.symbolEdit("shift left");
+            symbol.shiftLeft();
+            doc.endEdit();
+        } catch (NullPointerException ex) {
         }
     }
 
-    public class OnRedo extends ActionX {
-        private static final long serialVersionUID = 1L;
-
-        public OnRedo() {
-            super("redo", resource());
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (uManager.canRedo()) {
-                undoCount++;
-                uManager.redo();
-            }
-            updateUndoRedo();
+    public void shiftRight() {
+        try {
+            MSymbol symbol = editPanel.getMSymbol();
+            doc.symbolEdit("shift right");
+            symbol.shiftRight();
+            doc.endEdit();
+        } catch (NullPointerException ex) {
         }
     }
 
-    public class OnReflectHorz extends ActionX {
-        private static final long serialVersionUID = 1L;
-
-        public OnReflectHorz() {
-            super("reflect.horizontale", resource());
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            try {
-                MSymbol symbol = editPanel.getMSymbol();
-                doc.symbolEdit("reflect horizontale");
-                symbol.reflectHorizontale();
-                doc.endEdit();
-            } catch (NullPointerException ex) {
-            }
+    public void shiftUp() {
+        try {
+            MSymbol symbol = editPanel.getMSymbol();
+            doc.symbolEdit("shift up");
+            symbol.shiftUp();
+            doc.endEdit();
+        } catch (NullPointerException ex) {
         }
     }
 
-    public class OnReflectVert extends ActionX {
-        private static final long serialVersionUID = 1L;
-
-        public OnReflectVert() {
-            super("reflect.verticale", resource());
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            try {
-                MSymbol symbol = editPanel.getMSymbol();
-                doc.symbolEdit("reflect verticale");
-                symbol.reflectVerticale();
-                doc.endEdit();
-            } catch (NullPointerException ex) {
-            }
+    public void shiftDown() {
+        try {
+            MSymbol symbol = editPanel.getMSymbol();
+            doc.symbolEdit("shift down");
+            symbol.shiftDown();
+            doc.endEdit();
+        } catch (NullPointerException ex) {
         }
     }
 
-    public class OnShiftLeft extends ActionX {
-        private static final long serialVersionUID = 1L;
+    public void showProperties() {
+        MFont font = doc.getFont();
+        MFont c;
+        if (fpf == null) fpf = new FontProperties(work, resource());
 
-        public OnShiftLeft() {
-            super("shift.left", resource());
+        if (font == null) return;
+        c = font.clone();
+        if (fpf.start(c) == FontProperties.ACTION_OK) {
+            doc.fontEdit("change property");
+            font.copy(c);
+            doc.endEdit();
         }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            try {
-                MSymbol symbol = editPanel.getMSymbol();
-                doc.symbolEdit("shift left");
-                symbol.shiftLeft();
-                doc.endEdit();
-            } catch (NullPointerException ex) {
-            }
-        }
-    }
-
-    public class OnShiftRight extends ActionX {
-        private static final long serialVersionUID = 1L;
-
-        public OnShiftRight() {
-            super("shift.right", resource());
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            try {
-                MSymbol symbol = editPanel.getMSymbol();
-                doc.symbolEdit("shift right");
-                symbol.shiftRight();
-                doc.endEdit();
-            } catch (NullPointerException ex) {
-            }
-        }
-    }
-
-    public class OnShiftUp extends ActionX {
-        private static final long serialVersionUID = 1L;
-
-        public OnShiftUp() {
-            super("shift.up", resource());
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            try {
-                MSymbol symbol = editPanel.getMSymbol();
-                doc.symbolEdit("shift up");
-                symbol.shiftUp();
-                doc.endEdit();
-            } catch (NullPointerException ex) {
-            }
-        }
-    }
-
-    public class OnShiftDown extends ActionX {
-        private static final long serialVersionUID = 1L;
-
-        public OnShiftDown() {
-            super("shift.down", resource());
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            try {
-                MSymbol symbol = editPanel.getMSymbol();
-                doc.symbolEdit("shift down");
-                symbol.shiftDown();
-                doc.endEdit();
-            } catch (NullPointerException ex) {
-            }
-        }
-    }
-
-    public class OnExit extends ActionX {
-        private static final long serialVersionUID = 1L;
-
-        public OnExit() {
-            super("exit", resource());
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (checkSaveFont()) work.dispose();
-        }
-
-    }
-
-    public class OnProperties extends ActionX {
-        private static final long serialVersionUID = 1L;
-
-        public OnProperties() {
-            super("properties", resource());
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            MFont font = doc.getFont();
-            MFont c;
-            if (fpf == null) fpf = new FontProperties(work, resource());
-
-            if (font == null) return;
-            c = font.clone();
-            if (fpf.start(c) == FontProperties.ACTION_OK) {
-                doc.fontEdit("change property");
-                font.copy(c);
-                doc.endEdit();
-            }
-            fpf.setMFont(null);
-        }
-
-    }
-
-    public class OnModeXPensil extends ActionX {
-        private static final long serialVersionUID = 1L;
-
-        public OnModeXPensil() {
-            super("mode.xpensil", resource());
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            mode = 1;
-            updateButtonMode();
-        }
-    }
-
-    public class OnModePensil extends ActionX {
-        private static final long serialVersionUID = 1L;
-
-        public OnModePensil() {
-            super("mode.pensil", resource());
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            mode = 2;
-            updateButtonMode();
-        }
-    }
-
-    public class OnModeRuber extends ActionX {
-        private static final long serialVersionUID = 1L;
-
-        public OnModeRuber() {
-            super("mode.ruber", resource());
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            mode = 3;
-            updateButtonMode();
-        }
-    }
-
-    public class OnModePointer extends ActionX {
-        private static final long serialVersionUID = 1L;
-
-        public OnModePointer() {
-            super("mode.pointer", resource());
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            mode = 0;
-            updateButtonMode();
-        }
+        fpf.setMFont(null);
     }
 }
