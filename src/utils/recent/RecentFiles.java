@@ -103,6 +103,16 @@ public class RecentFiles {
         }
     }
 
+    /**
+     * Возвращает количество сохранённых файлов.
+     * 
+     * @see #getMaxFiles()
+     * @see #getMaxItems()
+     */
+    public int getFilesCount() {
+        return files.size();
+    }
+
     public File[] getFiles() {
         return files.toArray(new File[files.size()]);
     }
@@ -112,13 +122,17 @@ public class RecentFiles {
     }
 
     public void setMaxFiles(int max) {
+        if (max <= 0)
+            throw new IllegalArgumentException("invalid maximum files: " + max);
         maxItems = max;
         adjustFiles();
+        adjustItems();
     }
 
     private void adjustFiles() {
-        while (files.size() > maxFiles) {
-            files.remove(files.size() - 1);
+        int i = files.size();
+        while (i > maxFiles) {
+            files.remove(--i);
         }
     }
 
@@ -150,6 +164,8 @@ public class RecentFiles {
     }
 
     public void setMaxItems(int max) {
+        if (max <= 0)
+            throw new IllegalArgumentException("invalid maximum item: " + max);
         maxItems = max;
         adjustItems();
     }
@@ -157,8 +173,9 @@ public class RecentFiles {
     private void adjustItems() {
         if (pMenu == null) return;
 
-        while (pMenu.getItemCount() > maxItems) {
-            pMenu.remove(pMenu.getItemCount() - 1);
+        int i = pMenu.getItemCount();
+        while (i > maxItems || i > maxFiles) {
+            pMenu.remove(--i);
         }
     }
 
