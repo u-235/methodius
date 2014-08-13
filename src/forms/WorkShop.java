@@ -18,6 +18,7 @@ import javax.swing.JRootPane;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import utils.resource.Resource;
+import logic.Actions;
 import logic.Application;
 import static logic.Application.*;
 
@@ -51,42 +52,41 @@ public class WorkShop extends JFrame {
         JMenu refl;
         JMenu mView;
         JMenu mTools;
-        JMenu mode;
         JMenu mHelp;
 
         mb = new JMenuBar();
 
         mFile = new IMenu(application().resource().getString("menubar.file",
                         Resource.TEXT_NAME_KEY));
-        mFile.add(am.get(Application.ON_OPEN_FONT));
-        mFile.add(am.get(Application.ON_NEW_FONT));
+        mFile.add(am.get(Actions.ON_OPEN_FONT));
+        mFile.add(am.get(Actions.ON_NEW_FONT));
         mFile.addSeparator();
-        mFile.add(am.get(Application.ON_SAVE_FONT));
-        mFile.add(am.get(Application.ON_SAVE_AS));
-        mFile.add(application().files().menu());
+        mFile.add(am.get(Actions.ON_SAVE_FONT));
+        mFile.add(am.get(Actions.ON_SAVE_AS));
+        mFile.add(application().recent().menu());
         mFile.addSeparator();
-        mFile.add(am.get(Application.ON_PROPERTIES));
+        mFile.add(am.get(Actions.ON_PROPERTIES));
         mFile.addSeparator();
-        mFile.add(am.get(Application.ON_EXIT));
+        mFile.add(am.get(Actions.ON_EXIT));
         mb.add(mFile);
 
         mEdit = new IMenu(application().resource().getString("menubar.edit",
                         Resource.TEXT_NAME_KEY));
-        mEdit.add(am.get(Application.ON_UNDO));
-        mEdit.add(am.get(Application.ON_REDO));
+        mEdit.add(am.get(Actions.ON_UNDO));
+        mEdit.add(am.get(Actions.ON_REDO));
         mEdit.addSeparator();
         shift = new JMenu(application().resource().getString("shift",
                         Resource.TEXT_NAME_KEY));
-        shift.add(am.get(Application.ON_SHIFT_LEFT));
-        shift.add(am.get(Application.ON_SHIFT_RIGHT));
-        shift.add(am.get(Application.ON_SHIFT_UP));
-        shift.add(am.get(Application.ON_SHIFT_DOWN));
+        shift.add(am.get(Actions.ON_SHIFT_LEFT));
+        shift.add(am.get(Actions.ON_SHIFT_RIGHT));
+        shift.add(am.get(Actions.ON_SHIFT_UP));
+        shift.add(am.get(Actions.ON_SHIFT_DOWN));
         mEdit.add(shift);
         mEdit.addSeparator();
         refl = new JMenu(application().resource().getString("reflect",
                         Resource.TEXT_NAME_KEY));
-        refl.add(am.get(Application.ON_REFLECT_HOR));
-        refl.add(am.get(Application.ON_REFLECT_VERT));
+        refl.add(am.get(Actions.ON_REFLECT_HOR));
+        refl.add(am.get(Actions.ON_REFLECT_VERT));
         mEdit.add(refl);
         mb.add(mEdit);
 
@@ -96,13 +96,6 @@ public class WorkShop extends JFrame {
 
         mTools = new IMenu(application().resource().getString("menubar.tools",
                         Resource.TEXT_NAME_KEY));
-        mode = new IMenu(application().resource().getString("mode",
-                        Resource.TEXT_NAME_KEY));
-        mode.add(new ICheckBoxMenuItem(am.get(Application.ON_MODE_POINTER)));
-        mode.add(new ICheckBoxMenuItem(am.get(Application.ON_MODE_XPENSIL)));
-        mode.add(new ICheckBoxMenuItem(am.get(Application.ON_MODE_PENSIL)));
-        mode.add(new ICheckBoxMenuItem(am.get(Application.ON_MODE_RUBER)));
-        mTools.add(mode);
         mb.add(mTools);
 
         mHelp = new IMenu(application().resource().getString("menubar.help",
@@ -118,25 +111,25 @@ public class WorkShop extends JFrame {
         buttonBar = new JToolBar();
         buttonBar.setFloatable(false);
 
-        buttonBar.add(new IButton(am.get(Application.ON_OPEN_FONT)));
-        buttonBar.add(new IButton(am.get(Application.ON_SAVE_FONT)));
+        buttonBar.add(new IButton(am.get(Actions.ON_OPEN_FONT)));
+        buttonBar.add(new IButton(am.get(Actions.ON_SAVE_FONT)));
 
         buttonBar.add(new JToolBar.Separator());
 
-        buttonBar.add(new IButton(am.get(Application.ON_UNDO)));
-        buttonBar.add(new IButton(am.get(Application.ON_REDO)));
+        buttonBar.add(new IButton(am.get(Actions.ON_UNDO)));
+        buttonBar.add(new IButton(am.get(Actions.ON_REDO)));
 
         buttonBar.add(new JToolBar.Separator());
 
-        buttonBar.add(new IButton(am.get(Application.ON_REFLECT_HOR)));
-        buttonBar.add(new IButton(am.get(Application.ON_REFLECT_VERT)));
+        buttonBar.add(new IButton(am.get(Actions.ON_REFLECT_HOR)));
+        buttonBar.add(new IButton(am.get(Actions.ON_REFLECT_VERT)));
 
         buttonBar.add(new JToolBar.Separator());
 
-        buttonBar.add(new IButton(am.get(Application.ON_SHIFT_DOWN)));
-        buttonBar.add(new IButton(am.get(Application.ON_SHIFT_UP)));
-        buttonBar.add(new IButton(am.get(Application.ON_SHIFT_LEFT)));
-        buttonBar.add(new IButton(am.get(Application.ON_SHIFT_RIGHT)));
+        buttonBar.add(new IButton(am.get(Actions.ON_SHIFT_DOWN)));
+        buttonBar.add(new IButton(am.get(Actions.ON_SHIFT_UP)));
+        buttonBar.add(new IButton(am.get(Actions.ON_SHIFT_LEFT)));
+        buttonBar.add(new IButton(am.get(Actions.ON_SHIFT_RIGHT)));
         return buttonBar;
     }
 

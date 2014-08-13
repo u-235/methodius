@@ -40,17 +40,8 @@ public class EditPanel extends JPanel {
 
         tools = new JToolBar(JToolBar.VERTICAL);
         tools.setFloatable(false);
+        // TODO place buttons for tools
 
-        btnPointer = new IToggleButton(am.get(Application.ON_MODE_POINTER));
-        btnXPensil = new IToggleButton(am.get(Application.ON_MODE_XPENSIL));
-        btnPensil = new IToggleButton(am.get(Application.ON_MODE_PENSIL));
-        btnRuber = new IToggleButton(am.get(Application.ON_MODE_RUBER));
-        application().updateButtonMode();
-
-        tools.add(btnPointer);
-        tools.add(btnXPensil);
-        tools.add(btnPensil);
-        tools.add(btnRuber);
         tools.add(new JToolBar.Separator());
 
         add(tools, BorderLayout.WEST);

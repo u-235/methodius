@@ -12,6 +12,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import logic.Actions;
 import logic.Application;
 import microfont.MFont;
 import microfont.MSymbol;
@@ -76,7 +77,7 @@ public class FontPanel extends JPanel {
     void onSelect() {
         MSymbol symbol;
 
-        Action act = actions.get(Application.ON_SYMBOL_CHANGE);
+        Action act = actions.get(Actions.ON_SELECTED_SYMBOL_CHANGE);
 
         listIndex = list.getSelectedIndex();
         symbol = listModel.getElementAt(listIndex);
