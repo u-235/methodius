@@ -1,7 +1,6 @@
 
 package logic;
 
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -193,8 +192,6 @@ public class Application {
             @Override
             public void windowClosed(WindowEvent e) {
                 exit = true;
-                application().config().node("apperance")
-                                .putRectangle("position", work.getBounds());
                 application().config().save();
             }
         });
@@ -207,15 +204,7 @@ public class Application {
         setMFont(new MFont());
         // updateTitle();
         setSaved(true);
-
-        Rectangle pos = application().config().node("apperance")
-                        .getRectangle("position", null);
-
-        if (pos == null) {
-            work.pack();
-        } else {
-            work.setBounds(pos);
-        }
+        work.pack();
         work.setVisible(true);
 
         new Thread() {
@@ -410,15 +399,6 @@ public class Application {
         if (fontName != null) title += " : " + fontName;
         if (fontFile != null) title += " (" + fontFile.getName() + ")";
         work.setTitle(title);
-    }
-
-    private class OnUndoRedo implements UndoableEditListener {
-        @Override
-        public void undoableEditHappened(UndoableEditEvent e) {
-            if (undoCount < 0) undoCount = Integer.MIN_VALUE;
-            undoCount++;
-            updateUndoRedo();
-        }
     }
 
     void updateUndoRedo() {

@@ -1,13 +1,21 @@
 
 package forms;
 
+import static logic.Application.application;
 import gui.IButton;
-import gui.ICheckBoxMenuItem;
 import gui.IMenu;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Frame;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowStateListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.JFrame;
@@ -17,20 +25,84 @@ import javax.swing.JMenuBar;
 import javax.swing.JRootPane;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
-import utils.resource.Resource;
 import logic.Actions;
 import logic.Application;
-import static logic.Application.*;
+import utils.config.ConfigNode;
+import utils.resource.Resource;
 
 public class WorkShop extends JFrame {
     private static final long serialVersionUID = 1L;
     JSplitPane                split;
     JRootPane                 root;
+    ConfigNode                config;
 
     public WorkShop(ActionMap am) {
-        this.setLocationRelativeTo(null);
+        config = Application.application().config().node("/frame");
+        config.putComment(null);
+        config.putComment("bounds", " Position and size main window.\n"
+                        + " x y width height.");
+        config.putComment("state", " State main window; most be one of following:\n"
+                        + " normal iconic maximized horiz vert.");
+        config.putComment("horiz", " Position of horizontal split.");
+        config.putComment("vert", " Position of vertical split.");
 
-        root = this.getRootPane();
+        addWindowStateListener(new WindowStateListener() {
+            @Override
+            public void windowStateChanged(WindowEvent e) {
+                if (config == null) return;
+
+                String state;
+                switch (e.getNewState()) {
+                case Frame.ICONIFIED:
+                    state = "iconic";
+                    break;
+                case Frame.MAXIMIZED_BOTH:
+                    state = "maximized";
+                    break;
+                case Frame.MAXIMIZED_HORIZ:
+                    state = "horiz";
+                    break;
+                case Frame.MAXIMIZED_VERT:
+                    state = "vert";
+                    break;
+                default:
+                    state = "normal";
+                }
+                config.put("state", state);
+            }
+        });
+
+        addComponentListener(new ComponentListener() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                fixBounds();
+            }
+
+            @Override
+            public void componentMoved(ComponentEvent e) {
+                fixBounds();
+            }
+
+            void fixBounds() {
+                if (config == null) return;
+                if (WorkShop.this.getExtendedState() == NORMAL)
+                    config.putRectangle("bounds", getBounds());
+            }
+
+            @Override
+            public void componentShown(ComponentEvent e) {
+                // nop
+            }
+
+            @Override
+            public void componentHidden(ComponentEvent e) {
+                // nop
+            }
+        });
+
+        // this.setLocationRelativeTo(null);
+
+        root = getRootPane();
         root.setActionMap(am);
 
         this.setLayout(new BorderLayout());
@@ -39,9 +111,41 @@ public class WorkShop extends JFrame {
         this.add(doToolBar(am), BorderLayout.NORTH);
 
         split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true);
+        // split.setOneTouchExpandable(true);
+        split.addPropertyChangeListener(new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                if (config == null) return;
+
+                if (evt.getPropertyName().equals(
+                                JSplitPane.DIVIDER_LOCATION_PROPERTY)) {
+                    config.putInt("horiz", split.getDividerLocation());
+                }
+            }
+        });
         this.add(split);
 
         this.add(doStatusBar(am), BorderLayout.SOUTH);
+    }
+
+    @Override
+    public void pack() {
+        Rectangle pos = config.getRectangle("bounds", null);
+
+        if (pos == null) {
+            super.pack();
+        } else {
+            setBounds(pos);
+            String state = config.get("state", "normal");
+            if (state.equals("iconic")) setExtendedState(ICONIFIED);
+            else if (state.equals("maximized")) setExtendedState(MAXIMIZED_BOTH);
+            else if (state.equals("horiz")) setExtendedState(MAXIMIZED_HORIZ);
+            else if (state.equals("vert")) setExtendedState(MAXIMIZED_VERT);
+            else setState(NORMAL);
+
+            split.setDividerLocation(config.getInt("horiz", -1));
+        }
+
     }
 
     private JMenuBar doMenuBar(ActionMap am) {

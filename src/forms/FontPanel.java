@@ -4,6 +4,8 @@ package forms;
 import java.awt.BorderLayout;
 import java.awt.LayoutManager2;
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.JList;
@@ -12,6 +14,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import utils.config.ConfigNode;
 import logic.Actions;
 import logic.Application;
 import microfont.MFont;
@@ -30,9 +33,12 @@ public class FontPanel extends JPanel {
     private MSymbolCellRenderer listRender;
     private MSymbol             selectedSymbol;
     ActionMap                   actions;
+    ConfigNode                  config;
 
     public FontPanel(ActionMap am) {
         LayoutManager2 pLay;
+
+        config = Application.application().config();
 
         actions = am;
 
@@ -41,9 +47,24 @@ public class FontPanel extends JPanel {
 
         view = new MSymbolView();
         list = new JList<MSymbol>();
-        this.add(new JSplitPane(JSplitPane.VERTICAL_SPLIT,
-                        new JScrollPane(view), new JScrollPane(list)),
-                        BorderLayout.CENTER);
+        JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+                        new JScrollPane(view), new JScrollPane(list));
+        if (config != null) {
+            split.setDividerLocation(config.node("/frame").getInt("vert", -1));
+        }
+        split.addPropertyChangeListener(new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                if (config == null) return;
+
+                if (evt.getPropertyName().equals(
+                                JSplitPane.DIVIDER_LOCATION_PROPERTY)) {
+                    config.node("/frame").putInt("vert",
+                                    (Integer) evt.getNewValue());
+                }
+            }
+        });
+        this.add(split, BorderLayout.CENTER);
 
         listModel = new MListModel();
         listRender = new MSymbolCellRenderer();
