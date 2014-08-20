@@ -24,6 +24,7 @@ import microfont.Document;
 import microfont.MFont;
 import microfont.MSymbol;
 import microfont.ls.MFontLoadSave;
+import utils.config.ConfigNode;
 import utils.config.RootNode;
 import utils.ini.IniFile;
 import utils.recent.RecentFiles;
@@ -119,6 +120,13 @@ public class Application {
         res.setIconPath("icons/16/");
 
         files = new RecentFiles();
+        ConfigNode cfg = config.node("/files");
+        int max = cfg.getInt("max", 8);
+        while (max > 0) {
+            String fl = cfg.get(Integer.toString(max--), null);
+            if (fl == null) continue;
+            files.setLastFile(new File(fl), null);
+        }
         files.addSelectFileListener(new SelectFileListener() {
             @Override
             public void fileSelected(File f) {
@@ -188,12 +196,6 @@ public class Application {
             public void windowClosing(WindowEvent e) {
                 exit();
             }
-
-            @Override
-            public void windowClosed(WindowEvent e) {
-                exit = true;
-                application().config().save();
-            }
         });
         editPanel = new EditPanel(actions);
         editPanel.setDocument(doc);
@@ -201,7 +203,8 @@ public class Application {
         work.setLeft(fontPanel);
         work.setRight(editPanel);
 
-        setMFont(new MFont());
+        //XXX автозагрузка файла при запуске.
+        loadMFont(recent().getLastFile());
         // updateTitle();
         setSaved(true);
         work.pack();
@@ -218,7 +221,19 @@ public class Application {
     }
 
     public void exit() {
-        if (checkSaveFont()) work.dispose();
+        if (!checkSaveFont()) return;
+
+        config.node("/files").removeNode();
+        ConfigNode fls = config().node("/files");
+        fls.putInt("max", recent().getMaxFiles());
+        File[] files = recent().getFiles();
+        for (int i = files.length; i > 0;) {
+            fls.put(Integer.toString(i), files[--i].getAbsolutePath());
+        }
+
+        application().config().save();
+        work.dispose();
+        exit = true;
     }
 
     public synchronized JFileChooser chooserOpen() {

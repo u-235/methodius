@@ -68,13 +68,15 @@ public class RecentFiles {
             adjustFiles();
 
             if (name == null) name = last.getName();
-            JMenuItem mi = new JMenuItem(name);
-            mi.setToolTipText(last.getPath());
+            if (pMenu != null) {
+                JMenuItem mi = new JMenuItem(name);
+                mi.setToolTipText(last.getPath());
 
-            pMenu.add(mi, 0);
-            adjustItems();
+                pMenu.add(mi, 0);
+                adjustItems();
 
-            mi.addActionListener(new Listener(last));
+                mi.addActionListener(new Listener(last));
+            }
         } else if (i > 0) {
             // Replace item to top
             if (i < maxFiles) {
@@ -146,6 +148,7 @@ public class RecentFiles {
                 mi = new JMenuItem(f.getName());
                 mi.setToolTipText(f.getPath());
                 pMenu.add(mi);
+                mi.addActionListener(new Listener(f));
             }
         }
         return pMenu;
