@@ -18,7 +18,6 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.undo.UndoManager;
 import microfont.Document;
 import microfont.MFont;
@@ -37,8 +36,6 @@ import forms.WorkShop;
 
 public class Application {
     public static final String     NAME         = "Methodius";
-    public static final int        VER_MAJOR    = 0;
-    public static final int        VER_MINOR    = 8;
 
     public static final String     ON_HEAP_SIZE = "heap.size";
 
@@ -46,8 +43,6 @@ public class Application {
     RootNode                       config;
     Locale                         loc;
     Resource                       res;
-    File                           runDir;
-    File                           workDir;
     RecentFiles                    files;
 
     File                           fontFile;
@@ -62,12 +57,13 @@ public class Application {
     WorkShop                       work;
     FontPanel                      fontPanel;
     EditPanel                      editPanel;
-    JFileChooser                   chooserSave;
-    JFileChooser                   chooserOpen;
     FontProperties                 fpf;
 
     private Document               doc;
     private PropertyChangeListener atFontChange;
+    private Dialogs                dialogs;
+
+    private Directories            directories;
 
     public static void main(String[] args) {
         Runtime r;
@@ -89,35 +85,28 @@ public class Application {
                                                 ActionEvent.ACTION_PERFORMED,
                                                 heaps));
             try {
-                java.lang.Thread.sleep(750);
+                java.lang.Thread.sleep(1000);
             } catch (InterruptedException e) {
             }
         }/* */
     }
 
     protected Application() {
-        try {
-            runDir = new File(URLDecoder.decode(getClass().getClassLoader()
-                            .getResource("").getPath(), "UTF-8"));
+        directories = new Directories();
 
-        } catch (UnsupportedEncodingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            runDir = new File("");
-        }
-
-        config = new IniFile(new File(runDir, "methodius.ini"));
+        config = new IniFile(new File(directories.run(), "methodius.ini"));
         config.load();
+
+        directories.loadConfig(config);
 
         String l = config.node("user").get("locale", null);
         if (l == null) loc = Locale.getDefault();
         else loc = new Locale(l);
 
-        workDir = new File(config.node("files").get("last",
-                        new File(runDir, "microfonts").getPath()));
-
         res = new Resource("locale/MainForm", loc);
         res.setIconPath("icons/16/");
+
+        dialogs = new Dialogs(res, config);
 
         files = new RecentFiles();
         ConfigNode cfg = config.node("/files");
@@ -163,6 +152,14 @@ public class Application {
         return res;
     }
 
+    public Dialogs dialogs() {
+        return dialogs;
+    }
+
+    public Directories dir() {
+        return directories;
+    }
+
     public void doWorkShop() {
         if (work != null) return;
 
@@ -203,21 +200,13 @@ public class Application {
         work.setLeft(fontPanel);
         work.setRight(editPanel);
 
-        //XXX автозагрузка файла при запуске.
+        // XXX автозагрузка файла при запуске.
         loadMFont(recent().getLastFile());
         // updateTitle();
         setSaved(true);
         work.pack();
         work.setVisible(true);
 
-        new Thread() {
-            @Override
-            public void run() {
-                chooserOpen();
-                chooserSave();
-            }
-
-        }.start();
     }
 
     public void exit() {
@@ -234,30 +223,6 @@ public class Application {
         application().config().save();
         work.dispose();
         exit = true;
-    }
-
-    public synchronized JFileChooser chooserOpen() {
-        if (chooserOpen == null) {
-            chooserOpen = new JFileChooser();
-            FileNameExtensionFilter filter = new FileNameExtensionFilter(
-                            "MicroFont", "mfnt");
-            chooserOpen.setFileFilter(filter);
-            chooserOpen.setDialogTitle("Open font.");
-        }
-        return chooserOpen;
-    }
-
-    public synchronized JFileChooser chooserSave() {
-        if (chooserSave == null) {
-            chooserSave = new JFileChooser();
-            FileNameExtensionFilter filter = new FileNameExtensionFilter(
-                            "MicroFont", "mfnt");
-            chooserSave.setFileFilter(filter);
-            chooserSave.setDialogTitle("Сохранить шрифт как...");
-            chooserSave.setAcceptAllFileFilterUsed(false);
-            chooserSave.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        }
-        return chooserSave;
     }
 
     public void loadMFont(File file) {
@@ -331,11 +296,9 @@ public class Application {
 
     private File getSaveFile() {
         File ret;
-        chooserSave();
+        JFileChooser chooserSave = dialogs().chooserSave();
         while (true) {
-
-            chooserSave.setCurrentDirectory(SINGLE.workDir);
-            int returnVal = chooserSave.showSaveDialog(work);
+            int returnVal = chooserSave.showDialog(work, null);
             ret = chooserSave.getSelectedFile();
             if (ret == null || returnVal != JFileChooser.APPROVE_OPTION) {
                 JOptionPane.showMessageDialog(null, "Файл не выбран, печаль((",
@@ -362,9 +325,6 @@ public class Application {
                 name = name.substring(0, i);
             name += ".mfnt";
             ret = new File(ret.getParentFile(), name);
-
-            workDir = ret;
-            config().node("files").put("last", ret.getParentFile().getPath());
         }
 
         return ret;

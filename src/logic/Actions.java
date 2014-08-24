@@ -12,7 +12,7 @@ public class Actions extends ActionMap {
     /**
      * 
      */
-    private static final long serialVersionUID = -448757768836113043L;
+    private static final long  serialVersionUID          = -448757768836113043L;
     public static final String ON_NEW_FONT               = "font.new";
     public static final String ON_OPEN_FONT              = "font.open";
     public static final String ON_SAVE_FONT              = "font.save";
@@ -43,11 +43,9 @@ public class Actions extends ActionMap {
 
                 if (!app.checkSaveFont()) return;
 
-                JFileChooser open = app.chooserOpen();
+                JFileChooser open = app.dialogs().chooserOpen();
 
-                open.setCurrentDirectory(app.workDir);
-
-                int returnVal = open.showOpenDialog(app.work);
+                int returnVal = open.showDialog(app.work, null);
                 if (returnVal == JFileChooser.APPROVE_OPTION) {
                     app.loadMFont(open.getSelectedFile());
                 }

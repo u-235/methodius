@@ -49,6 +49,7 @@ public class RecentFiles {
      * {@link #setLastFile(File, String)} ни разу не вызывался.
      */
     public File getLastFile() {
+        if (files.isEmpty()) return null;
         return files.get(0);
     }
 

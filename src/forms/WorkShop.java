@@ -41,8 +41,10 @@ public class WorkShop extends JFrame {
         config.putComment(null);
         config.putComment("bounds", " Position and size main window.\n"
                         + " x y width height.");
-        config.putComment("state", " State main window; most be one of following:\n"
-                        + " normal iconic maximized horiz vert.");
+        config.putComment(
+                        "state",
+                        " State main window; most be one of following:\n"
+                                        + " normal iconic maximized horiz vert.");
         config.putComment("horiz", " Position of horizontal split.");
         config.putComment("vert", " Position of vertical split.");
 
