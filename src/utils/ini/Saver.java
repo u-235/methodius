@@ -5,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.util.StringTokenizer;
 
 public class Saver {
@@ -12,10 +13,11 @@ public class Saver {
     IniStyle               style;
 
     public Saver(OutputStream out, IniStyle style) {
-        this.out = new BufferedWriter(new OutputStreamWriter(out));
-
         if (style == null) this.style = IniStyle.flexible();
         else this.style = style;
+
+        this.out = new BufferedWriter(new OutputStreamWriter(out,
+                        this.style.charset));
     }
 
     public Saver(OutputStream out) {

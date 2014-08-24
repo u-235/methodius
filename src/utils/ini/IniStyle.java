@@ -43,4 +43,9 @@ public class IniStyle {
         if (ch >= '0' && ch <= '9') return true;
         return secChars.indexOf(ch) >= 0;
     }
+
+    public Charset charset() {
+        // TODO Auto-generated method stub
+        return charset;
+    }
 }

@@ -20,7 +20,7 @@ public class Parser {
         if (input == null || handler == null) return;
         if (style == null) style = IniStyle.flexible();
 
-        InputStreamReader reader = new InputStreamReader(input, style.charset);
+        InputStreamReader reader = new InputStreamReader(input, style.charset());
         int line = 0, col = 0;
         int ch;
         int prev, curr = 0;
