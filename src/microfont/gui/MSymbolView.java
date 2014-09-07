@@ -57,7 +57,7 @@ public class MSymbolView extends AbstractView {
             unicode = "U+" + Integer.toHexString(symbol.getUnicode());
         }
 
-        code = Integer.toHexString(symbol.getCode());
+        if (symbol != null) code = Integer.toHexString(symbol.getCode());
     }
 
     @Override
