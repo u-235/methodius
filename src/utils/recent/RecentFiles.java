@@ -125,9 +125,9 @@ public class RecentFiles {
     }
 
     public void setMaxFiles(int max) {
-        if (max <= 0)
+        if (max < 0)
             throw new IllegalArgumentException("invalid maximum files: " + max);
-        maxItems = max;
+        maxFiles = max;
         adjustFiles();
         adjustItems();
     }
@@ -168,7 +168,7 @@ public class RecentFiles {
     }
 
     public void setMaxItems(int max) {
-        if (max <= 0)
+        if (max < 0)
             throw new IllegalArgumentException("invalid maximum item: " + max);
         maxItems = max;
         adjustItems();
