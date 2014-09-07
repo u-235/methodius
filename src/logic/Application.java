@@ -8,8 +8,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.Locale;
 import javax.swing.Action;
 import javax.swing.ActionMap;
@@ -94,7 +92,9 @@ public class Application {
     protected Application() {
         directories = new Directories();
 
-        config = new IniFile(new File(directories.run(), "methodius.ini"));
+        // Трюк с папкой нужен для проверочных запусков из IDE
+        config = new IniFile(new File(directories.fonts().getParentFile(),
+                        "methodius.ini"));
         config.load();
 
         directories.loadConfig(config);
@@ -111,6 +111,7 @@ public class Application {
         files = new RecentFiles();
         ConfigNode cfg = config.node("/files");
         int max = cfg.getInt("max", 8);
+        files.setMaxFiles(max);
         while (max > 0) {
             String fl = cfg.get(Integer.toString(max--), null);
             if (fl == null) continue;
