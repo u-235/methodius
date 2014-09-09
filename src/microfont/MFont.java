@@ -34,7 +34,6 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     public static final String PROPERTY_ACTUALLY_MARGIN_LEFT  = "mf.state.magrin.left";
     /** Правое поле. */
     public static final String PROPERTY_ACTUALLY_MARGIN_RIGHT = "mf.state.margin.right";
-    public static final String PROPERTY_AUTHOR                = "mf.author";
     public static final String PROPERTY_DESCRIPTION           = "mf.description";
     public static final String PROPERTY_NAME                  = "mf.name";
     public static final String PROPERTY_PROTOTYPE             = "mf.prototype";
@@ -42,7 +41,6 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     private String             name;
     private String             prototype;
     private String             description;
-    private String             author;
     private int[]              metrics;
     private boolean[]          actually;
 
@@ -82,8 +80,6 @@ public class MFont extends AbstractMFont implements PixselMapListener,
                 result = prime * result + (actually[i] ? metrics[i] : 0);
             }
 
-            result = prime * result
-                            + ((author == null) ? 0 : author.hashCode());
             result = prime
                             * result
                             + ((description == null) ? 0 : description
@@ -111,9 +107,6 @@ public class MFont extends AbstractMFont implements PixselMapListener,
                     if (actually[i] && metrics[i] != other.metrics[i])
                         return false;
                 }
-                if (author == null) {
-                    if (other.author != null) return false;
-                } else if (!author.equals(other.author)) return false;
                 if (description == null) {
                     if (other.description != null) return false;
                 } else if (!description.equals(other.description))
@@ -146,7 +139,6 @@ public class MFont extends AbstractMFont implements PixselMapListener,
 
                 setName(font.name);
                 setPrototype(font.prototype);
-                setAuthor(font.author);
             }
         }
     }
@@ -220,31 +212,6 @@ public class MFont extends AbstractMFont implements PixselMapListener,
             String old = description;
             description = s;
             firePropertyChange(PROPERTY_DESCRIPTION, old, description);
-        }
-    }
-
-    /**
-     * Возвращает информацию о авторе.
-     * 
-     * @return Информация о авторе, может быть {@code null}.
-     */
-    public String getAuthor() {
-        synchronized (getLock()) {
-            return author;
-        }
-    }
-
-    /**
-     * Устанавливает информацию о авторе.
-     * 
-     * @param s Информация о авторе.
-     */
-    public void setAuthor(String s) {
-        synchronized (getLock()) {
-            String old = author;
-            author = s;
-
-            firePropertyChange(PROPERTY_AUTHOR, old, author);
         }
     }
 
@@ -420,7 +387,6 @@ public class MFont extends AbstractMFont implements PixselMapListener,
     @Override
     public Object getProperty(String property) {
         if (property.equals(PROPERTY_ASCENT)) return getMetric(METRIC_ASCENT);
-        else if (property.equals(PROPERTY_AUTHOR)) return getAuthor();
         else if (property.equals(PROPERTY_BASELINE)) return getMetric(METRIC_BASELINE);
         else if (property.equals(PROPERTY_DESCENT)) return getMetric(METRIC_DESCENT);
         else if (property.equals(PROPERTY_DESCRIPTION)) return getDescriptin();
@@ -460,10 +426,7 @@ public class MFont extends AbstractMFont implements PixselMapListener,
         } else if (value instanceof String) {
             String s = (String) value;
 
-            if (property.equals(PROPERTY_AUTHOR)) {
-                setAuthor(s);
-                return;
-            } else if (property.equals(PROPERTY_DESCRIPTION)) {
+            if (property.equals(PROPERTY_DESCRIPTION)) {
                 setDescriptin(s);
                 return;
             } else if (property.equals(PROPERTY_NAME)) {

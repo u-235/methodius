@@ -33,7 +33,6 @@ public class FontProperties {
     private MFont           font;
     private int             exitCode;
     private PFontGeneral    pGeneral;
-    private PFontAuthor     pAuthor;
     private PFontSize       pSize;
     private JCheckBox       btnReadonly;
     private JButton         btnOk;
@@ -79,13 +78,11 @@ public class FontProperties {
         form.setLayout(new BorderLayout());
 
         pGeneral = new PFontGeneral(res);
-        pAuthor = new PFontAuthor(res);
         pSize = new PFontSize(res);
 
         tab = new JTabbedPane();
         tab.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
         tab.add(pGeneral);
-        tab.add(pAuthor);
         tab.add(pSize);
         tab.add(doMap());
 
@@ -203,7 +200,6 @@ public class FontProperties {
 
     public void setReadOnly(boolean selected) {
         pGeneral.setReadOnly(selected);
-        pAuthor.setReadOnly(selected);
         pSize.setReadOnly(selected);
     }
 
@@ -223,7 +219,6 @@ public class FontProperties {
     public void setMFont(MFont font) {
         this.font = font;
         pGeneral.setMFont(this.font);
-        pAuthor.setMFont(this.font);
         pSize.setMFont(this.font);
 
         setReadOnly(true);

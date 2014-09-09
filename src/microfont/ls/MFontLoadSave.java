@@ -103,10 +103,6 @@ public class MFontLoadSave {
                         "   If yuor need edit this file use \"Methodius\".");
         writeNewLine(writer);
 
-        writeSection(writer, AUTHOR);
-        writeKey(writer, AUTHOR_NAME, mFont.getAuthor());
-        writeNewLine(writer);
-
         writeSection(writer, INFO);
         writeKey(writer, INFO_CHARSET, mFont.getCodePage());
         writeKey(writer, INFO_NAME, mFont.getName());
@@ -234,14 +230,6 @@ public class MFontLoadSave {
             key = getKey(str);
             value = getKeyValue(str);
             if (key.isEmpty() || value.isEmpty()) continue;
-
-            if (section.compareToIgnoreCase(AUTHOR) == 0) {
-                if (key.compareToIgnoreCase(AUTHOR_CONTACT) == 0)
-                    ret.setAuthor(ret.getAuthor() + value);
-                if (key.compareToIgnoreCase(AUTHOR_NAME) == 0)
-                    ret.setAuthor(value + ret.getAuthor());
-                continue;
-            }
 
             if (section.compareToIgnoreCase(INFO) == 0) {
                 if (key.compareToIgnoreCase(INFO_CHARSET) == 0) ret
