@@ -37,9 +37,10 @@ public class Directories {
         user = home;
 
         try {
-            app = new File(URLDecoder.decode(getClass().getClassLoader()
-                            .getResource("").getPath(), "UTF-8"));
-
+            app = onlyDir(new File(URLDecoder.decode(getClass()
+                            .getProtectionDomain()
+                            .getCodeSource().getLocation().getPath(), "UTF-8")));
+            System.out.println(app.getAbsolutePath());
         } catch (UnsupportedEncodingException e) {
             app = new File("");
         }
