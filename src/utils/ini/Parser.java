@@ -14,6 +14,7 @@ public class Parser {
     public final static int KEY_BEGIN     = 5;
     public final static int KEY_END       = 6;
     public final static int VALUE         = 7;
+    public final static int ESCAPE        = 8;
 
     public static void parse(InputStream input, Handler handler, IniStyle style)
                     throws IOException {
@@ -116,11 +117,33 @@ public class Parser {
                     handler.value(buf.toString());
                     state = NEW_LINE;
                     continue;
+                } else if (curr == '\\') {
+                    state = ESCAPE;
+                    continue;
                 } else if (style.isWhiteSpace(curr)) {
                     if (buf.length() != 0) buf.appendCodePoint(curr);
                     continue;
                 } else if (Character.isDefined(curr)) {
                     buf.appendCodePoint(curr);
+                    continue;
+                }
+                break;
+            case ESCAPE:
+                state = VALUE;
+                if (curr == '\\') {
+                    buf.append('\\');
+                    continue;
+                } else if (curr == 's') {
+                    buf.append(' ');
+                    continue;
+                } else if (curr == 't') {
+                    buf.append('\t');
+                    continue;
+                } else if (curr == 'r') {
+                    buf.append('\r');
+                    continue;
+                } else if (curr == 'n') {
+                    buf.append('\n');
                     continue;
                 }
                 break;

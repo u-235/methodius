@@ -7,6 +7,7 @@ import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Locale;
 import javax.swing.Action;
@@ -24,6 +25,7 @@ import microfont.ls.MFontLoadSave;
 import utils.config.ConfigNode;
 import utils.config.RootNode;
 import utils.ini.IniFile;
+import utils.ini.Saver;
 import utils.recent.RecentFiles;
 import utils.recent.SelectFileListener;
 import utils.resource.Resource;
@@ -347,7 +349,7 @@ public class Application {
         }
 
         try {
-            MFontLoadSave.save(font, fontFile);
+            MFontLoadSave.save(font, new Saver(new FileOutputStream(fontFile)));
         } catch (IOException e1) {
             JOptionPane.showMessageDialog(null, "Can't save file.", "Error",
                             JOptionPane.OK_OPTION);

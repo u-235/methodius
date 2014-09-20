@@ -2,26 +2,24 @@
 package microfont.ls;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.util.StringTokenizer;
+import utils.ini.Handler;
+import utils.ini.Parser;
+import utils.ini.Saver;
 import microfont.MFont;
 import microfont.MSymbol;
 import microfont.Metrics;
 
 public class MFontLoadSave {
-    protected static final String AUTHOR            = "AUTHOR";
-    protected static final String AUTHOR_NAME       = "name";
-    protected static final String AUTHOR_CONTACT    = "mail";
     protected static final String INFO              = "INFO";
     protected static final String INFO_CHARSET      = "charset";
     protected static final String INFO_NAME         = "name";
     protected static final String INFO_PROTOTIPE    = "prototype";
+    protected static final String INFO_DESCRIPTION  = "description";
     protected static final String INFO_SIZE         = "size";
     protected static final String INFO_FIXSED       = "fixsed";
     protected static final String INFO_WIDTH        = "width";
@@ -37,299 +35,204 @@ public class MFontLoadSave {
     protected static final String SYMBOLS_WIDTH     = "width";
     protected static final String SYMBOLS_BYTES     = "bytes";
 
-    private static void writeNewLine(BufferedWriter writer) throws IOException {
-        writer.write("\r\n");
-    }
-
-    private static void writeComment(BufferedWriter writer, String comment)
-                    throws IOException {
-        writer.write(";");
-        writer.write(comment);
-        writer.write("\r\n");
-    }
-
-    private static void writeSection(BufferedWriter writer, String section)
-                    throws IOException {
-        writer.write("[");
-        writer.write(section);
-        writer.write("]");
-        writer.write("\r\n");
-    }
-
-    private static void writeKey(BufferedWriter writer, String key)
-                    throws IOException {
-        writer.write(key);
-        writer.write(" = ");
-    }
-
-    private static void writeKey(BufferedWriter writer, String key, String value)
-                    throws IOException {
-        if (value == null) return;
-        writeKey(writer, key);
-        writer.write(value);
-        writer.write("\r\n");
-    }
-
-    private static void writeKey(BufferedWriter writer, String key, int value)
-                    throws IOException {
-        writeKey(writer, key, Integer.toString(value));
-    }
-
     /**
      * Сохраняет шрифт в заданном файле.
      * 
-     * @param f Файл для записи шрифта.
-     * @throws IllegalArgumentException Если файл <b>f</b> равен <b>null</b>.
+     * @param svr Файл для записи шрифта.
+     * @throws NullPointerException Если файл <b>svr</b> равен <b>null</b>.
      * @throws IOException
-     * @throws FileNotFoundException
-     * @throws SecurityException
-     * @see #save(MFont, String)
      */
-    public static void save(MFont mFont, File f)
-                    throws IllegalArgumentException, IOException,
-                    FileNotFoundException, SecurityException {
-        BufferedWriter writer;
+    public static void save(MFont mFont, Saver svr)
+                    throws NullPointerException, IOException {
         MSymbol sym;
         int w, last;
         byte[] arr;
 
-        if (f == null) throw (new IllegalArgumentException("file is null"));
+        if (svr == null) throw (new IllegalArgumentException("file is null"));
 
-        writer = new BufferedWriter(new OutputStreamWriter(
-                        new FileOutputStream(f), "utf-8"));
+        svr.comment(" This is MFont file. Version 0.8"
+                        + "\n If yuor need edit this file use \"Methodius\".");
 
-        writeComment(writer, "   This is MFont file. Version 0.8");
-        writeComment(writer,
-                        "   If yuor need edit this file use \"Methodius\".");
-        writeNewLine(writer);
+        svr.section(INFO);
+        svr.key(INFO_CHARSET, mFont.getCodePage());
+        svr.key(INFO_NAME, mFont.getName());
+        svr.key(INFO_PROTOTIPE, mFont.getPrototype());
+        svr.key(INFO_DESCRIPTION, mFont.getDescriptin());
+        svr.key(INFO_SIZE, Integer.toString(mFont.length()));
 
-        writeSection(writer, INFO);
-        writeKey(writer, INFO_CHARSET, mFont.getCodePage());
-        writeKey(writer, INFO_NAME, mFont.getName());
-        writeKey(writer, INFO_PROTOTIPE, mFont.getPrototype());
-        writeKey(writer, INFO_SIZE, mFont.length());
-
-        writeKey(writer, INFO_FIXSED);
         if (mFont.isFixsed()) {
-            writer.write("true");
-        } else writer.write("false");
-        writeNewLine(writer);
+            svr.key(INFO_FIXSED, "true");
+        } else {
+            svr.key(INFO_FIXSED, "false");
+        }
 
-        writeKey(writer, INFO_WIDTH, mFont.getWidth());
-        writeKey(writer, INFO_HEIGHT, mFont.getHeight());
-        writeKey(writer, INFO_BASELINE,
-                        mFont.getMetric(Metrics.METRIC_BASELINE));
-        writeKey(writer, INFO_ASCENT, mFont.getMetric(Metrics.METRIC_ASCENT));
-        writeKey(writer, INFO_LINE, mFont.getMetric(Metrics.METRIC_LINE));
-        writeKey(writer, INFO_DESCENT, mFont.getMetric(Metrics.METRIC_DESCENT));
-        writeKey(writer, INFO_LEFT_MARGIN, mFont.getMetric(Metrics.METRIC_LEFT));
-        writeKey(writer, INFO_RIGHT_MARGIN,
-                        mFont.getMetric(Metrics.METRIC_RIGHT));
-        writeNewLine(writer);
+        svr.key(INFO_WIDTH, Integer.toString(mFont.getWidth()));
+        svr.key(INFO_HEIGHT, Integer.toString(mFont.getHeight()));
+        svr.key(INFO_BASELINE, Integer.toString(mFont
+                        .getMetric(Metrics.METRIC_BASELINE)));
+        svr.key(INFO_ASCENT, Integer.toString(mFont
+                        .getMetric(Metrics.METRIC_ASCENT)));
+        svr.key(INFO_LINE,
+                        Integer.toString(mFont.getMetric(Metrics.METRIC_LINE)));
+        svr.key(INFO_DESCENT, Integer.toString(mFont
+                        .getMetric(Metrics.METRIC_DESCENT)));
+        svr.key(INFO_LEFT_MARGIN,
+                        Integer.toString(mFont.getMetric(Metrics.METRIC_LEFT)));
+        svr.key(INFO_RIGHT_MARGIN,
+                        Integer.toString(mFont.getMetric(Metrics.METRIC_RIGHT)));
 
-        writeComment(writer, "Byte arrays of synbol in hex radix.");
-        writeSection(writer, SYMBOLS);
+        svr.comment(" Byte arrays of synbol in hex radix.");
+        svr.section(SYMBOLS);
         last = -1;
+
+        StringBuffer buff = new StringBuffer();
         for (int i = 0; i < mFont.length(); i++) {
             sym = mFont.symbolByIndex(i);
             last++;
             if (last != sym.getCode()) {
-                writeKey(writer, SYMBOLS_CODE, sym.getCode());
+                svr.key(SYMBOLS_CODE, Integer.toString(sym.getCode()));
             }
             last = sym.getCode();
 
             w = sym.getWidth();
             if (!mFont.isFixsed()) {
-                writeKey(writer, SYMBOLS_WIDTH, w);
+                svr.key(SYMBOLS_WIDTH, Integer.toString(w));
             }
 
             arr = sym.getByteArray();
-            writeKey(writer, SYMBOLS_BYTES);
+            buff.delete(0, buff.length());
             for (byte bt : arr) {
-                writer.write(" " + Integer.toHexString(bt & 0x00ff));
+                if (buff.length() > 0) buff.append(" ");
+                buff.append(Integer.toHexString(bt & 0x00ff));
             }
-
-            writeNewLine(writer);
+            svr.key(SYMBOLS_BYTES, buff.toString());
         }
-
-        writeNewLine(writer);
-        writer.close();
-    }
-
-    /**
-     * 
-     * @param fname
-     * @throws IllegalArgumentException
-     * @throws IOException
-     * @throws FileNotFoundException
-     * @throws SecurityException
-     */
-    public void save(MFont mFont, String fname)
-                    throws IllegalArgumentException, IOException,
-                    FileNotFoundException, SecurityException {
-        if (fname == null)
-            throw (new IllegalArgumentException("file name is null"));
-        save(mFont, new File(fname));
-    }
-
-    static private String getKey(String str) {
-        String ret = "";
-        int i;
-
-        i = str.indexOf('=');
-        if (i >= 0) ret = str.substring(0, i).trim();
-
-        return ret;
-    }
-
-    static private String getKeyValue(String str) {
-        String ret = "";
-        int i;
-
-        i = str.indexOf('=') + 1;
-        if (i > 0 && i < str.length()) ret = str.substring(i).trim();
-
-        return ret;
     }
 
     static public MFont load(File f, MFontLoadProgress progress)
                     throws IOException {
-        MFont ret;
-        FileInputStream inpStream;
-        BufferedReader reader;
-        String str;
-        String section = "";
-        String key, value;
-        int width = 0, index = 0, size = 0, height = -1;
-        byte[] bytes;
+        FileInputStream inp = new FileInputStream(f);
 
-        inpStream = new FileInputStream(f);
-
-        reader = new BufferedReader(new InputStreamReader(inpStream, "utf-8"));
-        ret = new MFont();
-
-        int line = 0;
-        while ((str = reader.readLine()) != null) {
-            line++;
-            if (progress != null && progress.parseString(line)) break;
-
-            str = str.trim();
-            if (str.length() == 0) continue;
-            if (str.charAt(0) == ';') continue;
-
-            if (str.charAt(0) == '[') {
-                section = str.substring(1, str.indexOf(']'));
-                if (section.compareToIgnoreCase(SYMBOLS) == 0
-                                && (size < 0 || height < 0)) {
-                    reader.close();
-                    return null;
-                }
-                continue;
-            }
-
-            key = getKey(str);
-            value = getKeyValue(str);
-            if (key.isEmpty() || value.isEmpty()) continue;
-
-            if (section.compareToIgnoreCase(INFO) == 0) {
-                if (key.compareToIgnoreCase(INFO_CHARSET) == 0) ret
-                                .setCodePage(value);
-                else if (key.compareToIgnoreCase(INFO_NAME) == 0) {
-                    ret.setName(value);
-                } else if (key.compareToIgnoreCase(INFO_PROTOTIPE) == 0) {
-                    ret.setPrototype(value);
-                } else if (key.compareToIgnoreCase(INFO_FIXSED) == 0) {
-                    if (value.compareToIgnoreCase("true") == 0) {
-                        ret.setFixsed(true);
-                    } else ret.setFixsed(false);
-                } else if (key.compareToIgnoreCase(INFO_WIDTH) == 0) {
-                    if (value.length() != 0) width = Integer.parseInt(value);
-                    ret.setWidth(width);
-                } else if (key.compareToIgnoreCase(INFO_HEIGHT) == 0) {
-                    if (value.length() != 0) height = Integer.parseInt(value);
-                    ret.setHeight(height);
-                } else if (key.compareToIgnoreCase(INFO_BASELINE) == 0) {
-                    if (value.length() != 0) {
-                        ret.setMetric(Metrics.METRIC_BASELINE,
-                                        Integer.parseInt(value));
-                        ret.setMetricActually(Metrics.METRIC_BASELINE, true);
-                    }
-                } else if (key.compareToIgnoreCase(INFO_ASCENT) == 0) {
-                    if (value.length() != 0) {
-                        ret.setMetric(Metrics.METRIC_ASCENT,
-                                        Integer.parseInt(value));
-                        ret.setMetricActually(Metrics.METRIC_ASCENT, true);
-                    }
-                } else if (key.compareToIgnoreCase(INFO_LINE) == 0
-                                || key.compareToIgnoreCase("ascentCapital") == 0) {
-                    if (value.length() != 0) {
-                        ret.setMetric(Metrics.METRIC_LINE,
-                                        Integer.parseInt(value));
-                        ret.setMetricActually(Metrics.METRIC_LINE, true);
-                    }
-                } else if (key.compareToIgnoreCase(INFO_DESCENT) == 0) {
-                    if (value.length() != 0) {
-                        ret.setMetric(Metrics.METRIC_DESCENT,
-                                        Integer.parseInt(value));
-                        ret.setMetricActually(Metrics.METRIC_DESCENT, true);
-                    }
-                } else if (key.compareToIgnoreCase(INFO_LEFT_MARGIN) == 0) {
-                    if (value.length() != 0) {
-                        ret.setMetric(Metrics.METRIC_LEFT,
-                                        Integer.parseInt(value));
-                        ret.setMetricActually(Metrics.METRIC_LEFT, true);
-                    }
-                } else if (key.compareToIgnoreCase(INFO_RIGHT_MARGIN) == 0) {
-                    if (value.length() != 0) {
-                        ret.setMetric(Metrics.METRIC_RIGHT,
-                                        Integer.parseInt(value));
-                        ret.setMetricActually(Metrics.METRIC_RIGHT, true);
-                    }
-                }
-                continue;
-            }
-
-            if (section.compareToIgnoreCase(SYMBOLS) == 0) {
-                if (key.compareToIgnoreCase(SYMBOLS_CODE) == 0
-                                || key.compareToIgnoreCase("index") == 0) {
-                    index = Integer.parseInt(value);
-                } else if (key.compareToIgnoreCase(SYMBOLS_WIDTH) == 0) {
-                    width = Integer.parseInt(value);
-                } else if (key.compareToIgnoreCase(SYMBOLS_BYTES) == 0) {
-                    bytes = new byte[(width * height + 7) / 8];
-
-                    int n = 0;
-                    boolean space = true;
-                    for (int i = 0; i < value.length(); i++) {
-                        if (n >= bytes.length) break;
-                        char c = value.charAt(i);
-                        if (c >= '0' && c <= '9') {
-                            bytes[n] = (byte) (bytes[n] * 16 + c - '0');
-                            space = false;
-                        } else if (c >= 'a' && c <= 'f') {
-                            bytes[n] = (byte) (bytes[n] * 16 + c - 'a' + 10);
-                            space = false;
-                        } else if (c >= 'A' && c <= 'F') {
-                            bytes[n] = (byte) (bytes[n] * 16 + c - 'A' + 10);
-                            space = false;
-                        } else if (!space) {
-                            space = true;
-                            n++;
-                        }
-                    }
-
-                    ret.add(new MSymbol(index, width, height, bytes));
-                    index++;
-                }
-            }
+        FontHandler fhandler = new FontHandler();
+        try {
+            Parser.parse(inp, fhandler, null);
+        } catch (IOException e) {
+            inp.close();
+            throw (e);
         }
-        reader.close();
 
-        return ret;
+        inp.close();
+        return fhandler.font;
     }
 
-    public static MFont load(String fname, MFontLoadProgress progress)
-                    throws IOException {
-        return load(new File(fname), progress);
+    static class FontHandler implements Handler {
+        MFont  font    = new MFont();
+        int    section = 0;
+        String key     = null;
+        int    code    = 0;
+        int    width   = 0;
+        int    height  = 0;
+
+        @Override
+        public void value(String value) {
+            if (key == null) return;
+
+            if (section == 1) {
+                if (key.equalsIgnoreCase(INFO_ASCENT)) {
+                    font.setMetric(Metrics.METRIC_ASCENT,
+                                    Integer.parseInt(value));
+                    font.setMetricActually(Metrics.METRIC_ASCENT, true);
+                } else if (key.equalsIgnoreCase(INFO_BASELINE)) {
+                    font.setMetric(Metrics.METRIC_BASELINE,
+                                    Integer.parseInt(value));
+                    font.setMetricActually(Metrics.METRIC_BASELINE, true);
+                } else if (key.equalsIgnoreCase(INFO_DESCENT)) {
+                    font.setMetric(Metrics.METRIC_DESCENT,
+                                    Integer.parseInt(value));
+                    font.setMetricActually(Metrics.METRIC_DESCENT, true);
+                } else if (key.equalsIgnoreCase(INFO_LEFT_MARGIN)) {
+                    font.setMetric(Metrics.METRIC_LEFT, Integer.parseInt(value));
+                    font.setMetricActually(Metrics.METRIC_LEFT, true);
+                } else if (key.equalsIgnoreCase(INFO_LINE)) {
+                    font.setMetric(Metrics.METRIC_LINE, Integer.parseInt(value));
+                    font.setMetricActually(Metrics.METRIC_LINE, true);
+                } else if (key.equalsIgnoreCase(INFO_RIGHT_MARGIN)) {
+                    font.setMetric(Metrics.METRIC_RIGHT,
+                                    Integer.parseInt(value));
+                    font.setMetricActually(Metrics.METRIC_RIGHT, true);
+                } else if (key.equalsIgnoreCase(INFO_DESCRIPTION)) {
+                    font.setDescriptin(value);
+                } else if (key.equalsIgnoreCase(INFO_NAME)) {
+                    font.setName(value);
+                } else if (key.equalsIgnoreCase(INFO_PROTOTIPE)) {
+                    font.setPrototype(value);
+                } else if (key.equalsIgnoreCase(INFO_CHARSET)) {
+                    font.setCodePage(value);
+                } else if (key.equalsIgnoreCase(INFO_FIXSED)) {
+                    font.setFixsed(value.equalsIgnoreCase("true"));
+                } else if (key.equalsIgnoreCase(INFO_HEIGHT)) {
+                    height = Integer.parseInt(value);
+                    font.setHeight(height);
+                } else if (key.equalsIgnoreCase(INFO_WIDTH)) {
+                    width = Integer.parseInt(value);
+                    font.setWidth(width);
+                }
+            } else if (section == 2) {
+                if (key.equalsIgnoreCase(SYMBOLS_CODE)) {
+                    code = Integer.parseInt(value);
+                } else if (key.equalsIgnoreCase(SYMBOLS_WIDTH)) {
+                    width = Integer.parseInt(value);
+                } else if (key.equalsIgnoreCase(SYMBOLS_BYTES)) {
+                    StringTokenizer st = new StringTokenizer(value, " ", false);
+                    byte[] bytes = new byte[st.countTokens()];
+                    for (int i = 0; st.hasMoreTokens(); i++) {
+                        bytes[i] = (byte) Short.parseShort(st.nextToken(), 16);
+                    }
+
+                    font.add(new MSymbol(code, width, height, bytes));
+                    code++;
+                }
+            }else{
+                //TODO handle error
+            }
+        }
+
+        @Override
+        public void section(String sec) {
+            key = null;
+            switch (section) {
+            case 0:
+                if (INFO.equals(sec)) {
+                    section = 1;
+                } else {
+                    // TODO handle error
+                }
+                break;
+            case 1:
+                if (SYMBOLS.equals(sec)) {
+                    section = 2;
+                } else {
+                    // TODO handle error
+                }
+                break;
+            default:
+                // TODO handle error
+            }
+        }
+
+        @Override
+        public void key(String k) {
+            if (section == 1 || section == 2) key = k;
+        }
+
+        @Override
+        public void error(int state, int ch, int line, int col) {
+            // TODO handle error
+        }
+
+        @Override
+        public void comment(String com) {
+            // nop
+        }
     }
 }

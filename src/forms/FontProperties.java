@@ -99,12 +99,10 @@ public class FontProperties {
 
         tab.setTitleAt(0, res.getText("properties.tab.general"));
         tab.setToolTipTextAt(0, res.getToolTip("properties.tab.general"));
-        tab.setTitleAt(1, res.getText("properties.tab.author"));
-        tab.setToolTipTextAt(1, res.getToolTip("properties.tab.author"));
-        tab.setTitleAt(2, res.getText("properties.tab.size"));
-        tab.setToolTipTextAt(2, res.getToolTip("properties.tab.size"));
-        tab.setTitleAt(3, res.getText("properties.tab.charset"));
-        tab.setToolTipTextAt(3, res.getToolTip("properties.tab.charset"));
+        tab.setTitleAt(1, res.getText("properties.tab.size"));
+        tab.setToolTipTextAt(1, res.getToolTip("properties.tab.size"));
+        tab.setTitleAt(2, res.getText("properties.tab.charset"));
+        tab.setToolTipTextAt(2, res.getToolTip("properties.tab.charset"));
 
         btnReadonly.setText(res.getText("properties.form.readonly"));
         btnReadonly.setToolTipText(res.getToolTip("properties.form.readonly"));

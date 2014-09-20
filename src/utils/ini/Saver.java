@@ -2,13 +2,13 @@
 package utils.ini;
 
 import java.io.BufferedWriter;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
 import java.util.StringTokenizer;
 
-public class Saver {
+public class Saver implements Closeable {
     private BufferedWriter out;
     IniStyle               style;
 
@@ -24,6 +24,7 @@ public class Saver {
         this(out, null);
     }
 
+    @Override
     public void close() throws IOException {
         if (out == null) return;
         out.close();
@@ -36,7 +37,7 @@ public class Saver {
      * перевода строки на \r и \n
      */
     private static String checkString(String s) {
-        if (s.isEmpty()) return s;
+        if (s==null || s.isEmpty()) return "";
 
         s = s.replace("\\", "\\\\");
         s = s.replace("\n", "\\n");
