@@ -234,7 +234,7 @@ public class Application {
         if (file == null) return;
 
         try {
-            font = MFontLoadSave.load(file, null);
+            font = MFontLoadSave.load(file);
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(null, "Can't open file.", "Error",
                             JOptionPane.OK_OPTION);

@@ -1,11 +1,9 @@
 
 package microfont.ls;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.StringTokenizer;
 import utils.ini.Handler;
 import utils.ini.Parser;
@@ -42,7 +40,7 @@ public class MFontLoadSave {
      * @throws NullPointerException Если файл <b>svr</b> равен <b>null</b>.
      * @throws IOException
      */
-    public static void save(MFont mFont, Saver svr)
+    public static void save(MFont mFont, Saver svr, MFontSaveProgress progress)
                     throws NullPointerException, IOException {
         MSymbol sym;
         int w, last;
@@ -109,7 +107,12 @@ public class MFontLoadSave {
         }
     }
 
-    static public MFont load(File f, MFontLoadProgress progress)
+    public static void save(MFont mFont, Saver svr)
+                    throws NullPointerException, IOException {
+        save(mFont, svr, null);
+    }
+
+    public static MFont load(File f, MFontLoadProgress progress)
                     throws IOException {
         FileInputStream inp = new FileInputStream(f);
 
@@ -123,6 +126,10 @@ public class MFontLoadSave {
 
         inp.close();
         return fhandler.font;
+    }
+
+    public static MFont load(File f) throws IOException {
+        return load(f, null);
     }
 
     static class FontHandler implements Handler {
@@ -192,8 +199,8 @@ public class MFontLoadSave {
                     font.add(new MSymbol(code, width, height, bytes));
                     code++;
                 }
-            }else{
-                //TODO handle error
+            } else {
+                // TODO handle error
             }
         }
 
