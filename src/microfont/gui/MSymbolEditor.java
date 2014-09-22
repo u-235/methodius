@@ -2,6 +2,10 @@
 package microfont.gui;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.LayoutManager;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -18,25 +22,25 @@ import microfont.render.PointInfo;
 public class MSymbolEditor extends AbstractView {
     /**  */
     private static final long serialVersionUID = 1L;
-    MouseHandler              handler;
-    Editor                    control;
+    protected MouseHandler    handler;
+    protected Editor          control;
     private Document          document;
 
     public MSymbolEditor() {
-        super(1);
+        super();
         handler = new MouseHandler();
-        setLayout(new MSymbolEditorLayout(this));
+        setLayout(new MSymbolEditorLayout());
 
-        setPixselSize(16);
+        setPixselSize(4);
         setSpacing(1);
         setColor(ColorIndex.COLOR_PAPER_MARGINS, Color.LIGHT_GRAY);
-        setColor(ColorIndex.COLOR_INK, new Color(0, 0, 0));
+        setColor(ColorIndex.COLOR_INK, Color.BLACK);
         setColor(ColorIndex.COLOR_INK_MARGINS, new Color(60, 0, 0));
         setColor(ColorIndex.COLOR_PAPER_ASCENT, new Color(224, 224, 224));
         setColor(ColorIndex.COLOR_PAPER, Color.WHITE);
         setColor(ColorIndex.COLOR_SPACE, new Color(208, 208, 208));
         setColor(ColorIndex.COLOR_GRID, new Color(128, 128, 128));
-        setGridSize(5);
+        setGridSize(3);
         setGridThickness(1);
         setDrawGrid(true);
         setDrawMargins(true);
@@ -62,21 +66,65 @@ public class MSymbolEditor extends AbstractView {
         }
     }
 
-    private class MouseHandler implements MouseListener, MouseMotionListener,
+    protected class MSymbolEditorLayout implements LayoutManager {
+        public MSymbolEditorLayout() {
+            //
+        }
+
+        @Override
+        public void addLayoutComponent(String name, Component comp) {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public void removeLayoutComponent(Component comp) {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public Dimension preferredLayoutSize(Container parent) {
+            return new Dimension(render().getWidth(), render().getHeight());
+        }
+
+        @Override
+        public Dimension minimumLayoutSize(Container parent) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public void layoutContainer(Container parent) {
+            int w = parent.getWidth();
+            int h = parent.getHeight();
+
+            Rectangle pos = renderPos;
+            pos.width = render().getWidth();
+            pos.height = render().getHeight();
+
+            if (pos.width >= w) pos.x = 0;
+            else pos.x = (w - pos.width) / 2;
+
+            if (render().getHeight() >= h) pos.y = 0;
+            else pos.y = (h - render().getHeight()) / 2;
+        }
+    }
+
+    protected class MouseHandler implements MouseListener, MouseMotionListener,
                     MouseWheelListener {
-        Rectangle rect;
         PointInfo info;
         boolean   paint;
 
         @Override
         public void mouseWheelMoved(MouseWheelEvent e) {
+            //
         }
 
         @Override
         public void mouseDragged(MouseEvent e) {
-            rect = elementPosition(ELEMENT_INDEX_RENDER);
-            info = render().getPointInfo(info, e.getX() - rect.x,
-                            e.getY() - rect.y);
+            info = render().getPointInfo(info, e.getX() - renderPos.x,
+                            e.getY() - renderPos.y);
             if (control != null) {
                 control.mouseDragged(MSymbolEditor.this, e, info);
             } else {
@@ -90,9 +138,8 @@ public class MSymbolEditor extends AbstractView {
 
         @Override
         public void mouseMoved(MouseEvent e) {
-            rect = elementPosition(ELEMENT_INDEX_RENDER);
-            info = render().getPointInfo(info, e.getX() - rect.x,
-                            e.getY() - rect.y);
+            info = render().getPointInfo(info, e.getX() - renderPos.x,
+                            e.getY() - renderPos.y);
             if (control != null) {
                 control.mouseMoved(MSymbolEditor.this, e, info);
             }
@@ -100,9 +147,8 @@ public class MSymbolEditor extends AbstractView {
 
         @Override
         public void mouseClicked(MouseEvent e) {
-            rect = elementPosition(ELEMENT_INDEX_RENDER);
-            info = render().getPointInfo(info, e.getX() - rect.x,
-                            e.getY() - rect.y);
+            info = render().getPointInfo(info, e.getX() - renderPos.x,
+                            e.getY() - renderPos.y);
             if (control != null) {
                 control.mouseClicked(MSymbolEditor.this, e, info);
             } else {
@@ -122,9 +168,8 @@ public class MSymbolEditor extends AbstractView {
 
         @Override
         public void mousePressed(MouseEvent e) {
-            rect = elementPosition(ELEMENT_INDEX_RENDER);
-            info = render().getPointInfo(info, e.getX() - rect.x,
-                            e.getY() - rect.y);
+            info = render().getPointInfo(info, e.getX() - renderPos.x,
+                            e.getY() - renderPos.y);
             if (control != null) {
                 control.mousePressed(MSymbolEditor.this, e, info);
             } else {
@@ -142,9 +187,8 @@ public class MSymbolEditor extends AbstractView {
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            rect = elementPosition(ELEMENT_INDEX_RENDER);
-            info = render().getPointInfo(info, e.getX() - rect.x,
-                            e.getY() - rect.y);
+            info = render().getPointInfo(info, e.getX() - renderPos.x,
+                            e.getY() - renderPos.y);
             if (control != null) {
                 control.mouseReleased(MSymbolEditor.this, e, info);
             } else if (document != null) document.endEdit();
@@ -152,10 +196,12 @@ public class MSymbolEditor extends AbstractView {
 
         @Override
         public void mouseEntered(MouseEvent e) {
+            //
         }
 
         @Override
         public void mouseExited(MouseEvent e) {
+            //
         }
     }
 }

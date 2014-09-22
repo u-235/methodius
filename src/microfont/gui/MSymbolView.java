@@ -2,8 +2,13 @@
 package microfont.gui;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.LayoutManager;
+import java.awt.Rectangle;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import microfont.AbstractPixselMap;
@@ -22,14 +27,20 @@ public class MSymbolView extends AbstractView {
     private String            sample;
     private String            code;
     private String            unicode;
+    protected Rectangle       samplePos;
+    protected Rectangle       codePos;
+    protected Rectangle       unicodePos;
 
     public MSymbolView() {
-        super(4);
+        super();
         symListener = new SymbolListener();
         setPixselSize(1);
         setOpaque(true);
         setBackground(Color.WHITE);
-        setLayout(new MSymbolViewLayout(this));
+        samplePos = new Rectangle();
+        codePos = new Rectangle();
+        unicodePos = new Rectangle();
+        setLayout(new MSymbolViewLayout());
     }
 
     @Override
@@ -64,16 +75,64 @@ public class MSymbolView extends AbstractView {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        if (code != null)
-            g.drawString(code, elementsPos[ELEMENT_INDEX_CODE].x,
-                            elementsPos[ELEMENT_INDEX_CODE].y + 20);
+        if (code != null) g.drawString(code, codePos.x, codePos.y + 20);
         if (unicode != null)
-            g.drawString(unicode, elementsPos[ELEMENT_INDEX_UNICODE].x + 40,
-                            elementsPos[ELEMENT_INDEX_UNICODE].y + 20);
+            g.drawString(unicode, unicodePos.x + 40, unicodePos.y + 20);
         g.setFont(fontSample);
         if (sample != null)
-            g.drawString(sample, elementsPos[ELEMENT_INDEX_SAMPLE].x,
-                            elementsPos[ELEMENT_INDEX_SAMPLE].y + 10);
+            g.drawString(sample, samplePos.x, samplePos.y + 10);
+    }
+
+    protected class MSymbolViewLayout implements LayoutManager {
+        Dimension pref;
+
+        public MSymbolViewLayout() {
+            pref = new Dimension();
+        }
+
+        @Override
+        public void addLayoutComponent(String name, Component comp) {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public void removeLayoutComponent(Component comp) {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public Dimension preferredLayoutSize(Container parent) {
+            calculate();
+            return pref;
+        }
+
+        @Override
+        public Dimension minimumLayoutSize(Container parent) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public void layoutContainer(Container parent) {
+            calculate();
+            layout();
+        }
+
+        void calculate() {
+            pref.width = render().getWidth() + 90;
+            pref.height = render().getHeight() + 10;
+        }
+
+        void layout() {
+            Rectangle pos = renderPos;
+            pos.width = render().getWidth();
+            pos.height = render().getHeight();
+
+            pos.x = 90;
+            pos.y = 10;
+        }
     }
 
     protected class SymbolListener implements PropertyChangeListener {

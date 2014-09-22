@@ -17,7 +17,7 @@ import utils.config.ConfigNode;
 
 public class EditPanel extends JPanel {
     private static final long serialVersionUID = 1L;
-    private MSymbolEditor edit;
+    private MSymbolEditor     edit;
 
     public EditPanel() {
         JToolBar tools;

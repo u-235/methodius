@@ -29,33 +29,20 @@ import microfont.render.Render;
  * <p>
  */
 public class AbstractView extends JComponent implements Metrics {
-    public static int         ELEMENT_INDEX_RENDER = 0;
-    private static final long serialVersionUID     = 1L;
+    private static final long serialVersionUID = 1L;
     private PixselMapRender   render;
-    protected Rectangle[]     elementsPos;
+    protected Rectangle       renderPos;
     protected MFont           owner;
     private FontListener      fontListener;
 
     /**
-     * Создание объекта с установленными символом по умолчанию.
      * 
-     * @param num
-     * @throws IllegalArgumentException
-     */
-    public AbstractView(int num) {
-        if (num < 1) throw new IllegalArgumentException("size =" + num);
-        elementsPos = new Rectangle[num];
-        for (int i = 0; i < num; i++) {
-            elementsPos[i] = new Rectangle();
-        }
+     * */
+    public AbstractView() {
+        renderPos = new Rectangle();
 
         render = new PixselMapRender(new RenderListener());
         fontListener = new FontListener();
-    }
-
-    public Rectangle elementPosition(int i) {
-        if (i < 0 || i >= elementsPos.length) return null;
-        return elementsPos[i];
     }
 
     public Render render() {
@@ -310,8 +297,7 @@ public class AbstractView extends JComponent implements Metrics {
             }
             g.clearRect(x, y, w, h);
         }
-        render.paint(g, elementsPos[ELEMENT_INDEX_RENDER].x,
-                        elementsPos[ELEMENT_INDEX_RENDER].y);
+        render.paint(g, renderPos.x, renderPos.y);
     }
 
     protected void updateRenderMetrics(MFont font) {
@@ -349,8 +335,8 @@ public class AbstractView extends JComponent implements Metrics {
 
         @Override
         public void requestRepaint(Rectangle rect) {
-            rect.x += elementsPos[ELEMENT_INDEX_RENDER].x;
-            rect.y += elementsPos[ELEMENT_INDEX_RENDER].y;
+            rect.x += renderPos.x;
+            rect.y += renderPos.y;
             repaint(rect);
         }
 
