@@ -1,30 +1,26 @@
 
 package forms;
 
-import gui.IToggleButton;
+import static logic.Application.application;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import javax.swing.ActionMap;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
-import utils.config.ConfigChangeEvent;
-import utils.config.ConfigChangeListener;
-import utils.config.ConfigNode;
-import logic.Application;
 import microfont.Document;
 import microfont.MSymbol;
 import microfont.gui.MSymbolEditor;
 import microfont.render.ColorIndex;
-import static logic.Application.*;
+import utils.config.ConfigChangeEvent;
+import utils.config.ConfigChangeListener;
+import utils.config.ConfigNode;
 
 public class EditPanel extends JPanel {
+    private static final long serialVersionUID = 1L;
     private MSymbolEditor edit;
 
-    public EditPanel(ActionMap am) {
+    public EditPanel() {
         JToolBar tools;
-        IToggleButton btnXPensil, btnPensil, btnRuber, btnPointer;
-
         setLayout(new BorderLayout());
 
         edit = new MSymbolEditor();
@@ -117,6 +113,7 @@ public class EditPanel extends JPanel {
 
     public void setMSymbol(MSymbol symbol) {
         edit.setPixselMap(symbol);
+        edit.getDocument().setEditedSymbol(symbol);
     }
 
     public void setDocument(Document doc) {

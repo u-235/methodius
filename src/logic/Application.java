@@ -87,6 +87,7 @@ public class Application {
             try {
                 java.lang.Thread.sleep(1000);
             } catch (InterruptedException e) {
+                //
             }
         }/* */
     }
@@ -106,7 +107,7 @@ public class Application {
         else loc = new Locale(l);
 
         res = new Resource("locale/MainForm", loc);
-        res.setIconPath("icons/16/");
+        res.setIconPath("icons/24/");
 
         dialogs = new Dialogs(res, config);
 
@@ -197,7 +198,7 @@ public class Application {
                 exit();
             }
         });
-        editPanel = new EditPanel(actions);
+        editPanel = new EditPanel();
         editPanel.setDocument(doc);
         fontPanel = new FontPanel(actions);
         work.setLeft(fontPanel);
@@ -412,61 +413,61 @@ public class Application {
 
     public void reflectHorz() {
         try {
-            MSymbol symbol = editPanel.getMSymbol();
             doc.symbolEdit("reflect horizontale");
-            symbol.reflectHorizontale();
+            doc.getEditedSymbol().reflectHorizontale();
             doc.endEdit();
         } catch (NullPointerException ex) {
+            //
         }
     }
 
     public void reflectVert() {
         try {
-            MSymbol symbol = editPanel.getMSymbol();
             doc.symbolEdit("reflect verticale");
-            symbol.reflectVerticale();
+            doc.getEditedSymbol().reflectVerticale();
             doc.endEdit();
         } catch (NullPointerException ex) {
+            //
         }
     }
 
     public void shiftLeft() {
         try {
-            MSymbol symbol = editPanel.getMSymbol();
             doc.symbolEdit("shift left");
-            symbol.shiftLeft();
+            doc.getEditedSymbol().shiftLeft();
             doc.endEdit();
         } catch (NullPointerException ex) {
+            //
         }
     }
 
     public void shiftRight() {
         try {
-            MSymbol symbol = editPanel.getMSymbol();
             doc.symbolEdit("shift right");
-            symbol.shiftRight();
+            doc.getEditedSymbol().shiftRight();
             doc.endEdit();
         } catch (NullPointerException ex) {
+            //
         }
     }
 
     public void shiftUp() {
         try {
-            MSymbol symbol = editPanel.getMSymbol();
             doc.symbolEdit("shift up");
-            symbol.shiftUp();
+            doc.getEditedSymbol().shiftUp();
             doc.endEdit();
         } catch (NullPointerException ex) {
+            //
         }
     }
 
     public void shiftDown() {
         try {
-            MSymbol symbol = editPanel.getMSymbol();
             doc.symbolEdit("shift down");
-            symbol.shiftDown();
+            doc.getEditedSymbol().shiftDown();
             doc.endEdit();
         } catch (NullPointerException ex) {
+            //
         }
     }
 
