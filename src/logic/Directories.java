@@ -38,8 +38,8 @@ public class Directories {
 
         try {
             app = onlyDir(new File(URLDecoder.decode(getClass()
-                            .getProtectionDomain()
-                            .getCodeSource().getLocation().getPath(), "UTF-8")));
+                            .getProtectionDomain().getCodeSource()
+                            .getLocation().getPath(), "UTF-8")));
         } catch (UnsupportedEncodingException e) {
             app = new File("");
         }
