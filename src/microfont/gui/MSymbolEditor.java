@@ -96,18 +96,11 @@ public class MSymbolEditor extends AbstractView {
 
         @Override
         public void layoutContainer(Container parent) {
-            int w = parent.getWidth();
-            int h = parent.getHeight();
+            int w = (parent.getWidth() - render().getWidth()) / 2;
+            int h = (parent.getHeight() - render().getHeight()) / 2;
 
-            Rectangle pos = renderPos;
-            pos.width = render().getWidth();
-            pos.height = render().getHeight();
-
-            if (pos.width >= w) pos.x = 0;
-            else pos.x = (w - pos.width) / 2;
-
-            if (render().getHeight() >= h) pos.y = 0;
-            else pos.y = (h - render().getHeight()) / 2;
+            renderPos.x = w < 0 ? 0 : w;
+            renderPos.y = h < 0 ? 0 : h;
         }
     }
 

@@ -204,12 +204,12 @@ public class Application {
         work.setLeft(fontPanel);
         work.setRight(editPanel);
 
-        // XXX автозагрузка файла при запуске.
-        loadMFont(recent().getLastFile());
         // updateTitle();
         setSaved(true);
         work.pack();
         work.setVisible(true);
+        // XXX автозагрузка файла при запуске.
+        loadMFont(recent().getLastFile());
 
     }
 

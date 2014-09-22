@@ -4,6 +4,7 @@ package microfont.gui;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -31,7 +32,7 @@ import microfont.render.Render;
 public class AbstractView extends JComponent implements Metrics {
     private static final long serialVersionUID = 1L;
     private PixselMapRender   render;
-    protected Rectangle       renderPos;
+    protected Point           renderPos;
     protected MFont           owner;
     private FontListener      fontListener;
 
@@ -39,7 +40,7 @@ public class AbstractView extends JComponent implements Metrics {
      * 
      * */
     public AbstractView() {
-        renderPos = new Rectangle();
+        renderPos = new Point();
 
         render = new PixselMapRender(new RenderListener());
         fontListener = new FontListener();
@@ -76,6 +77,9 @@ public class AbstractView extends JComponent implements Metrics {
                     updateRenderMetrics(owner);
                 }
             }
+        } else if (owner != null) {
+            owner.removePropertyChangeListener(fontListener);
+            owner = null;
         }
     }
 

@@ -6,9 +6,10 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.LayoutManager;
-import java.awt.Rectangle;
+import java.awt.Point;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import microfont.AbstractPixselMap;
@@ -17,19 +18,16 @@ import microfont.MSymbol;
 /**
  */
 public class MSymbolView extends AbstractView {
-    public static int         ELEMENT_INDEX_SAMPLE  = 1;
-    public static int         ELEMENT_INDEX_CODE    = 2;
-    public static int         ELEMENT_INDEX_UNICODE = 3;
-    private static final long serialVersionUID      = 1L;
+    private static final long serialVersionUID = 1L;
     SymbolListener            symListener;
     MSymbol                   symbol;
     Font                      fontSample;
     private String            sample;
     private String            code;
     private String            unicode;
-    protected Rectangle       samplePos;
-    protected Rectangle       codePos;
-    protected Rectangle       unicodePos;
+    protected Point           samplePos;
+    protected Point           codePos;
+    protected Point           unicodePos;
 
     public MSymbolView() {
         super();
@@ -37,9 +35,9 @@ public class MSymbolView extends AbstractView {
         setPixselSize(1);
         setOpaque(true);
         setBackground(Color.WHITE);
-        samplePos = new Rectangle();
-        codePos = new Rectangle();
-        unicodePos = new Rectangle();
+        samplePos = new Point();
+        codePos = new Point();
+        unicodePos = new Point();
         setLayout(new MSymbolViewLayout());
     }
 
@@ -59,6 +57,15 @@ public class MSymbolView extends AbstractView {
         super.setPixselMap(apm);
     }
 
+    public void setSampleFont(Font f) {
+        fontSample = f;
+    }
+
+    public Font getSampleFont() {
+        if (fontSample == null) return getFont();
+        return fontSample;
+    }
+
     protected void updateStrings() {
         if (symbol == null || !symbol.isUnicode()) {
             sample = null;
@@ -75,43 +82,49 @@ public class MSymbolView extends AbstractView {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        if (code != null) g.drawString(code, codePos.x, codePos.y + 20);
-        if (unicode != null)
-            g.drawString(unicode, unicodePos.x + 40, unicodePos.y + 20);
+        if (code != null) g.drawString(code, codePos.x, codePos.y);
+        if (unicode != null) g.drawString(unicode, unicodePos.x, unicodePos.y);
         g.setFont(fontSample);
-        if (sample != null)
-            g.drawString(sample, samplePos.x, samplePos.y + 10);
+        if (sample != null) g.drawString(sample, samplePos.x, samplePos.y);
     }
 
     protected class MSymbolViewLayout implements LayoutManager {
         Dimension pref;
+        Dimension renderSize;
+        int       renderOffset;
+        Dimension sampleSize;
+        int       sampleOffset;
+        Dimension codeSize;
+        int       codeOffset;
+        Dimension unicodeSize;
+        int       unicodeOffset;
 
         public MSymbolViewLayout() {
             pref = new Dimension();
+            renderSize = new Dimension();
+            codeSize = new Dimension();
+            unicodeSize = new Dimension();
+            sampleSize = new Dimension();
         }
 
         @Override
         public void addLayoutComponent(String name, Component comp) {
-            // TODO Auto-generated method stub
-
+            // не поддерживается
         }
 
         @Override
         public void removeLayoutComponent(Component comp) {
-            // TODO Auto-generated method stub
-
+            // не поддерживается
         }
 
         @Override
         public Dimension preferredLayoutSize(Container parent) {
-            calculate();
             return pref;
         }
 
         @Override
         public Dimension minimumLayoutSize(Container parent) {
-            // TODO Auto-generated method stub
-            return null;
+            return pref;
         }
 
         @Override
@@ -121,17 +134,98 @@ public class MSymbolView extends AbstractView {
         }
 
         void calculate() {
-            pref.width = render().getWidth() + 90;
-            pref.height = render().getHeight() + 10;
+            Graphics g = getGraphics();
+            if (g == null) return;
+            FontMetrics fm = g.getFontMetrics(getFont());
+
+            if (code == null) {
+                codeSize.width = 0;
+                codeSize.height = 0;
+                codeOffset = 0;
+            } else {
+                codeSize.width = fm.stringWidth(code);
+                codeSize.height = fm.getHeight();
+                codeOffset = fm.getAscent();
+            }
+
+            if (unicode == null) {
+                unicodeSize.width = 0;
+                unicodeSize.height = 0;
+                unicodeOffset = 0;
+            } else {
+                unicodeSize.width = fm.stringWidth(unicode);
+                unicodeSize.height = fm.getHeight();
+                unicodeOffset = fm.getAscent();
+            }
+
+            renderSize.width = render().getWidth();
+            renderSize.height = render().getHeight();
+            if (owner != null && owner.isMetricActually(METRIC_BASELINE)) {
+                renderOffset = render().pixselToPointY(
+                                owner.getMetric(METRIC_BASELINE));
+            } else {
+                renderOffset = 0;
+            }
+
+            if (sample == null) {
+                sampleSize.width = 0;
+                sampleSize.height = 0;
+                sampleOffset = 0;
+            } else {
+                fm = g.getFontMetrics(getSampleFont());
+                sampleSize.width = fm.stringWidth(sample);
+                sampleSize.height = fm.getHeight();
+                sampleOffset = fm.getAscent();
+            }
         }
 
         void layout() {
-            Rectangle pos = renderPos;
-            pos.width = render().getWidth();
-            pos.height = render().getHeight();
+            // Выравнивание образца и символа по базовой линии.
+            int diff = renderOffset - sampleOffset;
+            if (diff > 0) {
+                renderPos.y = 0;
+                samplePos.y = renderOffset;
+            } else {
+                renderPos.y = -diff;
+                samplePos.y = sampleOffset;
+            }
 
-            pos.x = 90;
-            pos.y = 10;
+            // Смещаем строки кода и юникода на самый высокий элемент.
+            codePos.y = samplePos.y;
+            unicodePos.y = samplePos.y;
+            diff = sampleSize.height - sampleOffset;
+            int delta = renderSize.height - renderOffset;
+            if (delta > diff) {
+                codePos.y += delta;
+                unicodePos.y += delta;
+            } else {
+                codePos.y += diff;
+                unicodePos.y += diff;
+            }
+            // Добавляем пространство.
+            codePos.y += 4; // TODO magic!!
+            unicodePos.y += 4;
+            // Выравнивание строки кода и юникода по высоте.
+            if (codeOffset - unicodeOffset > 0) {
+                codePos.y += codeOffset;
+                unicodePos.y += codeOffset;
+            } else {
+                codePos.y += unicodeOffset;
+                unicodePos.y += unicodeOffset;
+            }
+
+            diff = codeSize.height - codeOffset;
+            delta = unicodeSize.height - unicodeOffset;
+            pref.height = codePos.y;
+            if (diff > delta) {
+                pref.height += diff;
+            } else {
+                pref.height += delta;
+            }
+
+            samplePos.x = 0;
+            renderPos.x = sampleSize.width + 4;// TODO magic!
+            pref.width = renderPos.x + renderSize.width;
         }
     }
 
