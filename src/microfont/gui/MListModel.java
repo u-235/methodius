@@ -9,13 +9,15 @@ import javax.swing.AbstractListModel;
 import javax.swing.Timer;
 import microfont.MFont;
 import microfont.MSymbol;
+import microfont.events.PixselMapEvent;
+import microfont.events.PixselMapListener;
 
 /**
  * Класс для представления {@linkplain MFont шрифта} в JList.
  * 
  */
 public class MListModel extends AbstractListModel<MSymbol> implements
-                PropertyChangeListener {
+                PropertyChangeListener, PixselMapListener {
     private static final long serialVersionUID = 1L;
     /** */
     private MFont             font;
@@ -42,6 +44,7 @@ public class MListModel extends AbstractListModel<MSymbol> implements
             firstIndex = firstIndex > index ? index : firstIndex;
             lastIndex = lastIndex < index ? index : lastIndex;
             if (!delay.isRunning()) delay.start();
+            else delay.restart();
         }
     }
 
@@ -63,6 +66,7 @@ public class MListModel extends AbstractListModel<MSymbol> implements
         if (this.font != null) {
             oldInd = this.font.length() - 1;
             this.font.removePropertyChangeListener(this);
+            this.font.removePixselMapListener(this);
         }
 
         this.font = font;
@@ -71,6 +75,7 @@ public class MListModel extends AbstractListModel<MSymbol> implements
 
         if (font != null) {
             font.addPropertyChangeListener(this);
+            font.addPixselMapListener(this);
             int i = this.font.length() - 1;
             if (i < 0) i = 0;
             fireIntervalAdded(this, 0, i);
@@ -100,5 +105,10 @@ public class MListModel extends AbstractListModel<MSymbol> implements
             font = (MFont) event.getSource();
             fireContentsChanged(this, 0, font.length() - 1);
         }
+    }
+
+    @Override
+    public void pixselChanged(PixselMapEvent e) {
+        delayUpdate( font.indexAt((MSymbol) e.getSource()));
     }
 }

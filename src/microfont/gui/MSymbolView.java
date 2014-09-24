@@ -59,6 +59,7 @@ public class MSymbolView extends AbstractView {
 
     public void setSampleFont(Font f) {
         fontSample = f;
+        revalidate();
     }
 
     public Font getSampleFont() {
@@ -82,10 +83,18 @@ public class MSymbolView extends AbstractView {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        if (code != null) g.drawString(code, codePos.x, codePos.y);
-        if (unicode != null) g.drawString(unicode, unicodePos.x, unicodePos.y);
-        g.setFont(fontSample);
-        if (sample != null) g.drawString(sample, samplePos.x, samplePos.y);
+        if (code != null) {
+            g.drawString(code, codePos.x, codePos.y);
+        }
+
+        if (unicode != null) {
+            g.drawString(unicode, unicodePos.x, unicodePos.y);
+        }
+
+        if (sample != null) {
+            g.setFont(fontSample);
+            g.drawString(sample, samplePos.x, samplePos.y);
+        }
     }
 
     protected class MSymbolViewLayout implements LayoutManager {
@@ -119,6 +128,10 @@ public class MSymbolView extends AbstractView {
 
         @Override
         public Dimension preferredLayoutSize(Container parent) {
+            if (!isValid()) {
+                calculate();
+                layout();
+            }
             return pref;
         }
 
@@ -226,6 +239,11 @@ public class MSymbolView extends AbstractView {
             samplePos.x = 0;
             renderPos.x = sampleSize.width + 4;// TODO magic!
             pref.width = renderPos.x + renderSize.width;
+
+            codePos.x = 0;
+            unicodePos.x = codeSize.width + 4;// TODO magic!
+            pref.width = pref.width > unicodePos.x + unicodeSize.width
+                            ? pref.width : unicodePos.x + unicodeSize.width;
         }
     }
 
