@@ -401,20 +401,6 @@ public class PixselMap extends AbstractPixselMap {
     }
 
     /**
-     * Метод копирует массив <b>a</b> во внутренний массив символа. Размеры
-     * символа не меняются.
-     * 
-     * @param a Копируемый массив пикселей.
-     */
-    public void setArray(boolean[] a) throws IllegalArgumentException {
-        synchronized (writeLock()) {
-            cleanChange();
-            setBooleans(a);
-            firePixselEvent();
-        }
-    }
-
-    /**
      * Метод копирует массив пикселей, упакованных в <b>byte</b>, во внутренний
      * масссив. Пиксели в копируемом массиве располагаются с младшего байта
      * самого первого элемента и следуют без пропусков.

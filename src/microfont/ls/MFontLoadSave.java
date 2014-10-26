@@ -97,7 +97,7 @@ public class MFontLoadSave {
                 svr.key(SYMBOLS_WIDTH, Integer.toString(w));
             }
 
-            arr = sym.getByteArray();
+            arr = sym.getBytes();
             buff.delete(0, buff.length());
             for (byte bt : arr) {
                 if (buff.length() > 0) buff.append(" ");

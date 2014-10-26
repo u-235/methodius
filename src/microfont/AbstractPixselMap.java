@@ -507,7 +507,8 @@ public class AbstractPixselMap {
 
     /**
      * Метод проверяет предполагаемую высоту на допустимость.
-     * <code>AbstractPixselMap</code> всегда возвращает <code>false</code>.
+     * <code>AbstractPixselMap</code> всегда возвращает <code>false</code> если
+     * <code>hw</code> не равен текущей высоте.
      * 
      * @param h Проверяемая высота.
      * @return <code>true</code> если проверяемая высота является допустимой.
@@ -516,12 +517,13 @@ public class AbstractPixselMap {
      * @see #copy(AbstractPixselMap)
      */
     protected boolean isValidHeight(int h) {
-        return false;
+        return h == height;
     }
 
     /**
      * Метод проверяет предполагаемую ширину на допустимость.
-     * <code>AbstractPixselMap</code> всегда возвращает <code>false</code>.
+     * <code>AbstractPixselMap</code> всегда возвращает <code>false</code> если
+     * <code>w</code> не равен текущей ширине.
      * 
      * @param w Проверяемая ширина.
      * @return <code>true</code> если проверяемая ширина является допустимой.
@@ -530,7 +532,7 @@ public class AbstractPixselMap {
      * @see #copy(AbstractPixselMap)
      */
     protected boolean isValidWidth(int w) {
-        return false;
+        return w == width;
     }
 
     /**
@@ -813,33 +815,13 @@ public class AbstractPixselMap {
     }
 
     /**
-     * Метод возвращает <b>копию</b> массива пикселей. Если символ имеет нулевую
-     * ширину и/или высоту, то возвращается <code>null</code>.
-     */
-    public boolean[] getArray() {
-        if (pixsels == null) return null;
-
-        boolean[] rv = new boolean[width * height];
-
-        int i = 0;
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                rv[i] = getPixsel(x, y);
-                i++;
-            }
-        }
-
-        return rv;
-    }
-
-    /**
      * Метод возвращает <b>копию</b> массива пикселей, упакованную в
      * <code>byte</code>. Если символ имеет нулевую ширину и/или высоту, то
      * возвращается <code>null</code>. <br>
      * Пиксели заполняют возвращаемый массив последовательно начиная с младшего
      * бита самого первого элемента.
      */
-    public byte[] getByteArray() {
+    public byte[] getBytes() {
         if (pixsels == null) return null;
 
         PixselIterator pi = new PixselIterator(this, 0, 0, width, height,
@@ -856,27 +838,6 @@ public class AbstractPixselMap {
             }
         }
         return rv;
-    }
-
-    /**
-     * Метод копирует массив <code>src</code> во внутренний массив символа.
-     * Размеры символа не меняются.
-     * 
-     * @param src Копируемый массив пикселей.
-     * @throws NullPointerException если <code>src</code> равен
-     *             <code>null</code>
-     */
-    protected final void setBooleans(boolean[] src) throws NullPointerException {
-        if (src == null) throw (new NullPointerException());
-
-        PixselIterator pi = new PixselIterator(this, 0, 0, width, height,
-                        DIR_LEFT_TOP);
-
-        int i = 0;
-        while (pi.hasNext() && i < src.length) {
-            pi.setNext(src[i]);
-            i++;
-        }
     }
 
     /**
