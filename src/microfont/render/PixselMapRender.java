@@ -880,6 +880,7 @@ public class PixselMapRender implements Render, ColorIndex, Metrics {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
             if (!evt.getPropertyName().equals(PixselMap.PROPERTY_SIZE)) return;
+            updateSize();
             requestInvalidate();
             requestRepaint();
         }
