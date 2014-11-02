@@ -7,6 +7,7 @@ import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Locale;
@@ -351,9 +352,13 @@ public class Application {
 
         try {
             MFontLoadSave.save(font, new Saver(new FileOutputStream(fontFile)));
-        } catch (IOException e1) {
-            JOptionPane.showMessageDialog(null, "Can't save file.", "Error",
+        } catch (FileNotFoundException e) {
+            JOptionPane.showMessageDialog(null, "Файл не найден.", "Ошибка",
                             JOptionPane.OK_OPTION);
+            return false;
+        } catch (IOException e1) {
+            JOptionPane.showMessageDialog(null, "Невозможно сохранить файл.",
+                            "Ошибка", JOptionPane.OK_OPTION);
             return false;
         }
 

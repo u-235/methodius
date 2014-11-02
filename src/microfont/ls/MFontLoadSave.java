@@ -36,6 +36,7 @@ public class MFontLoadSave {
     /**
      * Сохраняет шрифт в заданном файле.
      * 
+     * @param mFont Сохраняемый шрифт.
      * @param svr Файл для записи шрифта.
      * @throws NullPointerException Если файл <b>svr</b> равен <b>null</b>.
      * @throws IOException
@@ -46,65 +47,74 @@ public class MFontLoadSave {
         int w, last;
         byte[] arr;
 
-        if (svr == null) throw (new IllegalArgumentException("file is null"));
+        if (svr == null){
+            throw (new IllegalArgumentException("file is null"));
+        }
+        
+        try {
+            svr.comment(" This is MFont file. Version 0.8"
+                            + "\n If yuor need edit this file use \"Methodius\".");
 
-        svr.comment(" This is MFont file. Version 0.8"
-                        + "\n If yuor need edit this file use \"Methodius\".");
+            svr.section(INFO);
+            svr.key(INFO_CHARSET, mFont.getCodePage());
+            svr.key(INFO_NAME, mFont.getName());
+            svr.key(INFO_PROTOTIPE, mFont.getPrototype());
+            svr.key(INFO_DESCRIPTION, mFont.getDescriptin());
+            svr.key(INFO_SIZE, Integer.toString(mFont.length()));
 
-        svr.section(INFO);
-        svr.key(INFO_CHARSET, mFont.getCodePage());
-        svr.key(INFO_NAME, mFont.getName());
-        svr.key(INFO_PROTOTIPE, mFont.getPrototype());
-        svr.key(INFO_DESCRIPTION, mFont.getDescriptin());
-        svr.key(INFO_SIZE, Integer.toString(mFont.length()));
+            if (mFont.isFixsed()) {
+                svr.key(INFO_FIXSED, "true");
+            } else {
+                svr.key(INFO_FIXSED, "false");
+            }
 
-        if (mFont.isFixsed()) {
-            svr.key(INFO_FIXSED, "true");
-        } else {
-            svr.key(INFO_FIXSED, "false");
+            svr.key(INFO_WIDTH, Integer.toString(mFont.getWidth()));
+            svr.key(INFO_HEIGHT, Integer.toString(mFont.getHeight()));
+            svr.key(INFO_BASELINE, Integer.toString(mFont
+                            .getMetric(Metrics.METRIC_BASELINE)));
+            svr.key(INFO_ASCENT, Integer.toString(mFont
+                            .getMetric(Metrics.METRIC_ASCENT)));
+            svr.key(INFO_LINE, Integer.toString(mFont
+                            .getMetric(Metrics.METRIC_LINE)));
+            svr.key(INFO_DESCENT, Integer.toString(mFont
+                            .getMetric(Metrics.METRIC_DESCENT)));
+            svr.key(INFO_LEFT_MARGIN, Integer.toString(mFont
+                            .getMetric(Metrics.METRIC_LEFT)));
+            svr.key(INFO_RIGHT_MARGIN, Integer.toString(mFont
+                            .getMetric(Metrics.METRIC_RIGHT)));
+
+            svr.comment(" Byte arrays of synbol in hex radix.");
+            svr.section(SYMBOLS);
+            last = -1;
+
+            StringBuffer buff = new StringBuffer();
+            for (int i = 0; i < mFont.length(); i++) {
+                sym = mFont.symbolByIndex(i);
+                last++;
+                if (last != sym.getCode()) {
+                    svr.key(SYMBOLS_CODE, Integer.toString(sym.getCode()));
+                }
+                last = sym.getCode();
+
+                w = sym.getWidth();
+                if (!mFont.isFixsed()) {
+                    svr.key(SYMBOLS_WIDTH, Integer.toString(w));
+                }
+
+                arr = sym.getBytes();
+                buff.delete(0, buff.length());
+                for (byte bt : arr) {
+                    if (buff.length() > 0) buff.append(" ");
+                    buff.append(Integer.toHexString(bt & 0x00ff));
+                }
+                svr.key(SYMBOLS_BYTES, buff.toString());
+            }
+        } catch (IOException e) {
+            svr.close();
+            throw (e);
         }
 
-        svr.key(INFO_WIDTH, Integer.toString(mFont.getWidth()));
-        svr.key(INFO_HEIGHT, Integer.toString(mFont.getHeight()));
-        svr.key(INFO_BASELINE, Integer.toString(mFont
-                        .getMetric(Metrics.METRIC_BASELINE)));
-        svr.key(INFO_ASCENT, Integer.toString(mFont
-                        .getMetric(Metrics.METRIC_ASCENT)));
-        svr.key(INFO_LINE,
-                        Integer.toString(mFont.getMetric(Metrics.METRIC_LINE)));
-        svr.key(INFO_DESCENT, Integer.toString(mFont
-                        .getMetric(Metrics.METRIC_DESCENT)));
-        svr.key(INFO_LEFT_MARGIN,
-                        Integer.toString(mFont.getMetric(Metrics.METRIC_LEFT)));
-        svr.key(INFO_RIGHT_MARGIN,
-                        Integer.toString(mFont.getMetric(Metrics.METRIC_RIGHT)));
-
-        svr.comment(" Byte arrays of synbol in hex radix.");
-        svr.section(SYMBOLS);
-        last = -1;
-
-        StringBuffer buff = new StringBuffer();
-        for (int i = 0; i < mFont.length(); i++) {
-            sym = mFont.symbolByIndex(i);
-            last++;
-            if (last != sym.getCode()) {
-                svr.key(SYMBOLS_CODE, Integer.toString(sym.getCode()));
-            }
-            last = sym.getCode();
-
-            w = sym.getWidth();
-            if (!mFont.isFixsed()) {
-                svr.key(SYMBOLS_WIDTH, Integer.toString(w));
-            }
-
-            arr = sym.getBytes();
-            buff.delete(0, buff.length());
-            for (byte bt : arr) {
-                if (buff.length() > 0) buff.append(" ");
-                buff.append(Integer.toHexString(bt & 0x00ff));
-            }
-            svr.key(SYMBOLS_BYTES, buff.toString());
-        }
+        svr.close();
     }
 
     public static void save(MFont mFont, Saver svr)
