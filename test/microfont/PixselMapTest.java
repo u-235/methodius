@@ -10,6 +10,11 @@ public class PixselMapTest extends AbstractPixselMapTest {
                     byte[] src) {
         return new PixselMap(width, height, src);
     }
+    
+    public PixselMap createPixselMap(int width, int height,
+                    byte[] src) {
+        return new PixselMap(width, height, src);
+    }
 
     @Override
     @Test
@@ -21,11 +26,11 @@ public class PixselMapTest extends AbstractPixselMapTest {
     @Override
     @Test
     public void testCopy() {
-        AbstractPixselMap dst, src;
+        PixselMap dst, src;
         boolean result;
 
-        src = createAbstractPixselMap(5, 7, new byte[] { 0, 8, 0, 9, 127 });
-        dst = createAbstractPixselMap(5, 7, null);
+        src = createPixselMap(5, 7, new byte[] { 0, 8, 0, 9, 127 });
+        dst = createPixselMap(5, 7, null);
 
         // PixselMap позволяет изменения размеров.
         result = false;
@@ -37,7 +42,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         assertFalse(result);
         assertEquals(src, dst);
 
-        src = createAbstractPixselMap(7, 11, null);
+        src = createPixselMap(7, 11, null);
         result = false;
         try {
             dst.copy(src);
