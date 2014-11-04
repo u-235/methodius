@@ -1001,27 +1001,12 @@ public class PixselMap extends AbstractPixselMap {
      * @see #overlay(int, int, AbstractPixselMap, int)
      */
     public AbstractPixselMap getRectangle(int x, int y, int w, int h) {
-        if (x < 0) {
-            w += x;
-            x = 0;
-        }
-
-        if (w >= getWidth()) w = getWidth() - 1;
-        if (w < 0) w = 0;
-
-        if (y < 0) {
-            h += y;
-            y = 0;
-        }
-
-        if (h >= getHeight()) h = getHeight() - 1;
-        if (h < 0) h = 0;
-
-        AbstractPixselMap apm = new AbstractPixselMap(w, h);
         PixselIterator spi = getIterator(x, y, w, h,
                         PixselIterator.DIR_LEFT_BOTTOM);
-        PixselIterator dpi = apm.getIterator(x, y, w, h,
-                        PixselIterator.DIR_LEFT_BOTTOM);
+        AbstractPixselMap apm = new AbstractPixselMap(spi.getWidth(),
+                        spi.getHeight());
+        PixselIterator dpi = apm.getIterator(0, 0, spi.getWidth(),
+                        spi.getHeight(), PixselIterator.DIR_LEFT_BOTTOM);
 
         while (spi.hasNext() && dpi.hasNext()) {
             dpi.setNext(spi.getNext());
