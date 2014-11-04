@@ -166,12 +166,10 @@ public class AbstractPixselMap {
             endY = y + height - 1;
 
             if (startX < 0) {
-                endX += startX;
                 startX = 0;
             }
 
             if (startY < 0) {
-                endY += startY;
                 startY = 0;
             }
 
