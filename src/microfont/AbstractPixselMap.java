@@ -116,30 +116,28 @@ public class AbstractPixselMap {
      */
     public class PixselIterator {
         /** Направление слева направо, сверху вниз . */
-        public final static int   DIR_LEFT_TOP     = 0;
+        public final static int DIR_LEFT_TOP     = 0;
         /** Направление справа налево, сверху вниз. */
-        public final static int   DIR_RIGHT_TOP    = 1;
+        public final static int DIR_RIGHT_TOP    = 1;
         /** Направление слева направо, снизу вверх. */
-        public final static int   DIR_LEFT_BOTTOM  = 2;
+        public final static int DIR_LEFT_BOTTOM  = 2;
         /** Направление справа налево, снизу вверх. */
-        public final static int   DIR_RIGHT_BOTTOM = 3;
+        public final static int DIR_RIGHT_BOTTOM = 3;
         /** Направление сверху вниз, слева направо. */
-        public final static int   DIR_TOP_LEFT     = 4;
+        public final static int DIR_TOP_LEFT     = 4;
         /** Направление сверху вниз, справа налево. */
-        public final static int   DIR_TOP_RIGHT    = 5;
+        public final static int DIR_TOP_RIGHT    = 5;
         /** Направление снизу вверх, слева направо. */
-        public final static int   DIR_BOTTOM_LEFT  = 6;
+        public final static int DIR_BOTTOM_LEFT  = 6;
         /** Направление снизу вверх, справа налево. */
-        public final static int   DIR_BOTTOM_RIGHT = 7;
+        public final static int DIR_BOTTOM_RIGHT = 7;
 
-        /** Сканируемая карта. */
-        private AbstractPixselMap parent;
         /** Направление сканирования. */
-        private int               direction;
+        private int             direction;
         /** Координаты области сканирования. */
-        private int               startX, startY, endX, endY;
+        private int             startX, startY, endX, endY;
         /** Текущая позиция сканирования. */
-        private int               posX, posY;
+        private int             posX, posY;
 
         /**
          * Создаёт итератор с заданными размерами и направлением сканирования.
@@ -148,7 +146,6 @@ public class AbstractPixselMap {
          * <p>
          * {@linkplain PixselIterator Подробнее о ограничениях}
          * 
-         * @param src Карта, для которой будет создан итератор.
          * @param x Позиция области по горизонтали.
          * @param y Позиция области по вертикали.
          * @param width Ширина области.
@@ -161,9 +158,7 @@ public class AbstractPixselMap {
          *            {@link #DIR_BOTTOM_LEFT} <li>{@link #DIR_BOTTOM_RIGHT}
          *            </ul>
          */
-        protected PixselIterator(AbstractPixselMap src, int x, int y,
-                        int width, int height, int dir) {
-            parent = src;
+        protected PixselIterator(int x, int y, int width, int height, int dir) {
             direction = dir;
             startX = x;
             startY = y;
@@ -180,8 +175,10 @@ public class AbstractPixselMap {
                 startY = 0;
             }
 
-            if (endX >= src.width) endX = src.width - 1;
-            if (endY >= src.height) endY = src.height - 1;
+            if (endX >= AbstractPixselMap.this.width)
+                endX = AbstractPixselMap.this.width - 1;
+            if (endY >= AbstractPixselMap.this.height)
+                endY = AbstractPixselMap.this.height - 1;
 
             switch (direction) {
             case DIR_BOTTOM_LEFT:
@@ -298,20 +295,6 @@ public class AbstractPixselMap {
         }
 
         /**
-         * Возвращает текущую позицию сканирования по горизонтали.
-         */
-        public int posX() {
-            return posX;
-        }
-
-        /**
-         * Возвращает текущую позицию сканирования по вертикали.
-         */
-        public int posY() {
-            return posY;
-        }
-
-        /**
          * Возвращает <code>false</code> если отсканирована вся область. В этом
          * случае вызов метода {@link #getNext()} или {@link #setNext(boolean)}
          * вызовет исключение {@link BadIterationException}
@@ -336,7 +319,7 @@ public class AbstractPixselMap {
         public boolean getNext() {
             boolean rv = false;
             if (!hasNext()) throw new BadIterationException();
-            rv = parent.getPixsel(posX, posY);
+            rv = AbstractPixselMap.this.getPixsel(posX, posY);
             updatePosition();
             return rv;
         }
@@ -352,7 +335,7 @@ public class AbstractPixselMap {
          */
         protected void setNext(boolean set) {
             if (!hasNext()) throw new BadIterationException();
-            parent.changePixsel(posX, posY, set);
+            AbstractPixselMap.this.changePixsel(posX, posY, set);
             updatePosition();
             return;
         }
@@ -462,7 +445,8 @@ public class AbstractPixselMap {
 
     /**
      * Возвращает {@linkplain PixselIterator итератор} карты с заданной областью
-     * и направлением сканирования.
+     * и направлением сканирования. При создании итератора размеры могут быть
+     * скорректированы, если область сканирования выходит за границы карты.
      * 
      * @param x Горизонтальная начальная координата области сканирования.
      * @param y Вертикальная начальная координата области сканирования.
@@ -483,7 +467,7 @@ public class AbstractPixselMap {
      */
     public PixselIterator getIterator(int x, int y, int width, int height,
                     int dir) {
-        return new PixselIterator(this, x, y, width, height, dir);
+        return new PixselIterator(x, y, width, height, dir);
     }
 
     /**
@@ -824,7 +808,7 @@ public class AbstractPixselMap {
     public byte[] getBytes() {
         if (pixsels == null) return null;
 
-        PixselIterator pi = new PixselIterator(this, 0, 0, width, height,
+        PixselIterator pi = new PixselIterator(0, 0, width, height,
                         DIR_LEFT_TOP);
 
         byte[] rv = new byte[(width * height + 7) / 8];
@@ -852,7 +836,7 @@ public class AbstractPixselMap {
     protected final void setBytes(byte[] src) throws NullPointerException {
         if (src == null) throw (new NullPointerException());
 
-        PixselIterator pi = new PixselIterator(this, 0, 0, width, height,
+        PixselIterator pi = new PixselIterator(0, 0, width, height,
                         DIR_LEFT_TOP);
 
         for (int i = 0; pi.hasNext() && i < src.length; i++) {
