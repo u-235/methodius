@@ -43,8 +43,8 @@ import utils.event.ListenerChain;
  * <li><b>Вращение карты</b>. Метод {@link #rotate(int)} вращает карту на 90,
  * 180 или 270 градусов.
  * <li><b>Изменение фрагмента</b>.
- * {@link #setRectangle(int, int, int, int, boolean)} изменяет все пиксели
- * указанного фрагмента. {@link #negRectangle(int, int, int, int)} производит
+ * {@link #set(int, int, int, int, boolean)} изменяет все пиксели
+ * указанного фрагмента. {@link #neg(int, int, int, int)} производит
  * инверсию пикселей фрагмента.
  * </ul>
  * <li>Операции с двумя картами. Эти операции используют вторую карту в качестве
@@ -1024,9 +1024,9 @@ public class PixselMap extends AbstractPixselMap {
      * @param w Ширина фрагмента.
      * @param h Высота фрагмента.
      * @param state Устанавливаемое состояние пикселей.
-     * @see #negRectangle(int, int, int, int)
+     * @see #neg(int, int, int, int)
      */
-    public void setRectangle(int x, int y, int w, int h, boolean state) {
+    public void set(int x, int y, int w, int h, boolean state) {
         PixselIterator pi = getIterator(x, y, w, h,
                         PixselIterator.DIR_LEFT_BOTTOM);
 
@@ -1048,9 +1048,9 @@ public class PixselMap extends AbstractPixselMap {
      * @param y Начальная позиция фрагмента по вертикали.
      * @param w Ширина фрагмента.
      * @param h Высота фрагмента.
-     * @see #setRectangle(int, int, int, int, boolean)
+     * @see #set(int, int, int, int, boolean)
      */
-    public void negRectangle(int x, int y, int w, int h) {
+    public void neg(int x, int y, int w, int h) {
         PixselIterator spi = getIterator(x, y, w, h,
                         PixselIterator.DIR_LEFT_BOTTOM);
         PixselIterator dpi = getIterator(x, y, w, h,
