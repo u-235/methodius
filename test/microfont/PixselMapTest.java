@@ -2,8 +2,8 @@
 package microfont;
 
 import static org.junit.Assert.*;
+import java.awt.Dimension;
 import org.junit.Test;
-import com.sun.corba.se.impl.javax.rmi.CORBA.Util;
 
 public class PixselMapTest extends AbstractPixselMapTest {
 
@@ -15,13 +15,6 @@ public class PixselMapTest extends AbstractPixselMapTest {
 
     public PixselMap createPixselMap(int width, int height, byte[] src) {
         return new PixselMap(width, height, src);
-    }
-
-    @Override
-    @Test
-    public void testEqualsObject() {
-        super.testEqualsObject();
-        fail("Not yet implemented");
     }
 
     @Override
@@ -55,22 +48,250 @@ public class PixselMapTest extends AbstractPixselMapTest {
 
     @Test
     public void testSetSizeIntInt() {
-        fail("Not yet implemented");
+        // Проверки допустимости параметров.
+        boolean result = false;
+        try {
+            createPixselMap(7, 9, null).setSize(-1, 9);
+        } catch (DisallowOperationException e) {
+            //
+        } catch (IllegalArgumentException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        result = false;
+        try {
+            createPixselMap(7, 9, null).setSize(7, -1);
+        } catch (DisallowOperationException e) {
+            //
+        } catch (IllegalArgumentException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        result = false;
+        try {
+            createPixselMap(7, 9, null).setSize(-1, -1);
+        } catch (DisallowOperationException e) {
+            //
+        } catch (IllegalArgumentException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        // Проверки изменения ширины.
+
+        byte[] tst = new byte[] { 0x0, 0x8, 0x20, (byte) 0x80, (byte) 0x80,
+                (byte) 0x83, 0x8, 0xe, 0x8, 0x20, 0x0, 0x0, 0x0 };
+        PixselMap expected = createPixselMap(7, 11, new byte[] { 0x0, 0x2, 0x2,
+                (byte) 0x82, 0x23, (byte) 0xe2, 0x20, 0x20, 0x0, 0x0 });
+        PixselMap actual = createPixselMap(9, 11, tst);
+        try {
+            actual.setSize(7, 11);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(11, 11, new byte[] { 00, 0x20, 0x0, 0x2,
+                0x20, (byte) 0x80, 0x3, 0x22, (byte) 0xe0, 0x0, 0x2, 0x20, 0x0,
+                0x0, 0x0, 0x0 });
+        actual = createPixselMap(9, 11, tst);
+        try {
+            actual.setSize(11, 11);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Проверки изменения высоты.
+        expected = createPixselMap(9, 9,
+                        new byte[] { 0x0, 0x8, 0x20, (byte) 0x80, (byte) 0x80,
+                                (byte) 0x83, 0x8, 0xe, 0x8, 0x20, 0x0 });
+        actual = createPixselMap(9, 11, tst);
+        try {
+            actual.setSize(9, 9);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 12, new byte[] { 0x0, 0x8, 0x20,
+                (byte) 0x80, (byte) 0x80, (byte) 0x83, 0x8, 0xe, 0x8, 0x20,
+                0x0, 0x0, 0x0, 0x0, 0x0 });
+        actual = createPixselMap(9, 11, tst);
+        try {
+            actual.setSize(9, 12);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testSetSizeDimension() {
-        fail("Not yet implemented");
+        // Калька с метода testSetSizeIntInt()
+        
+        // Проверки допустимости параметров.
+        boolean result = false;
+        try {
+            createPixselMap(7, 9, null).setSize(new Dimension(-1, 9));
+        } catch (DisallowOperationException e) {
+            //
+        } catch (IllegalArgumentException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        result = false;
+        try {
+            createPixselMap(7, 9, null).setSize(new Dimension(7, -1));
+        } catch (DisallowOperationException e) {
+            //
+        } catch (IllegalArgumentException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        result = false;
+        try {
+            createPixselMap(7, 9, null).setSize(new Dimension(-1, -1));
+        } catch (DisallowOperationException e) {
+            //
+        } catch (IllegalArgumentException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        // Проверки изменения ширины.
+
+        byte[] tst = new byte[] { 0x0, 0x8, 0x20, (byte) 0x80, (byte) 0x80,
+                (byte) 0x83, 0x8, 0xe, 0x8, 0x20, 0x0, 0x0, 0x0 };
+        PixselMap expected = createPixselMap(7, 11, new byte[] { 0x0, 0x2, 0x2,
+                (byte) 0x82, 0x23, (byte) 0xe2, 0x20, 0x20, 0x0, 0x0 });
+        PixselMap actual = createPixselMap(9, 11, tst);
+        try {
+            actual.setSize(new Dimension(7, 11));
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(11, 11, new byte[] { 00, 0x20, 0x0, 0x2,
+                0x20, (byte) 0x80, 0x3, 0x22, (byte) 0xe0, 0x0, 0x2, 0x20, 0x0,
+                0x0, 0x0, 0x0 });
+        actual = createPixselMap(9, 11, tst);
+        try {
+            actual.setSize(new Dimension(11, 11));
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Проверки изменения высоты.
+        expected = createPixselMap(9, 9,
+                        new byte[] { 0x0, 0x8, 0x20, (byte) 0x80, (byte) 0x80,
+                                (byte) 0x83, 0x8, 0xe, 0x8, 0x20, 0x0 });
+        actual = createPixselMap(9, 11, tst);
+        try {
+            actual.setSize(new Dimension(9, 9));
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 12, new byte[] { 0x0, 0x8, 0x20,
+                (byte) 0x80, (byte) 0x80, (byte) 0x83, 0x8, 0xe, 0x8, 0x20,
+                0x0, 0x0, 0x0, 0x0, 0x0 });
+        actual = createPixselMap(9, 11, tst);
+        try {
+            actual.setSize(new Dimension(9, 12));
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testSetWidth() {
-        fail("Not yet implemented");
+        // Калька с метода testSetSizeIntInt()
+        
+        // Проверки допустимости параметров.
+        boolean result = false;
+        try {
+            createPixselMap(7, 9, null).setWidth(-1);
+        } catch (DisallowOperationException e) {
+            //
+        } catch (IllegalArgumentException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        // Проверки изменения ширины.
+
+        byte[] tst = new byte[] { 0x0, 0x8, 0x20, (byte) 0x80, (byte) 0x80,
+                (byte) 0x83, 0x8, 0xe, 0x8, 0x20, 0x0, 0x0, 0x0 };
+        PixselMap expected = createPixselMap(7, 11, new byte[] { 0x0, 0x2, 0x2,
+                (byte) 0x82, 0x23, (byte) 0xe2, 0x20, 0x20, 0x0, 0x0 });
+        PixselMap actual = createPixselMap(9, 11, tst);
+        try {
+            actual.setWidth(7);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(11, 11, new byte[] { 00, 0x20, 0x0, 0x2,
+                0x20, (byte) 0x80, 0x3, 0x22, (byte) 0xe0, 0x0, 0x2, 0x20, 0x0,
+                0x0, 0x0, 0x0 });
+        actual = createPixselMap(9, 11, tst);
+        try {
+            actual.setWidth(11);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testSetHeight() {
-        fail("Not yet implemented");
+        // Калька с метода testSetSizeIntInt()
+        
+        // Проверки допустимости параметров.
+        boolean result = false;
+        try {
+            createPixselMap(7, 9, null).setHeight(-1);
+        } catch (DisallowOperationException e) {
+            //
+        } catch (IllegalArgumentException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        // Проверки изменения высоты.
+        byte[] tst = new byte[] { 0x0, 0x8, 0x20, (byte) 0x80, (byte) 0x80,
+                (byte) 0x83, 0x8, 0xe, 0x8, 0x20, 0x0, 0x0, 0x0 };
+       PixselMap expected = createPixselMap(9, 9,
+                        new byte[] { 0x0, 0x8, 0x20, (byte) 0x80, (byte) 0x80,
+                                (byte) 0x83, 0x8, 0xe, 0x8, 0x20, 0x0 });
+        PixselMap actual = createPixselMap(9, 11, tst);
+        try {
+            actual.setHeight(9);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 12, new byte[] { 0x0, 0x8, 0x20,
+                (byte) 0x80, (byte) 0x80, (byte) 0x83, 0x8, 0xe, 0x8, 0x20,
+                0x0, 0x0, 0x0, 0x0, 0x0 });
+        actual = createPixselMap(9, 11, tst);
+        try {
+            actual.setHeight(12);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -279,13 +500,9 @@ public class PixselMapTest extends AbstractPixselMapTest {
         expected = createAbstractPixselMap(5, 5, rect);
         assertEquals(expected, actual);
 
-
         // Попытка получения области, которая "вылезает" слева и сверху.
         // В итоге область должна быть размером 5*5
         actual = createPixselMap(9, 11, dirhomb).getRectangle(-2, -4, 7, 9);
-        System.out.println(actual.getWidth() +" "+actual.getHeight());
-        System.out.println(java.util.Arrays.toString(actual.getBytes()));
-        System.out.println(java.util.Arrays.toString(actual.getBytes()));
         assertEquals(expected, actual);
 
         // Попытка получения области, которая "вылезает" справа и снизу.
