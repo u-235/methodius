@@ -131,7 +131,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
     @Test
     public void testSetSizeDimension() {
         // Калька с метода testSetSizeIntInt()
-        
+
         // Проверки допустимости параметров.
         boolean result = false;
         try {
@@ -215,7 +215,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
     @Test
     public void testSetWidth() {
         // Калька с метода testSetSizeIntInt()
-        
+
         // Проверки допустимости параметров.
         boolean result = false;
         try {
@@ -256,7 +256,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
     @Test
     public void testSetHeight() {
         // Калька с метода testSetSizeIntInt()
-        
+
         // Проверки допустимости параметров.
         boolean result = false;
         try {
@@ -271,7 +271,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         // Проверки изменения высоты.
         byte[] tst = new byte[] { 0x0, 0x8, 0x20, (byte) 0x80, (byte) 0x80,
                 (byte) 0x83, 0x8, 0xe, 0x8, 0x20, 0x0, 0x0, 0x0 };
-       PixselMap expected = createPixselMap(9, 9,
+        PixselMap expected = createPixselMap(9, 9,
                         new byte[] { 0x0, 0x8, 0x20, (byte) 0x80, (byte) 0x80,
                                 (byte) 0x83, 0x8, 0xe, 0x8, 0x20, 0x0 });
         PixselMap actual = createPixselMap(9, 11, tst);
@@ -296,12 +296,56 @@ public class PixselMapTest extends AbstractPixselMapTest {
 
     @Test
     public void testSetPixsel() {
-        fail("Not yet implemented");
+        PixselMap expected, actual;
+
+        expected = createPixselMap(9, 11, null);
+        actual = createPixselMap(9, 11, null);
+        actual.setPixsel(-3, 1, true);
+        assertEquals(expected, actual);
+        actual.setPixsel(-3, 1, false);
+        assertEquals(expected, actual);
+
+        actual.setPixsel(7, -1, true);
+        assertEquals(expected, actual);
+        actual.setPixsel(7, -1, false);
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 11, new byte[] { 0x0, 0x0, 0x0, 0x40,
+                0x0, 0x1, 0x4, 0x4, 0x4, 0x0, 0x0, 0x0, 0x0 });
+        actual.setPixsel(3, 3, true);
+        actual.setPixsel(4, 4, true);
+        actual.setPixsel(5, 5, true);
+        actual.setPixsel(4, 6, true);
+        actual.setPixsel(3, 7, true);
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 11, null);
+        actual.setPixsel(3, 3, false);
+        actual.setPixsel(4, 4, false);
+        actual.setPixsel(5, 5, false);
+        actual.setPixsel(4, 6, false);
+        actual.setPixsel(3, 7, false);
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testSetArray() {
-        fail("Not yet implemented");
+        PixselMap expected, actual;
+
+        expected = createPixselMap(9, 11, new byte[] { 0x0, 0x0, 0x0, 0x40,
+                0x0, 0x1, 0x4, 0x4, 0x4, 0x0, 0x0, 0x0, 0x0 });
+        actual = createPixselMap(9, 11, null);
+        boolean result = false;
+        try {
+            actual.setArray(null);
+        } catch (NullPointerException e) {
+            result = true;
+        }
+        assertTrue(result);
+
+        actual.setArray(new byte[] { 0x0, 0x0, 0x0, 0x40, 0x0, 0x1, 0x4, 0x4,
+                0x4, 0x0, 0x0, 0x0, 0x0 });
+        assertEquals(expected, actual);
     }
 
     @Test
