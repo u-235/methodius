@@ -406,8 +406,9 @@ public class PixselMap extends AbstractPixselMap {
      * самого первого элемента и следуют без пропусков.
      * 
      * @param a Копируемый массив пикселей.
+     * @throws NullPointerException Если {@code a} равен {@code null}.
      */
-    public void setArray(byte[] a) throws IllegalArgumentException {
+    public void setArray(byte[] a) throws NullPointerException {
         synchronized (writeLock()) {
             cleanChange();
             setBytes(a);
