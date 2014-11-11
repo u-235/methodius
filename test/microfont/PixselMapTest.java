@@ -453,11 +453,26 @@ public class PixselMapTest extends AbstractPixselMapTest {
 
     @Test
     public void testReflectVerticale() {
-        fail("Not yet implemented");
+        PixselMap expected = createPixselMap(9, 11, new byte[] { 0x0, 0x0, 0x0,
+                0x0, 0x0, 0x0, 0x0, 0x1, 0x5, 0x11, 0x14, 0x10, 0x0 });
+        PixselMap actual = createPixselMap(9, 11, new byte[] { 0x0, 0x0, 0x0,
+                0x0, 0x0, 0x0, 0x0, 0x10, 0x50, 0x10, 0x41, 0x1, 0x1 });
+        actual.reflectVerticale();
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testReflectHorizontale() {
+        PixselMap expected = createPixselMap(9, 11, new byte[] { 0x0, 0x0, 0x0,
+                0x0, 0x0, 0x0, 0x0, 0x10, 0x50, 0x10, 0x41, 0x1, 0x1 });
+        PixselMap actual = createPixselMap(9, 11, new byte[] { 0x40, 0x40,
+                0x41, 0x4, 0x5, 0x4, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 });
+        actual.reflectHorizontale();
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testChangeWidth() {
         fail("Not yet implemented");
     }
 
