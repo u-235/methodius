@@ -42,10 +42,9 @@ import utils.event.ListenerChain;
  * {@link #reflectHorizontale()} и {@link #reflectVerticale()}.
  * <li><b>Вращение карты</b>. Метод {@link #rotate(int)} вращает карту на 90,
  * 180 или 270 градусов.
- * <li><b>Изменение фрагмента</b>.
- * {@link #set(int, int, int, int, boolean)} изменяет все пиксели
- * указанного фрагмента. {@link #neg(int, int, int, int)} производит
- * инверсию пикселей фрагмента.
+ * <li><b>Изменение фрагмента</b>. {@link #set(int, int, int, int, boolean)}
+ * изменяет все пиксели указанного фрагмента. {@link #neg(int, int, int, int)}
+ * производит инверсию пикселей фрагмента.
  * </ul>
  * <li>Операции с двумя картами. Эти операции используют вторую карту в качестве
  * штампа. Что бы получить фрагмент карты используйте
@@ -591,8 +590,7 @@ public class PixselMap extends AbstractPixselMap {
      * @see #removeColumns(int, int)
      * @see #addColumns(int, int)
      */
-    protected void changeWidth(int pos, int num)
-                    throws DisallowOperationException {
+    public void changeWidth(int pos, int num) throws DisallowOperationException {
         PixselMap tMap;
         PixselIterator dst, src;
         int w, h;
