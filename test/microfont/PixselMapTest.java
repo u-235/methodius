@@ -473,7 +473,65 @@ public class PixselMapTest extends AbstractPixselMapTest {
 
     @Test
     public void testChangeWidth() {
-        fail("Not yet implemented");
+        byte[] wide = { 0x30, (byte) 0xe0, 0x3, 0x31, 0xc, 0x3, 0x7,
+                (byte) 0xe0, 0x1, 0x1b, (byte) 0x8c, 0x30, (byte) 0xcc,
+                (byte) 0xc0, 0x3, 0xc, 0x0 };
+        byte[] left = { 0xc, 0x3e, (byte) 0xc4, 0x8, 0x7, 0x18, 0x70,
+                (byte) 0xb0, 0x30, 0x33, 0x3c, 0x30, 0x0 };
+        byte[] center = { 0x0, 0x38, (byte) 0xd0, 0x30, 0x37, 0x78,
+                (byte) 0xb0, 0x31, 0x32, 0x3c, 0x30, 0x0, 0x0 };
+        byte[] right = { 0x30, (byte) 0xf8, 0x10, 0x33, 0x3c, 0x60,
+                (byte) 0x80, 0x41, (byte) 0xc2, (byte) 0xcc, (byte) 0xf0,
+                (byte) 0xc0, 0x0 };
+        PixselMap expected, actual;
+
+        // Удаление столбцов.
+        expected = createPixselMap(9, 11, center);
+        actual = createPixselMap(11, 11, wide);
+        try {
+            actual.changeWidth(5, -2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 11, left);
+        actual = createPixselMap(11, 11, wide);
+        try {
+            actual.changeWidth(0, -2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 11, right);
+        actual = createPixselMap(11, 11, wide);
+        try {
+            actual.changeWidth(7, -2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Удаление столбцов с выходом за границы.
+
+        expected = createPixselMap(9, 11, left);
+        actual = createPixselMap(11, 11, wide);
+        try {
+            actual.changeWidth(-3, -5);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 11, right);
+        actual = createPixselMap(11, 11, wide);
+        try {
+            actual.changeWidth(7, -5);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
     }
 
     @Test
