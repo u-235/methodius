@@ -473,7 +473,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
 
     @Test
     public void testChangeWidth() {
-        byte[] wide = { 0x30, (byte) 0xe0, 0x3, 0x31, 0xc, 0x3, 0x7,
+        byte[] wide = { 0x30, (byte) 0xe0, 0x3, 0x31, 0xc, 0x37,
                 (byte) 0xe0, 0x1, 0x1b, (byte) 0x8c, 0x30, (byte) 0xcc,
                 (byte) 0xc0, 0x3, 0xc, 0x0 };
         byte[] left = { 0xc, 0x3e, (byte) 0xc4, 0x8, 0x7, 0x18, 0x70,
@@ -489,7 +489,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         expected = createPixselMap(9, 11, center);
         actual = createPixselMap(11, 11, wide);
         try {
-            actual.changeWidth(5, -2);
+            actual.changeWidth(4, -2);
         } catch (DisallowOperationException e) {
             fail("unexpected exception");
         }
@@ -507,7 +507,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         expected = createPixselMap(9, 11, right);
         actual = createPixselMap(11, 11, wide);
         try {
-            actual.changeWidth(7, -2);
+            actual.changeWidth(9, -2);
         } catch (DisallowOperationException e) {
             fail("unexpected exception");
         }
@@ -527,7 +527,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         expected = createPixselMap(9, 11, right);
         actual = createPixselMap(11, 11, wide);
         try {
-            actual.changeWidth(7, -5);
+            actual.changeWidth(9, -5);
         } catch (DisallowOperationException e) {
             fail("unexpected exception");
         }
