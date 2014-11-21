@@ -643,7 +643,7 @@ public class PixselMap extends AbstractPixselMap {
             }
 
             if (num > 0) {
-                dst = tMap.getIterator(pos, 0, w - pos - num, h,
+                dst = tMap.getIterator(pos + num, 0, w - pos + num, h,
                                 PixselIterator.DIR_TOP_LEFT);
             } else {
                 src = getIterator(pos - num, 0, w - pos + num, h,
