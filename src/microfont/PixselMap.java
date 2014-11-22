@@ -856,7 +856,7 @@ public class PixselMap extends AbstractPixselMap {
      */
     public void addRows(int pos, int num) throws DisallowOperationException {
         if (num <= 0) return;
-        changeHeight(pos, -num);
+        changeHeight(pos, num);
     }
 
     /**
@@ -884,7 +884,7 @@ public class PixselMap extends AbstractPixselMap {
      */
     public void addRight(int num) throws DisallowOperationException {
         if (num <= 0) return;
-        changeWidth(getWidth() - num, num);
+        changeWidth(getWidth(), num);
     }
 
     /**
@@ -912,7 +912,7 @@ public class PixselMap extends AbstractPixselMap {
      */
     public void addBottom(int num) throws DisallowOperationException {
         if (num <= 0) return;
-        changeHeight(getHeight() - num, num);
+        changeHeight(getHeight(), num);
     }
 
     /**
@@ -936,18 +936,17 @@ public class PixselMap extends AbstractPixselMap {
         synchronized (writeLock()) {
             w = getWidth();
             h = getHeight();
-            resized = isValidHeight(w) && isValidWidth(h);
 
             if (step != 2) apm = new AbstractPixselMap(h, w);
             else apm = new AbstractPixselMap(w, h);
 
             // Подготовка итераторов в зависимости от поворота.
             spi = getIterator(0, 0, w, h, PixselIterator.DIR_LEFT_TOP);
+            resized = isValidHeight(w) && isValidWidth(h);
             switch (step) {
             case 1:
                 dpi = apm.getIterator(0, 0, apm.getWidth(), apm.getHeight(),
                                 PixselIterator.DIR_TOP_RIGHT);
-                resized = isValidHeight(w) && isValidWidth(h);
                 break;
             case 2:
                 dpi = apm.getIterator(0, 0, apm.getWidth(), apm.getHeight(),
@@ -957,7 +956,6 @@ public class PixselMap extends AbstractPixselMap {
             default: // i.e step == 3
                 dpi = apm.getIterator(0, 0, apm.getWidth(), apm.getHeight(),
                                 PixselIterator.DIR_BOTTOM_LEFT);
-                resized = isValidHeight(w) && isValidWidth(h);
             }
 
             // Заполнение вспомогательной карты.
@@ -969,13 +967,13 @@ public class PixselMap extends AbstractPixselMap {
             if (resized) {
                 try {
                     copy(apm);
-                    return;
                 } catch (DisallowOperationException e) {
                     // Исключение никогда не может возникнуть исходя из условий
                     // блока.
                     AbstractMFont.logger().log(Level.SEVERE, "copy in rotate",
                                     e);
                 }
+                return;
             }
 
             /*
@@ -1121,11 +1119,11 @@ public class PixselMap extends AbstractPixselMap {
         synchronized (writeLock()) {
             cleanChange();
 
-            PixselIterator spi = getIterator(srcX, srcY, w, h,
+            PixselIterator spi = apm.getIterator(srcX, srcY, w, h,
                             PixselIterator.DIR_LEFT_BOTTOM);
-            PixselIterator tpi = apm.getIterator(x, y, w, h,
+            PixselIterator tpi = getIterator(x, y, w, h,
                             PixselIterator.DIR_LEFT_BOTTOM);
-            PixselIterator dpi = apm.getIterator(x, y, w, h,
+            PixselIterator dpi = getIterator(x, y, w, h,
                             PixselIterator.DIR_LEFT_BOTTOM);
 
             switch (op) {
