@@ -6,6 +6,42 @@ import java.awt.Dimension;
 import org.junit.Test;
 
 public class PixselMapTest extends AbstractPixselMapTest {
+    static final byte[] wide       = { 0x30, (byte) 0xe0, 0x3, 0x31, 0xc, 0x37,
+            (byte) 0xe0, 0x1, 0x1b, (byte) 0x8c, 0x30, (byte) 0xcc,
+            (byte) 0xc0, 0x3, 0xc, 0x0 };
+    static final byte[] left       = { 0xc, 0x3e, (byte) 0xc4, 0x8, 0x7, 0x18,
+            0x70, (byte) 0xb0, 0x30, 0x33, 0x3c, 0x30, 0x0 };
+    static final byte[] leftWide   = { 0x30, (byte) 0xe0, 0x3, 0x31, 0x8, 0x7,
+            0x60, 0x0, 0x13, (byte) 0x8c, 0x30, (byte) 0xcc, (byte) 0xc0, 0x3,
+            0xc, 0x0              };
+    static final byte[] center     = { 0x0, 0x38, (byte) 0xd0, 0x30, 0x37,
+            0x78, (byte) 0xb0, 0x31, 0x32, 0x3c, 0x30, 0x0, 0x0 };
+    static final byte[] centerWide = { 0x0, 0x60, 0x2, 0x31, 0xc, 0x37,
+            (byte) 0xe0, 0x1, 0x1b, (byte) 0x8c, 0x30, (byte) 0xcc, 0x40, 0x2,
+            0x0, 0x0              };
+    static final byte[] right      = { 0x30, (byte) 0xf8, 0x10, 0x33, 0x3c,
+            0x60, (byte) 0x80, 0x41, (byte) 0xc2, (byte) 0xcc, (byte) 0xf0,
+            (byte) 0xc0, 0x0      };
+    static final byte[] rightWide  = { 0x30, (byte) 0xe0, 0x3, 0x31, 0xc, 0x33,
+            (byte) 0x80, 0x1, 0x18, (byte) 0x84, 0x30, (byte) 0xcc,
+            (byte) 0xc0, 0x3, 0xc, 0x0 };
+    static final byte[] high       = { 0x38, (byte) 0xd8, 0x18, 0x12, 0x34,
+            0x28, 0x50, (byte) 0xe0, (byte) 0x80, 0x3, 0x5, 0x32, 0x66,
+            (byte) 0x86, 0x7      };
+    static final byte[] top        = { (byte) 0x86, 0x4, 0xd, 0xa, 0x14, 0x38,
+            (byte) 0xe0, 0x40, (byte) 0x81, (byte) 0x8c, (byte) 0x99,
+            (byte) 0xe1, 0x1      };
+    static final byte[] topHigh    = { 0x0, 0x0, 0x18, 0x12, 0x34, 0x28, 0x50,
+            (byte) 0xe0, (byte) 0x80, 0x3, 0x5, 0x32, 0x66, (byte) 0x86, 0x7 };
+    static final byte[] midle      = { 0x38, (byte) 0xd8, 0x18, 0x12, 0x34,
+            0x28, (byte) 0xd0, 0x40, (byte) 0x81, (byte) 0x8c, (byte) 0x99,
+            (byte) 0xe1, 0x1      };
+    static final byte[] midleHigh  = { 0x38, (byte) 0xd8, 0x18, 0x12, 0x34,
+            0x28, 0x10, 0x0, 0x0, 0x3, 0x5, 0x32, 0x66, (byte) 0x86, 0x7 };
+    static final byte[] bottom     = { 0x38, (byte) 0xd8, 0x18, 0x12, 0x34,
+            0x28, 0x50, (byte) 0xe0, (byte) 0x80, 0x3, 0x5, 0x32, 0x6 };
+    static final byte[] bottomHigh = { 0x38, (byte) 0xd8, 0x18, 0x12, 0x34,
+            0x28, 0x50, (byte) 0xe0, (byte) 0x80, 0x3, 0x5, 0x32, 0x6, 0x0, 0x0 };
 
     @Override
     public AbstractPixselMap createAbstractPixselMap(int width, int height,
@@ -473,24 +509,6 @@ public class PixselMapTest extends AbstractPixselMapTest {
 
     @Test
     public void testChangeWidth() {
-        byte[] wide = { 0x30, (byte) 0xe0, 0x3, 0x31, 0xc, 0x37, (byte) 0xe0,
-                0x1, 0x1b, (byte) 0x8c, 0x30, (byte) 0xcc, (byte) 0xc0, 0x3,
-                0xc, 0x0 };
-        byte[] left = { 0xc, 0x3e, (byte) 0xc4, 0x8, 0x7, 0x18, 0x70,
-                (byte) 0xb0, 0x30, 0x33, 0x3c, 0x30, 0x0 };
-        byte[] leftWide = { 0x30, (byte) 0xe0, 0x3, 0x31, 0x8, 0x7, 0x60, 0x0,
-                0x13, (byte) 0x8c, 0x30, (byte) 0xcc, (byte) 0xc0, 0x3, 0xc,
-                0x0 };
-        byte[] center = { 0x0, 0x38, (byte) 0xd0, 0x30, 0x37, 0x78,
-                (byte) 0xb0, 0x31, 0x32, 0x3c, 0x30, 0x0, 0x0 };
-        byte[] centerWide = { 0x0, 0x60, 0x2, 0x31, 0xc, 0x37, (byte) 0xe0,
-                0x1, 0x1b, (byte) 0x8c, 0x30, (byte) 0xcc, 0x40, 0x2, 0x0, 0x0 };
-        byte[] right = { 0x30, (byte) 0xf8, 0x10, 0x33, 0x3c, 0x60,
-                (byte) 0x80, 0x41, (byte) 0xc2, (byte) 0xcc, (byte) 0xf0,
-                (byte) 0xc0, 0x0 };
-        byte[] rightWide = { 0x30, (byte) 0xe0, 0x3, 0x31, 0xc, 0x33,
-                (byte) 0x80, 0x1, 0x18, (byte) 0x84, 0x30, (byte) 0xcc,
-                (byte) 0xc0, 0x3, 0xc, 0x0 };
         PixselMap expected, actual;
 
         // Нулевое количество столбцов ничего не меняет.
@@ -550,7 +568,6 @@ public class PixselMapTest extends AbstractPixselMapTest {
         assertEquals(expected, actual);
 
         // Удаление столбцов с выходом за границы.
-
         expected = createPixselMap(9, 11, left);
         actual = createPixselMap(11, 11, wide);
         try {
@@ -598,7 +615,6 @@ public class PixselMapTest extends AbstractPixselMapTest {
         assertEquals(expected, actual);
 
         // Добавление столбцов с выходом за границы.
-
         expected = createPixselMap(11, 11, leftWide);
         actual = createPixselMap(9, 11, left);
         try {
@@ -620,18 +636,11 @@ public class PixselMapTest extends AbstractPixselMapTest {
 
     @Test
     public void testChangeHeight() {
-        byte[] high = {};
-        byte[] top = {};
-        byte[] topHigh = {};
-        byte[] center = {};
-        byte[] centerHigh = {};
-        byte[] bottom = {};
-        byte[] bottomHigh = {};
         PixselMap expected, actual;
 
-        // Нулевое количество столбцов ничего не меняет.
-        expected = createPixselMap(9, 11, center);
-        actual = createPixselMap(9, 11, center);
+        // Нулевое количество строк ничего не меняет.
+        expected = createPixselMap(9, 11, midle);
+        actual = createPixselMap(9, 11, midle);
         try {
             actual.changeHeight(4, 0);
         } catch (DisallowOperationException e) {
@@ -639,8 +648,8 @@ public class PixselMapTest extends AbstractPixselMapTest {
         }
         assertEquals(expected, actual);
 
-        expected = createPixselMap(9, 11, center);
-        actual = createPixselMap(9, 11, center);
+        expected = createPixselMap(9, 11, midle);
+        actual = createPixselMap(9, 11, midle);
         try {
             actual.changeHeight(-2, 0);
         } catch (DisallowOperationException e) {
@@ -648,8 +657,8 @@ public class PixselMapTest extends AbstractPixselMapTest {
         }
         assertEquals(expected, actual);
 
-        expected = createPixselMap(9, 11, center);
-        actual = createPixselMap(9, 11, center);
+        expected = createPixselMap(9, 11, midle);
+        actual = createPixselMap(9, 11, midle);
         try {
             actual.changeHeight(13, 0);
         } catch (DisallowOperationException e) {
@@ -657,8 +666,8 @@ public class PixselMapTest extends AbstractPixselMapTest {
         }
         assertEquals(expected, actual);
 
-        // Удаление столбцов.
-        expected = createPixselMap(9, 11, center);
+        // Удаление строк.
+        expected = createPixselMap(9, 11, midle);
         actual = createPixselMap(9, 13, high);
         try {
             actual.changeHeight(6, -2);
@@ -685,8 +694,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         }
         assertEquals(expected, actual);
 
-        // Удаление столбцов с выходом за границы.
-
+        // Удаление строк с выходом за границы.
         expected = createPixselMap(9, 11, top);
         actual = createPixselMap(9, 13, high);
         try {
@@ -705,9 +713,9 @@ public class PixselMapTest extends AbstractPixselMapTest {
         }
         assertEquals(expected, actual);
 
-        // Добавление столбцов.
-        expected = createPixselMap(9, 13, centerHigh);
-        actual = createPixselMap(9, 11, center);
+        // Добавление строк.
+        expected = createPixselMap(9, 13, midleHigh);
+        actual = createPixselMap(9, 11, midle);
         try {
             actual.changeHeight(6, 2);
         } catch (DisallowOperationException e) {
@@ -733,8 +741,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         }
         assertEquals(expected, actual);
 
-        // Добавление столбцов с выходом за границы.
-
+        // Добавление строк с выходом за границы.
         expected = createPixselMap(9, 13, topHigh);
         actual = createPixselMap(9, 11, top);
         try {
@@ -756,62 +763,642 @@ public class PixselMapTest extends AbstractPixselMapTest {
 
     @Test
     public void testRemoveColumns() {
-        fail("Not yet implemented");
+        PixselMap expected, actual;
+
+        // Нулевое количество столбцов ничего не меняет.
+        expected = createPixselMap(9, 11, center);
+        actual = createPixselMap(9, 11, center);
+        try {
+            actual.removeColumns(4, 0);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 11, center);
+        actual = createPixselMap(9, 11, center);
+        try {
+            actual.removeColumns(-2, 0);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 11, center);
+        actual = createPixselMap(9, 11, center);
+        try {
+            actual.removeColumns(13, 0);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Отрицательное количество столбцов ничего не меняет.
+        expected = createPixselMap(9, 11, center);
+        actual = createPixselMap(9, 11, center);
+        try {
+            actual.removeColumns(4, -3);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Удаление столбцов.
+        expected = createPixselMap(9, 11, center);
+        actual = createPixselMap(11, 11, wide);
+        try {
+            actual.removeColumns(4, 2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 11, left);
+        actual = createPixselMap(11, 11, wide);
+        try {
+            actual.removeColumns(0, 2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 11, right);
+        actual = createPixselMap(11, 11, wide);
+        try {
+            actual.removeColumns(9, 2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Удаление столбцов с выходом за границы.
+        expected = createPixselMap(9, 11, left);
+        actual = createPixselMap(11, 11, wide);
+        try {
+            actual.removeColumns(-3, 5);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 11, right);
+        actual = createPixselMap(11, 11, wide);
+        try {
+            actual.removeColumns(9, 5);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testRemoveRows() {
-        fail("Not yet implemented");
+        PixselMap expected, actual;
+
+        // Нулевое количество строк ничего не меняет.
+        expected = createPixselMap(9, 11, midle);
+        actual = createPixselMap(9, 11, midle);
+        try {
+            actual.removeRows(4, 0);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 11, midle);
+        actual = createPixselMap(9, 11, midle);
+        try {
+            actual.removeRows(-2, 0);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 11, midle);
+        actual = createPixselMap(9, 11, midle);
+        try {
+            actual.removeRows(13, 0);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Отрицательное количество строк ничего не меняет.
+        expected = createPixselMap(9, 11, midle);
+        actual = createPixselMap(9, 11, midle);
+        try {
+            actual.removeRows(5, -3);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Удаление строк.
+        expected = createPixselMap(9, 11, midle);
+        actual = createPixselMap(9, 13, high);
+        try {
+            actual.removeRows(6, 2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 11, top);
+        actual = createPixselMap(9, 13, high);
+        try {
+            actual.removeRows(0, 2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 11, bottom);
+        actual = createPixselMap(9, 13, high);
+        try {
+            actual.removeRows(11, 2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Удаление строк с выходом за границы.
+        expected = createPixselMap(9, 11, top);
+        actual = createPixselMap(9, 13, high);
+        try {
+            actual.removeRows(-3, 5);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 11, bottom);
+        actual = createPixselMap(9, 13, high);
+        try {
+            actual.removeRows(11, 5);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testRemoveLeft() {
-        fail("Not yet implemented");
+        PixselMap expected, actual;
+
+        // Нулевое количество столбцов ничего не меняет.
+        expected = createPixselMap(9, 11, center);
+        actual = createPixselMap(9, 11, center);
+        try {
+            actual.removeLeft(0);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Отрицательное количество столбцов ничего не меняет.
+        expected = createPixselMap(9, 11, center);
+        actual = createPixselMap(9, 11, center);
+        try {
+            actual.removeLeft(-3);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Удаление столбцов.
+        expected = createPixselMap(9, 11, left);
+        actual = createPixselMap(11, 11, wide);
+        try {
+            actual.removeLeft(2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testRemoveRight() {
-        fail("Not yet implemented");
+        PixselMap expected, actual;
+
+        // Нулевое количество столбцов ничего не меняет.
+        expected = createPixselMap(9, 11, center);
+        actual = createPixselMap(9, 11, center);
+        try {
+            actual.removeRight(0);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Отрицательное количество столбцов ничего не меняет.
+        expected = createPixselMap(9, 11, center);
+        actual = createPixselMap(9, 11, center);
+        try {
+            actual.removeRight(-3);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Удаление столбцов.
+        expected = createPixselMap(9, 11, right);
+        actual = createPixselMap(11, 11, wide);
+        try {
+            actual.removeRight(2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testRemoveTop() {
-        fail("Not yet implemented");
+        PixselMap expected, actual;
+
+        // Нулевое количество строк ничего не меняет.
+        expected = createPixselMap(9, 11, midle);
+        actual = createPixselMap(9, 11, midle);
+        try {
+            actual.removeTop( 0);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Отрицательное количество строк ничего не меняет.
+        expected = createPixselMap(9, 11, midle);
+        actual = createPixselMap(9, 11, midle);
+        try {
+            actual.removeTop( -3);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Удаление строк.
+        expected = createPixselMap(9, 11, top);
+        actual = createPixselMap(9, 13, high);
+        try {
+            actual.removeTop( 2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testRemoveBottom() {
-        fail("Not yet implemented");
+        PixselMap expected, actual;
+
+        // Нулевое количество строк ничего не меняет.
+        expected = createPixselMap(9, 11, midle);
+        actual = createPixselMap(9, 11, midle);
+        try {
+            actual.removeBottom( 0);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Отрицательное количество строк ничего не меняет.
+        expected = createPixselMap(9, 11, midle);
+        actual = createPixselMap(9, 11, midle);
+        try {
+            actual.removeBottom( -3);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Удаление строк.
+        expected = createPixselMap(9, 11, bottom);
+        actual = createPixselMap(9, 13, high);
+        try {
+            actual.removeBottom( 2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testAddColumns() {
-        fail("Not yet implemented");
+        PixselMap expected, actual;
+
+        // Нулевое количество столбцов ничего не меняет.
+        expected = createPixselMap(9, 11, center);
+        actual = createPixselMap(9, 11, center);
+        try {
+            actual.addColumns(4, 0);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 11, center);
+        actual = createPixselMap(9, 11, center);
+        try {
+            actual.addColumns(-2, 0);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 11, center);
+        actual = createPixselMap(9, 11, center);
+        try {
+            actual.addColumns(13, 0);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Отрицательное количество столбцов ничего не меняет.
+        expected = createPixselMap(9, 11, center);
+        actual = createPixselMap(9, 11, center);
+        try {
+            actual.addColumns(4, -2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Добавление столбцов.
+        expected = createPixselMap(11, 11, centerWide);
+        actual = createPixselMap(9, 11, center);
+        try {
+            actual.addColumns(4, 2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(11, 11, leftWide);
+        actual = createPixselMap(9, 11, left);
+        try {
+            actual.addColumns(0, 2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(11, 11, rightWide);
+        actual = createPixselMap(9, 11, right);
+        try {
+            actual.addColumns(9, 2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Добавление столбцов с выходом за границы.
+        expected = createPixselMap(11, 11, leftWide);
+        actual = createPixselMap(9, 11, left);
+        try {
+            actual.addColumns(-3, 5);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(11, 11, rightWide);
+        actual = createPixselMap(9, 11, right);
+        try {
+            actual.addColumns(10, 1);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testAddRows() {
-        fail("Not yet implemented");
+        PixselMap expected, actual;
+
+        // Нулевое количество строк ничего не меняет.
+        expected = createPixselMap(9, 11, midle);
+        actual = createPixselMap(9, 11, midle);
+        try {
+            actual.addRows(4, 0);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 11, midle);
+        actual = createPixselMap(9, 11, midle);
+        try {
+            actual.addRows(-2, 0);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 11, midle);
+        actual = createPixselMap(9, 11, midle);
+        try {
+            actual.addRows(13, 0);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Нулевое количество строк ничего не меняет.
+        expected = createPixselMap(9, 11, midle);
+        actual = createPixselMap(9, 11, midle);
+        try {
+            actual.addRows(6, -2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Добавление строк.
+        expected = createPixselMap(9, 13, midleHigh);
+        actual = createPixselMap(9, 11, midle);
+        try {
+            actual.addRows(6, 2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 13, topHigh);
+        actual = createPixselMap(9, 11, top);
+        try {
+            actual.addRows(0, 2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 13, bottomHigh);
+        actual = createPixselMap(9, 11, bottom);
+        try {
+            actual.addRows(11, 2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Добавление строк с выходом за границы.
+        expected = createPixselMap(9, 13, topHigh);
+        actual = createPixselMap(9, 11, top);
+        try {
+            actual.addRows(-3, 5);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        expected = createPixselMap(9, 13, bottomHigh);
+        actual = createPixselMap(9, 11, bottom);
+        try {
+            actual.addRows(12, 1);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testAddLeft() {
-        fail("Not yet implemented");
+        PixselMap expected, actual;
+
+        // Нулевое количество столбцов ничего не меняет.
+        expected = createPixselMap(9, 11, center);
+        actual = createPixselMap(9, 11, center);
+        try {
+            actual.addLeft( 0);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Отрицательное количество столбцов ничего не меняет.
+        expected = createPixselMap(9, 11, center);
+        actual = createPixselMap(9, 11, center);
+        try {
+            actual.addLeft( -2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Добавление столбцов.
+        expected = createPixselMap(11, 11, leftWide);
+        actual = createPixselMap(9, 11, left);
+        try {
+            actual.addLeft( 2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testAddRight() {
-        fail("Not yet implemented");
+        PixselMap expected, actual;
+
+        // Нулевое количество столбцов ничего не меняет.
+        expected = createPixselMap(9, 11, center);
+        actual = createPixselMap(9, 11, center);
+        try {
+            actual.addRight( 0);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Отрицательное количество столбцов ничего не меняет.
+        expected = createPixselMap(9, 11, center);
+        actual = createPixselMap(9, 11, center);
+        try {
+            actual.addRight( -2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Добавление столбцов.
+        expected = createPixselMap(11, 11, rightWide);
+        actual = createPixselMap(9, 11, right);
+        try {
+            actual.addRight( 2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testAddTop() {
-        fail("Not yet implemented");
+        PixselMap expected, actual;
+
+        // Нулевое количество строк ничего не меняет.
+        expected = createPixselMap(9, 11, midle);
+        actual = createPixselMap(9, 11, midle);
+        try {
+            actual.addTop( 0);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Нулевое количество строк ничего не меняет.
+        expected = createPixselMap(9, 11, midle);
+        actual = createPixselMap(9, 11, midle);
+        try {
+            actual.addTop( -2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Добавление строк.
+        expected = createPixselMap(9, 13, topHigh);
+        actual = createPixselMap(9, 11, top);
+        try {
+            actual.addTop( 2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testAddBottom() {
-        fail("Not yet implemented");
+        PixselMap expected, actual;
+
+        // Нулевое количество строк ничего не меняет.
+        expected = createPixselMap(9, 11, midle);
+        actual = createPixselMap(9, 11, midle);
+        try {
+            actual.addBottom( 0);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Нулевое количество строк ничего не меняет.
+        expected = createPixselMap(9, 11, midle);
+        actual = createPixselMap(9, 11, midle);
+        try {
+            actual.addBottom( -2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
+
+        // Добавление строк.
+        expected = createPixselMap(9, 13, bottomHigh);
+        actual = createPixselMap(9, 11, bottom);
+        try {
+            actual.addBottom( 2);
+        } catch (DisallowOperationException e) {
+            fail("unexpected exception");
+        }
+        assertEquals(expected, actual);
     }
 
     @Test
