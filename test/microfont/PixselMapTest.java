@@ -5,6 +5,24 @@ import static org.junit.Assert.*;
 import java.awt.Dimension;
 import org.junit.Test;
 
+/**
+ * При тестировании наследников {@code PixselMap} необходимо сделать тесты
+ * методов изменяющих размеры карты пикселей. Это вызвано тем, что
+ * {@code PixselMap} позволяет эти изменения, а наследники могут запрещать.
+ * <p>
+ * Список методов:<br>
+ * {@link #testCopy()} {@link #testSetSizeIntInt()}
+ * {@link #testSetSizeDimension()} {@link #testSetWidth()}
+ * {@link #testSetHeight()} {@link #testChangeWidth()}
+ * {@link #testChangeHeight()} {@link #testRemoveColumns()}
+ * {@link #testRemoveRows()} {@link #testRemoveLeft()}
+ * {@link #testRemoveRight()} {@link #testRemoveTop()}
+ * {@link #testRemoveBottom()} {@link #testAddColumns()} {@link #testAddRows()}
+ * {@link #testAddLeft()} {@link #testAddRight()} {@link #testAddTop()}
+ * {@link #testAddBottom()}
+ * <p>
+ * Особое внимание надо обратить на {@link #testRotate()}.
+ */
 public class PixselMapTest extends AbstractPixselMapTest {
     static final byte[] wide       = { 0x30, (byte) 0xe0, 0x3, 0x31, 0xc, 0x37,
             (byte) 0xe0, 0x1, 0x1b, (byte) 0x8c, 0x30, (byte) 0xcc,
@@ -42,6 +60,19 @@ public class PixselMapTest extends AbstractPixselMapTest {
             0x28, 0x50, (byte) 0xe0, (byte) 0x80, 0x3, 0x5, 0x32, 0x6 };
     static final byte[] bottomHigh = { 0x38, (byte) 0xd8, 0x18, 0x12, 0x34,
             0x28, 0x50, (byte) 0xe0, (byte) 0x80, 0x3, 0x5, 0x32, 0x6, 0x0, 0x0 };
+
+    static final byte[] over = { 0x12, 0x25, 0x4a, (byte) 0x94, 0x28, 0x51, (byte) 0xa2,
+            0x44, (byte) 0x89, 0x12, 0x25, 0x4a, 0x4 };
+    static final byte[] place = { 0x12, 0x25, 0x4a, 0x34, (byte) 0xa8, 0x51,
+            (byte) 0xa4, 0x50, (byte) 0x99, 0x12, 0x25, 0x4a, 0x4 };
+    static final byte[] or = { 0x12, 0x25, 0x4a, (byte) 0xb4, (byte) 0xa8, 0x51,
+            (byte) 0xa6, 0x54, (byte) 0x99, 0x12, 0x25, 0x4a, 0x4 };
+    static final byte[] and = { 0x12, 0x25, 0x4a, 0x14, 0x28, 0x51, (byte) 0xa0, 0x40,
+            (byte) 0x89, 0x12, 0x25, 0x4a, 0x4 };
+    static final byte[] xor = { 0x12, 0x25, 0x4a, (byte) 0xb4, (byte) 0xa8, 0x50,
+            (byte) 0xa6, 0x54, (byte) 0x91, 0x12, 0x25, 0x4a, 0x4 };
+    static final AbstractPixselMap stamp = new AbstractPixselMap(5, 5, new byte[] {
+            (byte) 0xc1, 0x20, (byte) 0xc8, 0x0 });
 
     @Override
     public AbstractPixselMap createAbstractPixselMap(int width, int height,
@@ -1019,7 +1050,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         expected = createPixselMap(9, 11, midle);
         actual = createPixselMap(9, 11, midle);
         try {
-            actual.removeTop( 0);
+            actual.removeTop(0);
         } catch (DisallowOperationException e) {
             fail("unexpected exception");
         }
@@ -1029,7 +1060,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         expected = createPixselMap(9, 11, midle);
         actual = createPixselMap(9, 11, midle);
         try {
-            actual.removeTop( -3);
+            actual.removeTop(-3);
         } catch (DisallowOperationException e) {
             fail("unexpected exception");
         }
@@ -1039,7 +1070,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         expected = createPixselMap(9, 11, top);
         actual = createPixselMap(9, 13, high);
         try {
-            actual.removeTop( 2);
+            actual.removeTop(2);
         } catch (DisallowOperationException e) {
             fail("unexpected exception");
         }
@@ -1054,7 +1085,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         expected = createPixselMap(9, 11, midle);
         actual = createPixselMap(9, 11, midle);
         try {
-            actual.removeBottom( 0);
+            actual.removeBottom(0);
         } catch (DisallowOperationException e) {
             fail("unexpected exception");
         }
@@ -1064,7 +1095,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         expected = createPixselMap(9, 11, midle);
         actual = createPixselMap(9, 11, midle);
         try {
-            actual.removeBottom( -3);
+            actual.removeBottom(-3);
         } catch (DisallowOperationException e) {
             fail("unexpected exception");
         }
@@ -1074,7 +1105,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         expected = createPixselMap(9, 11, bottom);
         actual = createPixselMap(9, 13, high);
         try {
-            actual.removeBottom( 2);
+            actual.removeBottom(2);
         } catch (DisallowOperationException e) {
             fail("unexpected exception");
         }
@@ -1269,7 +1300,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         expected = createPixselMap(9, 11, center);
         actual = createPixselMap(9, 11, center);
         try {
-            actual.addLeft( 0);
+            actual.addLeft(0);
         } catch (DisallowOperationException e) {
             fail("unexpected exception");
         }
@@ -1279,7 +1310,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         expected = createPixselMap(9, 11, center);
         actual = createPixselMap(9, 11, center);
         try {
-            actual.addLeft( -2);
+            actual.addLeft(-2);
         } catch (DisallowOperationException e) {
             fail("unexpected exception");
         }
@@ -1289,7 +1320,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         expected = createPixselMap(11, 11, leftWide);
         actual = createPixselMap(9, 11, left);
         try {
-            actual.addLeft( 2);
+            actual.addLeft(2);
         } catch (DisallowOperationException e) {
             fail("unexpected exception");
         }
@@ -1304,7 +1335,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         expected = createPixselMap(9, 11, center);
         actual = createPixselMap(9, 11, center);
         try {
-            actual.addRight( 0);
+            actual.addRight(0);
         } catch (DisallowOperationException e) {
             fail("unexpected exception");
         }
@@ -1314,7 +1345,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         expected = createPixselMap(9, 11, center);
         actual = createPixselMap(9, 11, center);
         try {
-            actual.addRight( -2);
+            actual.addRight(-2);
         } catch (DisallowOperationException e) {
             fail("unexpected exception");
         }
@@ -1324,7 +1355,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         expected = createPixselMap(11, 11, rightWide);
         actual = createPixselMap(9, 11, right);
         try {
-            actual.addRight( 2);
+            actual.addRight(2);
         } catch (DisallowOperationException e) {
             fail("unexpected exception");
         }
@@ -1339,7 +1370,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         expected = createPixselMap(9, 11, midle);
         actual = createPixselMap(9, 11, midle);
         try {
-            actual.addTop( 0);
+            actual.addTop(0);
         } catch (DisallowOperationException e) {
             fail("unexpected exception");
         }
@@ -1349,7 +1380,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         expected = createPixselMap(9, 11, midle);
         actual = createPixselMap(9, 11, midle);
         try {
-            actual.addTop( -2);
+            actual.addTop(-2);
         } catch (DisallowOperationException e) {
             fail("unexpected exception");
         }
@@ -1359,7 +1390,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         expected = createPixselMap(9, 13, topHigh);
         actual = createPixselMap(9, 11, top);
         try {
-            actual.addTop( 2);
+            actual.addTop(2);
         } catch (DisallowOperationException e) {
             fail("unexpected exception");
         }
@@ -1374,7 +1405,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         expected = createPixselMap(9, 11, midle);
         actual = createPixselMap(9, 11, midle);
         try {
-            actual.addBottom( 0);
+            actual.addBottom(0);
         } catch (DisallowOperationException e) {
             fail("unexpected exception");
         }
@@ -1384,7 +1415,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         expected = createPixselMap(9, 11, midle);
         actual = createPixselMap(9, 11, midle);
         try {
-            actual.addBottom( -2);
+            actual.addBottom(-2);
         } catch (DisallowOperationException e) {
             fail("unexpected exception");
         }
@@ -1394,7 +1425,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         expected = createPixselMap(9, 13, bottomHigh);
         actual = createPixselMap(9, 11, bottom);
         try {
-            actual.addBottom( 2);
+            actual.addBottom(2);
         } catch (DisallowOperationException e) {
             fail("unexpected exception");
         }
@@ -1403,7 +1434,44 @@ public class PixselMapTest extends AbstractPixselMapTest {
 
     @Test
     public void testRotate() {
-        fail("Not yet implemented");
+        byte[] src = { 0x7, 0x2, 0x4, 0x8, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1,
+                0x2, 0x6 };
+        byte[] step1 = { (byte) 0x80, 0x7, 0x20, 0x0, 0x1, 0x0, 0x0, 0x0, 0x0,
+                0x20, 0x0, 0x7, 0x0 };
+        byte[] step2 = { 0x3, 0x2, 0x4, 0x0, 0x0, 0x0, 0x0, 0x0, (byte) 0x80,
+                0x0, 0x1, 0x2, 0x7 };
+        byte[] step3 = { 0x0, 0x7, 0x20, 0x0, 0x0, 0x0, 0x0, 0x0, 0x4, 0x20,
+                0x0, 0xf, 0x0 };
+        PixselMap expected, actual;
+
+        // Поворот на четверть по часовой стрелке.
+        actual = createPixselMap(9, 11, src);
+        expected = createPixselMap(11, 9, step1);
+        actual.rotate(1);
+        assertEquals(expected, actual);
+        // Возврат к исходному состоянию.
+        expected = createPixselMap(9, 11, src);
+        actual.rotate(-1);
+        assertEquals(expected, actual);
+        // Проверка полного поворота.
+        actual.rotate(2);
+        actual.rotate(2);
+        assertEquals(expected, actual);
+        // Полоборота.
+        expected = createPixselMap(9, 11, step2);
+        actual.rotate(2);
+        assertEquals(expected, actual);
+
+        actual = createPixselMap(9, 11, src);
+        expected = createPixselMap(11, 9, step3);
+        actual.rotate(3);
+        assertEquals(expected, actual);
+        actual = createPixselMap(9, 11, src);
+        actual.rotate(-1);
+        assertEquals(expected, actual);
+        actual = createPixselMap(9, 11, src);
+        actual.rotate(7);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -1432,7 +1500,29 @@ public class PixselMapTest extends AbstractPixselMapTest {
 
     @Test
     public void testSet() {
-        fail("Not yet implemented");
+        byte[] src = { 0x7, 0x2, 0x4, 0x8, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1,
+                0x2, 0x6 };
+        byte[] setRect = { 0x7, 0x2, 0x4, (byte) 0xe8, (byte) 0xc0,
+                (byte) 0x81, 0x3, 0x7, 0x0, 0x0, 0x1, 0x2, 0x6 };
+        PixselMap actual, expected;
+
+        actual = createPixselMap(9, 11, src);
+        expected = createPixselMap(9, 11, setRect);
+        actual.set(2, 3, 3, 4, true);
+        assertEquals(expected, actual);
+
+        // Повторная заливка ничего не меняет.
+        actual.set(2, 3, 3, 4, true);
+        assertEquals(expected, actual);
+
+        actual = expected;
+        expected = createPixselMap(9, 11, src);
+        actual.set(2, 3, 3, 4, false);
+        assertEquals(expected, actual);
+
+        // Повтор стирания ничего не меняет.
+        actual.set(2, 3, 3, 4, false);
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -1451,26 +1541,65 @@ public class PixselMapTest extends AbstractPixselMapTest {
 
     @Test
     public void testOverlay() {
-        fail("Not yet implemented");
+        PixselMap expected, actual;
+
+        actual = createPixselMap(9, 11, over);
+        expected = createPixselMap(9, 11, place);
+        actual.overlay(2, 3, stamp, PixselMap.OVERLAY_PLACE);
+        assertEquals(expected, actual);
+
+        actual = createPixselMap(9, 11, over);
+        expected = createPixselMap(9, 11, or);
+        actual.overlay(2, 3, stamp, PixselMap.OVERLAY_OR);
+        assertEquals(expected, actual);
+
+        actual = createPixselMap(9, 11, over);
+        expected = createPixselMap(9, 11, and);
+        actual.overlay(2, 3, stamp, PixselMap.OVERLAY_AND);
+        assertEquals(expected, actual);
+
+        actual = createPixselMap(9, 11, over);
+        expected = createPixselMap(9, 11, xor);
+        actual.overlay(2, 3, stamp, PixselMap.OVERLAY_XOR);
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testPlace() {
-        fail("Not yet implemented");
+        PixselMap expected, actual;
+
+        actual = createPixselMap(9, 11, over);
+        expected = createPixselMap(9, 11, place);
+        actual.place(2, 3, stamp);
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testOr() {
-        fail("Not yet implemented");
+        PixselMap expected, actual;
+
+        actual = createPixselMap(9, 11, over);
+        expected = createPixselMap(9, 11, or);
+        actual.or(2, 3, stamp);
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testAnd() {
-        fail("Not yet implemented");
+        PixselMap expected, actual;
+
+        actual = createPixselMap(9, 11, over);
+        expected = createPixselMap(9, 11, and);
+        actual.and(2, 3, stamp);
+        assertEquals(expected, actual);
     }
 
     @Test
     public void testHor() {
-        fail("Not yet implemented");
+        PixselMap expected, actual;
+        actual = createPixselMap(9, 11, over);
+        expected = createPixselMap(9, 11, xor);
+        actual.xor(2, 3, stamp);
+        assertEquals(expected, actual);
     }
 }
