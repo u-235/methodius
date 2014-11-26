@@ -55,7 +55,7 @@ import utils.event.ListenerChain;
  * <li><b>Вставка</b> {@link #place(int, int, AbstractPixselMap)}
  * <li><b>Объединение</b> {@link #or(int, int, AbstractPixselMap)}
  * <li><b>Умножение</b> {@link #and(int, int, AbstractPixselMap)}
- * <li><b>Исключение</b> {@link #hor(int, int, AbstractPixselMap)}
+ * <li><b>Исключение</b> {@link #xor(int, int, AbstractPixselMap)}
  * </ul>
  * </ul>
  */
@@ -78,7 +78,7 @@ public class PixselMap extends AbstractPixselMap {
     /**
      * Операция исключения в {@link #overlay(int, int, AbstractPixselMap, int)}.
      */
-    public static final int    OVERLAY_HOR   = 3;
+    public static final int    OVERLAY_XOR   = 3;
     /**
      * Название свойства size.
      * 
@@ -1079,14 +1079,14 @@ public class PixselMap extends AbstractPixselMap {
      *            ИЛИ карты и штампа сохраняется в карте.
      *            <li>{@link #OVERLAY_AND} результат попиксельного ЛОГИЧЕСКОГО И
      *            карты и штампа сохраняется в карте.
-     *            <li>{@link #OVERLAY_HOR} результат попиксельного ИСКЛЮЧАЮЩЕГО
+     *            <li>{@link #OVERLAY_XOR} результат попиксельного ИСКЛЮЧАЮЩЕГО
      *            ИЛИ карты и штампа сохраняется в карте.
      *            </ul>
      * @see #getRectangle(int, int, int, int)
      * @see #place(int, int, AbstractPixselMap)
      * @see #or(int, int, AbstractPixselMap)
      * @see #and(int, int, AbstractPixselMap)
-     * @see #hor(int, int, AbstractPixselMap)
+     * @see #xor(int, int, AbstractPixselMap)
      */
     public void overlay(int x, int y, AbstractPixselMap apm, int op) {
         int srcX, srcY, w, h;
@@ -1137,7 +1137,7 @@ public class PixselMap extends AbstractPixselMap {
                     dpi.setNext(tpi.getNext() & spi.getNext());
                 }
                 break;
-            case OVERLAY_HOR:
+            case OVERLAY_XOR:
                 while (spi.hasNext() && dpi.hasNext()) {
                     dpi.setNext(tpi.getNext() ^ spi.getNext());
                 }
@@ -1162,7 +1162,7 @@ public class PixselMap extends AbstractPixselMap {
      * @see #overlay(int, int, AbstractPixselMap, int)
      * @see #or(int, int, AbstractPixselMap)
      * @see #and(int, int, AbstractPixselMap)
-     * @see #hor(int, int, AbstractPixselMap)
+     * @see #xor(int, int, AbstractPixselMap)
      */
     public void place(int x, int y, AbstractPixselMap apm) {
         overlay(x, y, apm, OVERLAY_PLACE);
@@ -1179,7 +1179,7 @@ public class PixselMap extends AbstractPixselMap {
      * @see #overlay(int, int, AbstractPixselMap, int)
      * @see #place(int, int, AbstractPixselMap)
      * @see #and(int, int, AbstractPixselMap)
-     * @see #hor(int, int, AbstractPixselMap)
+     * @see #xor(int, int, AbstractPixselMap)
      */
     public void or(int x, int y, AbstractPixselMap apm) {
         overlay(x, y, apm, OVERLAY_OR);
@@ -1196,7 +1196,7 @@ public class PixselMap extends AbstractPixselMap {
      * @see #overlay(int, int, AbstractPixselMap, int)
      * @see #place(int, int, AbstractPixselMap)
      * @see #or(int, int, AbstractPixselMap)
-     * @see #hor(int, int, AbstractPixselMap)
+     * @see #xor(int, int, AbstractPixselMap)
      */
     public void and(int x, int y, AbstractPixselMap apm) {
         overlay(x, y, apm, OVERLAY_AND);
@@ -1215,7 +1215,7 @@ public class PixselMap extends AbstractPixselMap {
      * @see #or(int, int, AbstractPixselMap)
      * @see #and(int, int, AbstractPixselMap)
      */
-    public void hor(int x, int y, AbstractPixselMap apm) {
-        overlay(x, y, apm, OVERLAY_HOR);
+    public void xor(int x, int y, AbstractPixselMap apm) {
+        overlay(x, y, apm, OVERLAY_XOR);
     }
 }
