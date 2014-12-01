@@ -1484,7 +1484,7 @@ public class PixselMapTest extends AbstractPixselMapTest {
         AbstractPixselMap expected, actual;
 
         actual = createPixselMap(9, 11, src).getRectangle(2, 3, 5, 5);
-        expected = createAbstractPixselMap(5, 5, rect);
+        expected =  new AbstractPixselMap(5, 5, rect);
         assertEquals(expected, actual);
 
         // Попытка получения области, которая "вылезает" слева и сверху.

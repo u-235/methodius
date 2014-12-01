@@ -1,3 +1,4 @@
+
 package microfont;
 
 import static org.junit.Assert.*;
@@ -5,9 +6,30 @@ import org.junit.Test;
 
 public class MSymbolTest extends PixselMapTest {
 
+    @Override
+    public AbstractPixselMap createAbstractPixselMap(int width, int height,
+                    byte[] src) {
+        return new MSymbol(0, width, height, src);
+    }
+
+    @Override
+    public PixselMap createPixselMap(int width, int height, byte[] src) {
+        return new MSymbol(0, width, height, src);
+    }
+
+    public MSymbol createMSymbol(int code, int width, int height, byte[] src) {
+        return new MSymbol(code, width, height, src);
+    }
+
     @Test
     public void testGetCode() {
-        fail("Not yet implemented");
+        MSymbol src;
+
+        src = createMSymbol(0, 5, 7, null);
+        assertTrue(src.getCode() == 0);
+
+        src = createMSymbol(17, 5, 7, null);
+        assertTrue(src.getCode() == 17);
     }
 
     @Test
