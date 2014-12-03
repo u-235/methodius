@@ -23,48 +23,129 @@ public class MSymbolTest extends PixselMapTest {
 
     @Test
     public void testGetCode() {
-        MSymbol src;
+        MSymbol sym;
 
-        src = createMSymbol(0, 5, 7, null);
-        assertTrue(src.getCode() == 0);
+        sym = createMSymbol(0, 5, 7, null);
+        assertTrue(sym.getCode() == 0);
 
-        src = createMSymbol(17, 5, 7, null);
-        assertTrue(src.getCode() == 17);
+        sym = createMSymbol(17, 5, 7, null);
+        assertTrue(sym.getCode() == 17);
     }
 
     @Test
     public void testSetCode() {
-        fail("Not yet implemented");
+        MSymbol sym;
+
+        sym = createMSymbol(0, 5, 7, null);
+        sym.setCode(11);
+        assertTrue(sym.getCode() == 11);
+
+        sym = createMSymbol(17, 5, 7, null);
+        sym.setCode(17);
+        assertTrue(sym.getCode() == 17);
     }
 
     @Test
     public void testIsUnicode() {
-        fail("Not yet implemented");
+        MSymbol sym;
+
+        sym = createMSymbol(0, 5, 7, null);
+        assertFalse(sym.isUnicode());
+
+        try {
+            sym.setUnicode(0x20);
+        } catch (DisallowOperationException e) {
+            fail("Unexpected exception");
+        }
+        assertTrue(sym.isUnicode());
     }
 
     @Test
     public void testGetUnicode() {
-        fail("Not yet implemented");
+        MSymbol sym;
+
+        sym = createMSymbol(0, 5, 7, null);
+        assertFalse(sym.isUnicode());
+
+        try {
+            sym.setUnicode(0x20);
+        } catch (DisallowOperationException e) {
+            fail("Unexpected exception");
+        }
+        assertTrue(sym.getUnicode() == 0x20);
     }
 
     @Test
     public void testClearUnicode() {
-        fail("Not yet implemented");
+        MSymbol sym;
+
+        sym = createMSymbol(0, 5, 7, null);
+        try {
+            sym.setUnicode(0x20);
+            sym.clearUnicode();
+        } catch (DisallowOperationException e) {
+            fail("Unexpected exception");
+        }
+        assertFalse(sym.isUnicode());
     }
 
     @Test
     public void testSetUnicode() {
-        fail("Not yet implemented");
+        // Калька с testGetUnicode()
+        MSymbol sym;
+
+        sym = createMSymbol(0, 5, 7, null);
+        assertFalse(sym.isUnicode());
+
+        try {
+            sym.setUnicode(0x20);
+        } catch (DisallowOperationException e) {
+            fail("Unexpected exception");
+        }
+        assertTrue(sym.getUnicode() == 0x20);
     }
 
     @Test
     public void testGetOwner() {
-        fail("Not yet implemented");
+        MSymbol sym;
+
+        sym = createMSymbol(0, 5, 7, null);
+        assertTrue(sym.getOwner() == null);
+
+        MFont font = new MFont();
+        font.add(sym);
+        assertTrue(sym.getOwner() == font);
+
+        font.remove(sym);
+        assertTrue(sym.getOwner() == null);
     }
 
     @Test
     public void testCopyMSymbol() {
-        fail("Not yet implemented");
+        MSymbol src, dst;
+
+        src = createMSymbol(13, 9, 11, left);
+        dst = createMSymbol(0, 7, 9, null);
+
+        try {
+            dst.copy(src);
+        } catch (DisallowOperationException e) {
+            fail("Unexpected exception");
+        }
+        assertEquals(src, dst);
+
+        dst = createMSymbol(0, 7, 9, null);
+        MFont font = new MFont();
+        font.setWidth(9);
+        font.setHeight(11);
+        font.add(dst);
+        boolean result = true;
+        try {
+            dst.copy(src);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertTrue(result);
     }
 
     @Test
@@ -75,12 +156,14 @@ public class MSymbolTest extends PixselMapTest {
     @Override
     @Test
     public void testSetSizeIntInt() {
+        super.testSetSizeIntInt();
         fail("Not yet implemented");
     }
 
     @Override
     @Test
     public void testSetSizeDimension() {
+        super.testSetSizeDimension();
         fail("Not yet implemented");
     }
 
