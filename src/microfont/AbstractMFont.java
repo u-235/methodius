@@ -1016,7 +1016,9 @@ public class AbstractMFont implements PixselMapListener, PropertyChangeListener 
     protected void replace(int oldPos, int newPos) {
         MSymbol replaced = symbols[oldPos];
 
-        if (symbols[oldPos].getCode() == symbols[newPos].getCode()) {
+        if (newPos < symbols.length
+                        && symbols[oldPos].getCode() == symbols[newPos]
+                                        .getCode()) {
             // Символ [newPos] должен быть удалён.
             MSymbol[] t = new MSymbol[symbols.length - 1];
             MSymbol deleted = symbols[newPos];
