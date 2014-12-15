@@ -723,16 +723,14 @@ public class AbstractMFont implements PixselMapListener, PropertyChangeListener 
             captureSymbol(symbol);
 
             try {
-                symbol.setHeight(height);
+                if (fixsed) {
+                    symbol.setSize(width, height);
+                } else {
+                    symbol.setHeight(height);
+                }
             } catch (DisallowOperationException e) {
                 // Это исключение не должно возникнуть никогда.
-                logger().log(Level.SEVERE, "fail apply height", e);
-            }
-            if (fixsed) try {
-                symbol.setWidth(width);
-            } catch (DisallowOperationException e) {
-                // Это исключение не должно возникнуть никогда.
-                logger().log(Level.SEVERE, "fail apply width", e);
+                logger().log(Level.SEVERE, "fail apply size", e);
             }
 
             int pos = position(symbol.getCode());
