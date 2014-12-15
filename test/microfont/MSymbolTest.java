@@ -120,8 +120,11 @@ public class MSymbolTest extends PixselMapTest {
         assertTrue(sym.getOwner() == null);
     }
 
+    @Override
     @Test
-    public void testCopyMSymbol() {
+    public void testCopy() {
+        super.testCopy();
+        
         MSymbol src, dst;
 
         src = createMSymbol(13, 9, 11, left);
@@ -136,6 +139,7 @@ public class MSymbolTest extends PixselMapTest {
 
         dst = createMSymbol(0, 7, 9, null);
         MFont font = new MFont();
+        font.setFixsed(true);
         font.setWidth(9);
         font.setHeight(11);
         font.add(dst);
@@ -146,11 +150,51 @@ public class MSymbolTest extends PixselMapTest {
             result = false;
         }
         assertTrue(result);
-    }
 
-    @Test
-    public void testCopyAbstractPixselMap() {
-        fail("Not yet implemented");
+        // Попытка скопировать символ неправильной ширины в моноширинный шрифт.
+        dst = createMSymbol(0, 11, 11, null);
+        font = new MFont();
+        font.setFixsed(true);
+        font.setWidth(11);
+        font.setHeight(11);
+        font.add(dst);
+        result = true;
+        try {
+            dst.copy(src);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertFalse(result);
+
+        // Попытка скопировать символ другой ширины в пропорциональный шрифт.
+        dst = createMSymbol(0, 11, 11, null);
+        font = new MFont();
+        font.setFixsed(false);
+        font.setWidth(11);
+        font.setHeight(11);
+        font.add(dst);
+        result = true;
+        try {
+            dst.copy(src);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertTrue(result);
+
+        // Попытка скопировать символ другой высоты.
+        dst = createMSymbol(0, 9, 11, null);
+        font = new MFont();
+        font.setFixsed(false);
+        font.setWidth(9);
+        font.setHeight(13);
+        font.add(dst);
+        result = true;
+        try {
+            dst.copy(src);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertFalse(result);
     }
 
     @Override
