@@ -646,7 +646,7 @@ public class AbstractPixselMap {
         if (!isValidWidth(w))
             throw new DisallowOperationException("change width");
         if (!isValidHeight(h))
-            throw new DisallowOperationException("change width");
+            throw new DisallowOperationException("change height");
 
         nw = w;
         nh = h;
