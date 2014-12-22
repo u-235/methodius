@@ -2,6 +2,7 @@
 package microfont;
 
 import static org.junit.Assert.*;
+import java.awt.Dimension;
 import org.junit.Test;
 
 public class MSymbolTest extends PixselMapTest {
@@ -124,7 +125,7 @@ public class MSymbolTest extends PixselMapTest {
     @Test
     public void testCopy() {
         super.testCopy();
-        
+
         MSymbol src, dst;
 
         src = createMSymbol(13, 9, 11, left);
@@ -201,115 +202,636 @@ public class MSymbolTest extends PixselMapTest {
     @Test
     public void testSetSizeIntInt() {
         super.testSetSizeIntInt();
-        fail("Not yet implemented");
+
+        MSymbol tst;
+
+        tst = createMSymbol(0, 7, 9, null);
+
+        // Попытка изменить ширину символа в моноширинном шрифте.
+        tst = createMSymbol(0, 11, 11, null);
+        MFont font = new MFont();
+        font.setFixsed(true);
+        font.setWidth(11);
+        font.setHeight(11);
+        font.add(tst);
+        boolean result = true;
+        try {
+            tst.setSize(9, 11);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertFalse(result);
+
+        // Попытка изменить ширину символа в пропорциональном шрифте.
+        tst = createMSymbol(0, 11, 11, null);
+        font = new MFont();
+        font.setFixsed(false);
+        font.setWidth(11);
+        font.setHeight(11);
+        font.add(tst);
+        result = true;
+        try {
+            tst.setSize(9, 11);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertTrue(result);
+
+        // Попытка изменить высоту символа.
+        tst = createMSymbol(0, 9, 11, null);
+        font = new MFont();
+        font.setFixsed(false);
+        font.setWidth(9);
+        font.setHeight(13);
+        font.add(tst);
+        result = true;
+        try {
+            tst.setSize(9, 11);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertFalse(result);
     }
 
     @Override
     @Test
     public void testSetSizeDimension() {
         super.testSetSizeDimension();
-        fail("Not yet implemented");
+
+        MSymbol tst;
+
+        tst = createMSymbol(0, 7, 9, null);
+
+        // Попытка изменить ширину символа в моноширинном шрифте.
+        tst = createMSymbol(0, 11, 11, null);
+        MFont font = new MFont();
+        font.setFixsed(true);
+        font.setWidth(11);
+        font.setHeight(11);
+        font.add(tst);
+        boolean result = true;
+        try {
+            tst.setSize(new Dimension(9, 11));
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertFalse(result);
+
+        // Попытка изменить ширину символа в пропорциональном шрифте.
+        tst = createMSymbol(0, 11, 11, null);
+        font = new MFont();
+        font.setFixsed(false);
+        font.setWidth(11);
+        font.setHeight(11);
+        font.add(tst);
+        result = true;
+        try {
+            tst.setSize(new Dimension(9, 11));
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertTrue(result);
+
+        // Попытка изменить высоту символа.
+        tst = createMSymbol(0, 9, 11, null);
+        font = new MFont();
+        font.setFixsed(false);
+        font.setWidth(9);
+        font.setHeight(13);
+        font.add(tst);
+        result = true;
+        try {
+            tst.setSize(new Dimension(9, 11));
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertFalse(result);
     }
 
     @Override
     @Test
     public void testSetWidth() {
-        fail("Not yet implemented");
+        super.testSetWidth();
+
+        MSymbol tst;
+
+        tst = createMSymbol(0, 7, 9, null);
+
+        // Попытка изменить ширину символа в моноширинном шрифте.
+        tst = createMSymbol(0, 11, 11, null);
+        MFont font = new MFont();
+        font.setFixsed(true);
+        font.setWidth(11);
+        font.setHeight(11);
+        font.add(tst);
+        boolean result = true;
+        try {
+            tst.setWidth(9);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertFalse(result);
+
+        // Попытка изменить ширину символа в пропорциональном шрифте.
+        tst = createMSymbol(0, 11, 11, null);
+        font = new MFont();
+        font.setFixsed(false);
+        font.setWidth(11);
+        font.setHeight(11);
+        font.add(tst);
+        result = true;
+        try {
+            tst.setWidth(9);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertTrue(result);
     }
 
     @Override
     @Test
     public void testSetHeight() {
-        fail("Not yet implemented");
+        super.testSetHeight();
+
+        MSymbol tst;
+
+        tst = createMSymbol(0, 7, 9, null);
+
+        // Попытка изменить высоту символа.
+        tst = createMSymbol(0, 9, 11, null);
+        MFont font = new MFont();
+        font.setFixsed(false);
+        font.setWidth(9);
+        font.setHeight(13);
+        font.add(tst);
+        boolean result = true;
+        try {
+            tst.setHeight(11);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertFalse(result);
     }
 
     @Override
     @Test
     public void testChangeWidth() {
-        fail("Not yet implemented");
+        super.testChangeWidth();
+
+        MSymbol tst;
+
+        tst = createMSymbol(0, 7, 9, null);
+
+        // Попытка изменить ширину символа в моноширинном шрифте.
+        tst = createMSymbol(0, 11, 11, null);
+        MFont font = new MFont();
+        font.setFixsed(true);
+        font.setWidth(11);
+        font.setHeight(11);
+        font.add(tst);
+        boolean result = true;
+        try {
+            tst.changeWidth(2, 3);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertFalse(result);
+
+        // Попытка изменить ширину символа в пропорциональном шрифте.
+        tst = createMSymbol(0, 11, 11, null);
+        font = new MFont();
+        font.setFixsed(false);
+        font.setWidth(11);
+        font.setHeight(11);
+        font.add(tst);
+        result = true;
+        try {
+            tst.changeWidth(2, 3);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertTrue(result);
     }
 
     @Override
     @Test
     public void testChangeHeight() {
-        fail("Not yet implemented");
+        super.testChangeHeight();
+
+        MSymbol tst;
+
+        tst = createMSymbol(0, 7, 9, null);
+
+        // Попытка изменить высоту символа.
+        tst = createMSymbol(0, 9, 11, null);
+        MFont font = new MFont();
+        font.setFixsed(false);
+        font.setWidth(9);
+        font.setHeight(13);
+        font.add(tst);
+        boolean result = true;
+        try {
+            tst.changeHeight(3, 5);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertFalse(result);
     }
 
     @Override
     @Test
     public void testRemoveColumns() {
-        fail("Not yet implemented");
+        super.testRemoveColumns();
+
+        MSymbol tst;
+
+        tst = createMSymbol(0, 7, 9, null);
+
+        // Попытка изменить ширину символа в моноширинном шрифте.
+        tst = createMSymbol(0, 11, 11, null);
+        MFont font = new MFont();
+        font.setFixsed(true);
+        font.setWidth(11);
+        font.setHeight(11);
+        font.add(tst);
+        boolean result = true;
+        try {
+            tst.removeColumns(2, 3);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertFalse(result);
+
+        // Попытка изменить ширину символа в пропорциональном шрифте.
+        tst = createMSymbol(0, 11, 11, null);
+        font = new MFont();
+        font.setFixsed(false);
+        font.setWidth(11);
+        font.setHeight(11);
+        font.add(tst);
+        result = true;
+        try {
+            tst.removeColumns(2, 3);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertTrue(result);
     }
 
     @Override
     @Test
     public void testRemoveRows() {
-        fail("Not yet implemented");
+        super.testRemoveRows();
+
+        MSymbol tst;
+
+        tst = createMSymbol(0, 7, 9, null);
+
+        // Попытка изменить высоту символа.
+        tst = createMSymbol(0, 9, 11, null);
+        MFont font = new MFont();
+        font.setFixsed(false);
+        font.setWidth(9);
+        font.setHeight(13);
+        font.add(tst);
+        boolean result = true;
+        try {
+            tst.removeRows(3, 5);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertFalse(result);
     }
 
     @Override
     @Test
     public void testRemoveLeft() {
-        fail("Not yet implemented");
+        super.testRemoveLeft();
+
+        MSymbol tst;
+
+        tst = createMSymbol(0, 7, 9, null);
+
+        // Попытка изменить ширину символа в моноширинном шрифте.
+        tst = createMSymbol(0, 11, 11, null);
+        MFont font = new MFont();
+        font.setFixsed(true);
+        font.setWidth(11);
+        font.setHeight(11);
+        font.add(tst);
+        boolean result = true;
+        try {
+            tst.removeLeft(2);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertFalse(result);
+
+        // Попытка изменить ширину символа в пропорциональном шрифте.
+        tst = createMSymbol(0, 11, 11, null);
+        font = new MFont();
+        font.setFixsed(false);
+        font.setWidth(11);
+        font.setHeight(11);
+        font.add(tst);
+        result = true;
+        try {
+            tst.removeLeft(2);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertTrue(result);
     }
 
     @Override
     @Test
     public void testRemoveRight() {
-        fail("Not yet implemented");
+        super.testRemoveRight();
+
+        MSymbol tst;
+
+        tst = createMSymbol(0, 7, 9, null);
+
+        // Попытка изменить ширину символа в моноширинном шрифте.
+        tst = createMSymbol(0, 11, 11, null);
+        MFont font = new MFont();
+        font.setFixsed(true);
+        font.setWidth(11);
+        font.setHeight(11);
+        font.add(tst);
+        boolean result = true;
+        try {
+            tst.removeRight(2);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertFalse(result);
+
+        // Попытка изменить ширину символа в пропорциональном шрифте.
+        tst = createMSymbol(0, 11, 11, null);
+        font = new MFont();
+        font.setFixsed(false);
+        font.setWidth(11);
+        font.setHeight(11);
+        font.add(tst);
+        result = true;
+        try {
+            tst.removeRight(2);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertTrue(result);
     }
 
     @Override
     @Test
     public void testRemoveTop() {
-        fail("Not yet implemented");
+        super.testRemoveTop();
+
+        MSymbol tst;
+
+        tst = createMSymbol(0, 7, 9, null);
+
+        // Попытка изменить высоту символа.
+        tst = createMSymbol(0, 9, 11, null);
+        MFont font = new MFont();
+        font.setFixsed(false);
+        font.setWidth(9);
+        font.setHeight(13);
+        font.add(tst);
+        boolean result = true;
+        try {
+            tst.removeTop(5);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertFalse(result);
     }
 
     @Override
     @Test
     public void testRemoveBottom() {
-        fail("Not yet implemented");
+        super.testRemoveBottom();
+
+        MSymbol tst;
+
+        tst = createMSymbol(0, 7, 9, null);
+
+        // Попытка изменить высоту символа.
+        tst = createMSymbol(0, 9, 11, null);
+        MFont font = new MFont();
+        font.setFixsed(false);
+        font.setWidth(9);
+        font.setHeight(13);
+        font.add(tst);
+        boolean result = true;
+        try {
+            tst.removeBottom(3);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertFalse(result);
     }
 
     @Override
     @Test
     public void testAddColumns() {
-        fail("Not yet implemented");
+        super.testAddColumns();
+
+        MSymbol tst;
+
+        tst = createMSymbol(0, 7, 9, null);
+
+        // Попытка изменить ширину символа в моноширинном шрифте.
+        tst = createMSymbol(0, 11, 11, null);
+        MFont font = new MFont();
+        font.setFixsed(true);
+        font.setWidth(11);
+        font.setHeight(11);
+        font.add(tst);
+        boolean result = true;
+        try {
+            tst.addColumns(2, 3);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertFalse(result);
+
+        // Попытка изменить ширину символа в пропорциональном шрифте.
+        tst = createMSymbol(0, 11, 11, null);
+        font = new MFont();
+        font.setFixsed(false);
+        font.setWidth(11);
+        font.setHeight(11);
+        font.add(tst);
+        result = true;
+        try {
+            tst.addColumns(2, 3);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertTrue(result);
     }
 
     @Override
     @Test
     public void testAddRows() {
-        fail("Not yet implemented");
+        super.testAddRows();
+
+        MSymbol tst;
+
+        tst = createMSymbol(0, 7, 9, null);
+
+        // Попытка изменить высоту символа.
+        tst = createMSymbol(0, 9, 11, null);
+        MFont font = new MFont();
+        font.setFixsed(false);
+        font.setWidth(9);
+        font.setHeight(13);
+        font.add(tst);
+        boolean result = true;
+        try {
+            tst.addRows(3, 5);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertFalse(result);
     }
 
     @Override
     @Test
     public void testAddLeft() {
-        fail("Not yet implemented");
+        super.testAddLeft();
+
+        MSymbol tst;
+
+        tst = createMSymbol(0, 7, 9, null);
+
+        // Попытка изменить ширину символа в моноширинном шрифте.
+        tst = createMSymbol(0, 11, 11, null);
+        MFont font = new MFont();
+        font.setFixsed(true);
+        font.setWidth(11);
+        font.setHeight(11);
+        font.add(tst);
+        boolean result = true;
+        try {
+            tst.addLeft(2);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertFalse(result);
+
+        // Попытка изменить ширину символа в пропорциональном шрифте.
+        tst = createMSymbol(0, 11, 11, null);
+        font = new MFont();
+        font.setFixsed(false);
+        font.setWidth(11);
+        font.setHeight(11);
+        font.add(tst);
+        result = true;
+        try {
+            tst.addLeft(2);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertTrue(result);
     }
 
     @Override
     @Test
     public void testAddRight() {
-        fail("Not yet implemented");
+        super.testAddRight();
+
+        MSymbol tst;
+
+        tst = createMSymbol(0, 7, 9, null);
+
+        // Попытка изменить ширину символа в моноширинном шрифте.
+        tst = createMSymbol(0, 11, 11, null);
+        MFont font = new MFont();
+        font.setFixsed(true);
+        font.setWidth(11);
+        font.setHeight(11);
+        font.add(tst);
+        boolean result = true;
+        try {
+            tst.addRight(2);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertFalse(result);
+
+        // Попытка изменить ширину символа в пропорциональном шрифте.
+        tst = createMSymbol(0, 11, 11, null);
+        font = new MFont();
+        font.setFixsed(false);
+        font.setWidth(11);
+        font.setHeight(11);
+        font.add(tst);
+        result = true;
+        try {
+            tst.addRight(2);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertTrue(result);
     }
 
     @Override
     @Test
     public void testAddTop() {
-        fail("Not yet implemented");
+        super.testAddTop();
+
+        MSymbol tst;
+
+        tst = createMSymbol(0, 7, 9, null);
+
+        // Попытка изменить высоту символа.
+        tst = createMSymbol(0, 9, 11, null);
+        MFont font = new MFont();
+        font.setFixsed(false);
+        font.setWidth(9);
+        font.setHeight(13);
+        font.add(tst);
+        boolean result = true;
+        try {
+            tst.addTop(3);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertFalse(result);
     }
 
     @Override
     @Test
     public void testAddBottom() {
-        fail("Not yet implemented");
+        super.testAddBottom();
+
+        MSymbol tst;
+
+        tst = createMSymbol(0, 7, 9, null);
+
+        // Попытка изменить высоту символа.
+        tst = createMSymbol(0, 9, 11, null);
+        MFont font = new MFont();
+        font.setFixsed(false);
+        font.setWidth(9);
+        font.setHeight(13);
+        font.add(tst);
+        boolean result = true;
+        try {
+            tst.addBottom(5);
+        } catch (DisallowOperationException e) {
+            result = false;
+        }
+        assertFalse(result);
     }
 
     @Override
     @Test
     public void testRotate() {
+        super.testRotate();
         fail("Not yet implemented");
     }
 
