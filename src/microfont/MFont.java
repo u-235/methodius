@@ -1,15 +1,12 @@
 
 package microfont;
 
-import java.beans.PropertyChangeListener;
 import java.util.logging.Level;
-import microfont.events.PixselMapListener;
 
 /**
  * 
  */
-public class MFont extends AbstractMFont implements PixselMapListener,
-                PropertyChangeListener, Metrics {
+public class MFont extends AbstractMFont implements Metrics {
     /** Высота надстрочной части символа. */
     public static final String PROPERTY_ASCENT                = "mf.ascent";
     /** Базовая линия строки. */
