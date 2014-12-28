@@ -19,17 +19,17 @@ public class MFont extends AbstractMFont implements Metrics {
     public static final String PROPERTY_MARGIN_LEFT           = "mf.magrin.left";
     /** Правое поле. */
     public static final String PROPERTY_MARGIN_RIGHT          = "mf.margin.right";
-    /** Высота надстрочной части символа. */
+    /** Атуальность высоты надстрочной части символа. */
     public static final String PROPERTY_ACTUALLY_ASCENT       = "mf.state.ascent";
-    /** Базовая линия строки. */
+    /** Атуальность базовой линии строки. */
     public static final String PROPERTY_ACTUALLY_BASELINE     = "mf.state.baseline";
-    /** Подстрочная часть символа. */
+    /** Атуальность подстрочной части символа. */
     public static final String PROPERTY_ACTUALLY_DESCENT      = "mf.state.descent";
-    /** Высота строки символов. */
+    /** Атуальность высоты строки символов. */
     public static final String PROPERTY_ACTUALLY_LINE         = "mf.state.line";
-    /** Левое поле. */
+    /** Атуальность левого поля. */
     public static final String PROPERTY_ACTUALLY_MARGIN_LEFT  = "mf.state.magrin.left";
-    /** Правое поле. */
+    /** Атуальность правого поля. */
     public static final String PROPERTY_ACTUALLY_MARGIN_RIGHT = "mf.state.margin.right";
     public static final String PROPERTY_DESCRIPTION           = "mf.description";
     public static final String PROPERTY_NAME                  = "mf.name";
@@ -392,7 +392,7 @@ public class MFont extends AbstractMFont implements Metrics {
         else if (property.equals(PROPERTY_MARGIN_RIGHT)) return getMetric(METRIC_RIGHT);
         else if (property.equals(PROPERTY_NAME)) return getName();
         else if (property.equals(PROPERTY_PROTOTYPE)) return getPrototype();
-        else if (property.equals(PROPERTY_WIDTH)) return getWidth();
+        else if (property.equals(PROPERTY_DESCRIPTION)) return getDescriptin();
         return super.getProperty(property);
     }
 

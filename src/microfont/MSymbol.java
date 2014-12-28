@@ -23,7 +23,7 @@ import java.util.logging.Level;
  * MSymbol может изменять это свойство вызвав {@link #setUnicode(int)}, при этом
  * переменная {@link #hasUnicode} устанавливается в <code>true</code>, получение
  * значения возможно методом {@link #getUnicode()}. Это свойство может быть
- * неактуальным, что можно проверить при помощи {@link #isUnicode()}. *
+ * неактуальным, что можно проверить при помощи {@link #isUnicode()}.
  * </ol>
  * <p>
  */
