@@ -19,7 +19,7 @@ import utils.event.ListenerChain;
  * Узлы настроек именуются на манер папок иерархической файловой системы. Каждый
  * узел настроек имеет {@link #name() имя} (не обязательно уникальное),
  * уникальный {@link #absolutePath() абсолютный путь} и относительные пути к
- * {@link #childrenNames() к дочерним узлам}.
+ * {@link #childrenNames() дочерним узлам}.
  * 
  * <p>
  * Имя {@linkplain #root() корневого узла} состоит из пустой строки (""). Любой
@@ -113,9 +113,9 @@ public class ConfigNode {
     }
 
     /**
-     * Возвращает родителький узел.
+     * Возвращает родительский узел.
      * 
-     * @return Родителький узел или {@code null}, если текущий узел является
+     * @return Родительский узел или {@code null}, если текущий узел является
      *         {@link #root() корневым}.
      * @throws IllegalStateException Если текущий узел (или его предок) был
      *             удалён вызовом {@link #removeNode()}.
@@ -465,6 +465,10 @@ public class ConfigNode {
             String rec = get(key, null);
             if (rec != null) ret = Byte.parseByte(rec);
         } catch (NumberFormatException e) {
+            /*
+             * XXX Спорный момент - текущая запись может быть допустимой для
+             * другой интерпретации.
+             */
         }
 
         return ret;
@@ -503,6 +507,10 @@ public class ConfigNode {
             String rec = get(key, null);
             if (rec != null) ret = Short.parseShort(rec);
         } catch (NumberFormatException e) {
+            /*
+             * XXX Спорный момент - текущая запись может быть допустимой для
+             * другой интерпретации.
+             */
         }
 
         return ret;
@@ -541,6 +549,10 @@ public class ConfigNode {
             String rec = get(key, null);
             if (rec != null) ret = Integer.parseInt(rec);
         } catch (NumberFormatException e) {
+            /*
+             * XXX Спорный момент - текущая запись может быть допустимой для
+             * другой интерпретации.
+             */
         }
 
         return ret;
@@ -579,6 +591,10 @@ public class ConfigNode {
             String rec = get(key, null);
             if (rec != null) ret = Long.parseLong(rec);
         } catch (NumberFormatException e) {
+            /*
+             * XXX Спорный момент - текущая запись может быть допустимой для
+             * другой интерпретации.
+             */
         }
 
         return ret;
@@ -617,6 +633,10 @@ public class ConfigNode {
             String rec = get(key, null);
             if (rec != null) ret = Float.parseFloat(rec);
         } catch (NumberFormatException e) {
+            /*
+             * XXX Спорный момент - текущая запись может быть допустимой для
+             * другой интерпретации.
+             */
         }
 
         return ret;
@@ -655,6 +675,10 @@ public class ConfigNode {
             String rec = get(key, null);
             if (rec != null) ret = Double.parseDouble(rec);
         } catch (NumberFormatException e) {
+            /*
+             * XXX Спорный момент - текущая запись может быть допустимой для
+             * другой интерпретации.
+             */
         }
 
         return ret;
@@ -693,6 +717,10 @@ public class ConfigNode {
             String rec = get(key, null);
             if (rec != null) ret = Boolean.parseBoolean(rec);
         } catch (NumberFormatException e) {
+            /*
+             * XXX Спорный момент - текущая запись может быть допустимой для
+             * другой интерпретации.
+             */
         }
 
         return ret;
@@ -743,6 +771,10 @@ public class ConfigNode {
                 }
             }
         } catch (NumberFormatException e) {
+            /*
+             * XXX Спорный момент - текущая запись может быть допустимой для
+             * другой интерпретации.
+             */
         }
 
         return ret;
@@ -793,6 +825,10 @@ public class ConfigNode {
                 }
             }
         } catch (NumberFormatException e) {
+            /*
+             * XXX Спорный момент - текущая запись может быть допустимой для
+             * другой интерпретации.
+             */
         }
 
         return ret;
