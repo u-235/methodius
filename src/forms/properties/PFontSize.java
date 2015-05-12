@@ -1,5 +1,5 @@
 
-package forms;
+package forms.properties;
 
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
@@ -13,6 +13,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import forms.FontProperties;
 import microfont.MFont;
 import microfont.Metrics;
 import microfont.gui.MSymbolEditor;

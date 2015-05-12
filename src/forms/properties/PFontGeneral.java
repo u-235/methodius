@@ -1,5 +1,5 @@
 
-package forms;
+package forms.properties;
 
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;

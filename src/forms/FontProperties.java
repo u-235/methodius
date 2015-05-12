@@ -21,6 +21,8 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JTabbedPane;
 import javax.swing.JToolBar;
+import forms.properties.PFontGeneral;
+import forms.properties.PFontSize;
 import utils.resource.Resource;
 import microfont.MFont;
 
