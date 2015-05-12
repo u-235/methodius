@@ -19,17 +19,17 @@ public class MFont extends AbstractMFont implements Metrics {
     public static final String PROPERTY_MARGIN_LEFT           = "mf.magrin.left";
     /** Правое поле. */
     public static final String PROPERTY_MARGIN_RIGHT          = "mf.margin.right";
-    /** Атуальность высоты надстрочной части символа. */
+    /** Актуальность высоты надстрочной части символа. */
     public static final String PROPERTY_ACTUALLY_ASCENT       = "mf.state.ascent";
-    /** Атуальность базовой линии строки. */
+    /** Актуальность базовой линии строки. */
     public static final String PROPERTY_ACTUALLY_BASELINE     = "mf.state.baseline";
-    /** Атуальность подстрочной части символа. */
+    /** Актуальность подстрочной части символа. */
     public static final String PROPERTY_ACTUALLY_DESCENT      = "mf.state.descent";
-    /** Атуальность высоты строки символов. */
+    /** Актуальность высоты строки символов. */
     public static final String PROPERTY_ACTUALLY_LINE         = "mf.state.line";
-    /** Атуальность левого поля. */
+    /** Актуальность левого поля. */
     public static final String PROPERTY_ACTUALLY_MARGIN_LEFT  = "mf.state.magrin.left";
-    /** Атуальность правого поля. */
+    /** Актуальность правого поля. */
     public static final String PROPERTY_ACTUALLY_MARGIN_RIGHT = "mf.state.margin.right";
     public static final String PROPERTY_DESCRIPTION           = "mf.description";
     public static final String PROPERTY_NAME                  = "mf.name";
@@ -105,15 +105,29 @@ public class MFont extends AbstractMFont implements Metrics {
                         return false;
                 }
                 if (description == null) {
-                    if (other.description != null) return false;
-                } else if (!description.equals(other.description))
+                    if (other.description != null) {
+                        return false;
+                    }
+                } else if (!description.equals(other.description)) {
                     return false;
+                }
+
                 if (name == null) {
-                    if (other.name != null) return false;
-                } else if (!name.equals(other.name)) return false;
+                    if (other.name != null) {
+                        return false;
+                    }
+                } else if (!name.equals(other.name)) {
+                    return false;
+                }
+
                 if (prototype == null) {
-                    if (other.prototype != null) return false;
-                } else if (!prototype.equals(other.prototype)) return false;
+                    if (other.prototype != null) {
+                        return false;
+                    }
+                } else if (!prototype.equals(other.prototype)) {
+                    return false;
+                }
+
                 return true;
             }
         }
@@ -136,6 +150,7 @@ public class MFont extends AbstractMFont implements Metrics {
 
                 setName(font.name);
                 setPrototype(font.prototype);
+                setDescriptin(font.description);
             }
         }
     }
@@ -288,6 +303,8 @@ public class MFont extends AbstractMFont implements Metrics {
             case METRIC_RIGHT:
                 metrics[index] = checkMargin(value);
                 break;
+            default:
+                throw new RuntimeException("can't handle valid index=" + index);
             }
             fireMetricChange(index, old, value);
         }
@@ -304,9 +321,14 @@ public class MFont extends AbstractMFont implements Metrics {
     public int checkMargin(int value) {
         synchronized (getLock()) {
             int bound = (int) (getMinWidth() * 0.3);
-            if (value < 0) return 0;
-            else if (value > bound) return bound;
-            else return value;
+
+            if (value < 0) {
+                return 0;
+            } else if (value > bound) {
+                return bound;
+            }
+
+            return value;
         }
     }
 
@@ -321,9 +343,16 @@ public class MFont extends AbstractMFont implements Metrics {
     public int checkBaseline(int value) {
         synchronized (getLock()) {
             int bound = (int) (height * 0.60);
-            if (value < bound) return bound;
+
+            if (value < bound) {
+                return bound;
+            }
+
             bound = (int) (height * 0.90);
-            if (value > bound) return bound;
+            if (value > bound) {
+                return bound;
+            }
+
             return value;
         }
     }
@@ -340,9 +369,14 @@ public class MFont extends AbstractMFont implements Metrics {
         synchronized (getLock()) {
             int baseline = getMetric(METRIC_BASELINE);
             int bound = baseline / 2;
-            if (value < bound) return bound;
-            else if (value > baseline) return baseline;
-            else return value;
+
+            if (value < bound) {
+                return bound;
+            } else if (value > baseline) {
+                return baseline;
+            }
+
+            return value;
         }
     }
 
@@ -358,9 +392,14 @@ public class MFont extends AbstractMFont implements Metrics {
         synchronized (getLock()) {
             int ascent = getMetric(METRIC_ASCENT);
             int bound = ascent / 2;
-            if (value < bound) return bound;
-            else if (value > ascent) return ascent;
-            else return value;
+
+            if (value < bound) {
+                return bound;
+            } else if (value > ascent) {
+                return ascent;
+            }
+
+            return value;
         }
     }
 
@@ -375,24 +414,41 @@ public class MFont extends AbstractMFont implements Metrics {
     public int checkDescent(int value) {
         synchronized (getLock()) {
             int bound = height - getMetric(METRIC_BASELINE);
-            if (value < 0) return 0;
-            else if (value > bound) return bound;
-            else return value;
+
+            if (value < 0) {
+                return 0;
+            } else if (value > bound) {
+                return bound;
+            }
+
+            return value;
         }
     }
 
     @Override
     public Object getProperty(String property) {
-        if (property.equals(PROPERTY_ASCENT)) return getMetric(METRIC_ASCENT);
-        else if (property.equals(PROPERTY_BASELINE)) return getMetric(METRIC_BASELINE);
-        else if (property.equals(PROPERTY_DESCENT)) return getMetric(METRIC_DESCENT);
-        else if (property.equals(PROPERTY_DESCRIPTION)) return getDescriptin();
-        else if (property.equals(PROPERTY_LINE)) return getMetric(METRIC_LINE);
-        else if (property.equals(PROPERTY_MARGIN_LEFT)) return getMetric(METRIC_LEFT);
-        else if (property.equals(PROPERTY_MARGIN_RIGHT)) return getMetric(METRIC_RIGHT);
-        else if (property.equals(PROPERTY_NAME)) return getName();
-        else if (property.equals(PROPERTY_PROTOTYPE)) return getPrototype();
-        else if (property.equals(PROPERTY_DESCRIPTION)) return getDescriptin();
+        if (property.equals(PROPERTY_ASCENT)) {
+            return getMetric(METRIC_ASCENT);
+        } else if (property.equals(PROPERTY_BASELINE)) {
+            return getMetric(METRIC_BASELINE);
+        } else if (property.equals(PROPERTY_DESCENT)) {
+            return getMetric(METRIC_DESCENT);
+        } else if (property.equals(PROPERTY_DESCRIPTION)) {
+            return getDescriptin();
+        } else if (property.equals(PROPERTY_LINE)) {
+            return getMetric(METRIC_LINE);
+        } else if (property.equals(PROPERTY_MARGIN_LEFT)) {
+            return getMetric(METRIC_LEFT);
+        } else if (property.equals(PROPERTY_MARGIN_RIGHT)) {
+            return getMetric(METRIC_RIGHT);
+        } else if (property.equals(PROPERTY_NAME)) {
+            return getName();
+        } else if (property.equals(PROPERTY_PROTOTYPE)) {
+            return getPrototype();
+        } else if (property.equals(PROPERTY_DESCRIPTION)) {
+            return getDescriptin();
+        }
+
         return super.getProperty(property);
     }
 
@@ -453,6 +509,7 @@ public class MFont extends AbstractMFont implements Metrics {
                 int t = symbolByIndex(i).emptyLeft();
                 ret = ret < t ? ret : t;
             }
+
             return ret;
         }
     }
@@ -472,6 +529,7 @@ public class MFont extends AbstractMFont implements Metrics {
                 int t = symbolByIndex(i).emptyRight();
                 ret = ret < t ? ret : t;
             }
+
             return ret;
         }
     }
@@ -491,6 +549,7 @@ public class MFont extends AbstractMFont implements Metrics {
                 int t = symbolByIndex(i).emptyTop();
                 ret = ret < t ? ret : t;
             }
+
             return ret;
         }
     }
@@ -510,6 +569,7 @@ public class MFont extends AbstractMFont implements Metrics {
                 int t = symbolByIndex(i).emptyBottom();
                 ret = ret < t ? ret : t;
             }
+
             return ret;
         }
     }
@@ -536,6 +596,7 @@ public class MFont extends AbstractMFont implements Metrics {
                     logger().log(Level.SEVERE, "fail remove left", e);
                 }
             }
+
             applyWidth();
         }
     }
@@ -562,6 +623,7 @@ public class MFont extends AbstractMFont implements Metrics {
                     logger().log(Level.SEVERE, "fail remove right", e);
                 }
             }
+
             applyWidth();
         }
     }
@@ -588,6 +650,7 @@ public class MFont extends AbstractMFont implements Metrics {
                     logger().log(Level.SEVERE, "fail remove top", e);
                 }
             }
+
             applyHeight();
         }
     }
@@ -614,6 +677,7 @@ public class MFont extends AbstractMFont implements Metrics {
                     logger().log(Level.SEVERE, "fail remove bottom", e);
                 }
             }
+
             applyHeight();
         }
     }
@@ -638,6 +702,7 @@ public class MFont extends AbstractMFont implements Metrics {
                     logger().log(Level.SEVERE, "fail add left", e);
                 }
             }
+
             applyWidth();
         }
     }
@@ -662,6 +727,7 @@ public class MFont extends AbstractMFont implements Metrics {
                     logger().log(Level.SEVERE, "fail add right", e);
                 }
             }
+
             applyWidth();
         }
     }
@@ -686,6 +752,7 @@ public class MFont extends AbstractMFont implements Metrics {
                     logger().log(Level.SEVERE, "fail add top", e);
                 }
             }
+
             applyHeight();
         }
     }
@@ -710,6 +777,7 @@ public class MFont extends AbstractMFont implements Metrics {
                     logger().log(Level.SEVERE, "fail add bottom", e);
                 }
             }
+
             applyHeight();
         }
     }
