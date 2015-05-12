@@ -21,7 +21,8 @@ public class PFontGeneral extends JPanel implements PropertyChangeListener {
     MFont              mFont;
     boolean            readOnly;
     private JTextField vName;
-    private JTextArea  vPrototype;
+    private JTextField vProto;
+    private JTextArea  vDescription;
 
     public PFontGeneral(Resource res) {
         super();
@@ -42,36 +43,52 @@ public class PFontGeneral extends JPanel implements PropertyChangeListener {
             public void focusGained(FocusEvent e) {
             }
         });
+        JPanel namePanel = new JPanel();
+        namePanel.add(vName);
+        namePanel.setBorder(new TitledBorder(res.getString(
+                        "properties.tab.general.name", Resource.TEXT_NAME_KEY)));
 
-        JPanel fr = new JPanel();
-        fr.add(vName);
-        Border border = new TitledBorder(res.getString(
-                        "properties.tab.general.name", Resource.TEXT_NAME_KEY));
-        fr.setBorder(border);
-        vPrototype = new JTextArea(2, 24);
-        vPrototype.addFocusListener(new FocusListener() {
+        vProto = new JTextField(24);
+        vProto.addFocusListener(new FocusListener() {
             @Override
             public void focusLost(FocusEvent e) {
                 if (mFont == null) return;
-                mFont.setPrototype(vPrototype.getText().trim());
+                mFont.setPrototype(vProto.getText().trim());
             }
 
             @Override
             public void focusGained(FocusEvent e) {
             }
         });
+        JPanel protoPanel = new JPanel();
+        protoPanel.add(vProto);
+        protoPanel.setBorder(new TitledBorder(res.getString(
+                        "properties.tab.general.prototype", Resource.TEXT_NAME_KEY)));
 
-        vPrototype.setWrapStyleWord(true);
-        vPrototype.setLineWrap(true);
-        border = new TitledBorder(res.getString(
-                        "properties.tab.general.prototype",
-                        Resource.TEXT_NAME_KEY));
-        JScrollPane scroll = new JScrollPane(vPrototype);
-        scroll.setBorder(border);
+        vDescription = new JTextArea(2, 24);
+        vDescription.addFocusListener(new FocusListener() {
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (mFont == null) return;
+                mFont.setDescriptin(vDescription.getText().trim());
+                System.out.println("focus lost text area");
+                System.out.println(vDescription.getText().trim());
+            }
 
-        add(fr, 0);
-        add(scroll, 1);
-        updateReadOnly();
+            @Override
+            public void focusGained(FocusEvent e) {
+            }
+        });
+        vDescription.setWrapStyleWord(true);
+        vDescription.setLineWrap(true);
+        JScrollPane scroll = new JScrollPane(vDescription);
+        scroll.setBorder(new TitledBorder(res.getString(
+                        "properties.tab.general.description",
+                        Resource.TEXT_NAME_KEY)));
+
+        add(namePanel, 0);
+        add(protoPanel, 1);
+        add(scroll, 2);
     }
 
     public Resource getResource() {
@@ -92,21 +109,8 @@ public class PFontGeneral extends JPanel implements PropertyChangeListener {
         if (mFont != null) mFont.addPropertyChangeListener(this);
         else return;
         vName.setText(mFont.getName());
-        vPrototype.setText(mFont.getPrototype());
-    }
-
-    public boolean isReadOnly() {
-        return readOnly;
-    }
-
-    public void setReadOnly(boolean readOnly) {
-        this.readOnly = readOnly;
-        updateReadOnly();
-    }
-
-    void updateReadOnly() {
-        vName.setEditable(!readOnly);
-        vPrototype.setEditable(!readOnly);
+        vProto.setText(mFont.getPrototype());
+        vDescription.setText(mFont.getDescriptin());
     }
 
     @Override

@@ -9,11 +9,10 @@ import java.awt.GridBagLayout;
 import java.awt.LayoutManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -36,7 +35,6 @@ public class FontProperties {
     private int             exitCode;
     private PFontGeneral    pGeneral;
     private PFontSize       pSize;
-    private JCheckBox       btnReadonly;
     private JButton         btnOk;
     private JButton         btnCancel;
 
@@ -46,35 +44,11 @@ public class FontProperties {
         form = new JDialog(parent, true);
         form.setLocationRelativeTo(parent);
         form.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        form.addWindowListener(new WindowListener() {
-            @Override
-            public void windowOpened(WindowEvent e) {
-            }
-
-            @Override
-            public void windowIconified(WindowEvent e) {
-            }
-
-            @Override
-            public void windowDeiconified(WindowEvent e) {
-            }
-
-            @Override
-            public void windowDeactivated(WindowEvent e) {
-            }
-
+        form.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
                 exitCode = ACTION_CANCEL;
                 stop();
-            }
-
-            @Override
-            public void windowClosed(WindowEvent e) {
-            }
-
-            @Override
-            public void windowActivated(WindowEvent e) {
             }
         });
         form.setLayout(new BorderLayout());
@@ -106,8 +80,6 @@ public class FontProperties {
         tab.setTitleAt(2, res.getText("properties.tab.charset"));
         tab.setToolTipTextAt(2, res.getToolTip("properties.tab.charset"));
 
-        btnReadonly.setText(res.getText("properties.form.readonly"));
-        btnReadonly.setToolTipText(res.getToolTip("properties.form.readonly"));
         btnOk.setText(res.getText("properties.form.ok"));
         btnOk.setToolTipText(res.getToolTip("properties.form.ok"));
         btnCancel.setText(res.getText("properties.form.cancel"));
@@ -151,17 +123,6 @@ public class FontProperties {
         ret = new JToolBar();
         ret.setFloatable(false);
 
-        btnReadonly = new JCheckBox();
-        btnReadonly.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                setReadOnly(((JCheckBox) e.getSource()).isSelected());
-            }
-        });
-        btnReadonly.setSelected(true);
-        setReadOnly(true);
-
         btnOk = new JButton();
         btnOk.addActionListener(new ActionListener() {
 
@@ -182,10 +143,6 @@ public class FontProperties {
             }
         });
 
-        Dimension size = btnCancel.getPreferredSize();
-        btnOk.setPreferredSize(size);
-
-        ret.add(btnReadonly);
         separ = new JSeparator();
         separ.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
         ret.add(separ);
@@ -196,11 +153,6 @@ public class FontProperties {
         ret.add(btnCancel);
 
         return ret;
-    }
-
-    public void setReadOnly(boolean selected) {
-        pGeneral.setReadOnly(selected);
-        pSize.setReadOnly(selected);
     }
 
     public int start(MFont font) {
@@ -220,7 +172,5 @@ public class FontProperties {
         this.font = font;
         pGeneral.setMFont(this.font);
         pSize.setMFont(this.font);
-
-        setReadOnly(true);
     }
 }
