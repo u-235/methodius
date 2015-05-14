@@ -2,28 +2,33 @@
 package forms.properties;
 
 import java.awt.GridBagConstraints;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
+import javax.swing.border.Border;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import forms.FontProperties;
 import microfont.MFont;
 import microfont.Metrics;
 import microfont.gui.MSymbolEditor;
+import utils.config.ConfigNode;
 import utils.resource.Resource;
 
-@SuppressWarnings("serial")
-public class PFontSize extends JPanel implements PropertyChangeListener {
-    Resource              res;
-    MFont                 mFont;
-    boolean               readOnly;
+public class PFontSize implements PropertyChangeListener {
+    protected Resource    res;
+    protected ConfigNode  config;
+    protected MFont       mFont;
+    protected JPanel      view;
     private JCheckBox     vFixsed;
     private JSpinner      vWidth;
     private JSpinner      vHeight;
@@ -37,11 +42,42 @@ public class PFontSize extends JPanel implements PropertyChangeListener {
     private JLabel        vMaxSize;
     private MSymbolEditor vSizeView;
 
-    public PFontSize(Resource res) {
-        super();
+    final static int      LABEL_TYPE     = 0;
+    final static int      LABEL_WIDTH    = 1;
+    final static int      LABEL_HEIGHT   = 2;
+    final static int      LABEL_LEFT     = 3;
+    final static int      LABEL_RIGHT    = 4;
+    final static int      LABEL_BASE     = 5;
+    final static int      LABEL_ASCENT   = 6;
+    final static int      LABEL_CAPITAL  = 7;
+    final static int      LABEL_DESCENT  = 8;
+    final static int      LABEL_SIZE_MAX = 9;
+    final static int      LABEL_SIZE_MIN = 10;
+
+    JLabel[]              labels;
+    String[]              resNames;
+
+    public PFontSize(Resource res, ConfigNode config) {
+        view = new JPanel();
         GridBagConstraints c = new GridBagConstraints();
 
-        setResource(res);
+        labels = new JLabel[11];
+        for (int i = 0; i < labels.length; i++) {
+            labels[i] = new JLabel("ghh");
+        }
+        
+        resNames=new String[11];
+        resNames[LABEL_HEIGHT]="properties.tab.fontsize.height";
+        resNames[LABEL_WIDTH]="properties.tab.fontsize.width";
+        resNames[LABEL_TYPE]="properties.tab.fontsize.type";
+        resNames[LABEL_ASCENT]="properties.tab.fontsize.ascent";
+        resNames[LABEL_BASE]="properties.tab.fontsize.base";
+        resNames[LABEL_CAPITAL]="properties.tab.fontsize.capital";
+        resNames[LABEL_DESCENT]="properties.tab.fontsize.descent";
+        resNames[LABEL_LEFT]="properties.tab.fontsize.left";
+        resNames[LABEL_RIGHT]="properties.tab.fontsize.right";
+        resNames[LABEL_SIZE_MAX]="properties.tab.fontsize.max";
+        resNames[LABEL_SIZE_MIN]="properties.tab.fontsize.min";
 
         vFixsed = new JCheckBox("fixsed");
         vFixsed.addActionListener(new ActionListener() {
@@ -189,75 +225,100 @@ public class PFontSize extends JPanel implements PropertyChangeListener {
         });
 
         vMinSize = new JLabel("");
+
         vMaxSize = new JLabel("");
 
         vSizeView = new MSymbolEditor();
 
+        c.ipadx = 7;
         c.fill = GridBagConstraints.BOTH;
-
-        c.gridheight = 11;
+        c.gridheight = 12;
+        c.gridwidth = 1;
         c.weightx = 1.0;
         c.weighty = 1.0;
-        FontProperties.addToGrid(this, new JScrollPane(vSizeView), c);
+        FontProperties.addToGrid(view, new JScrollPane(vSizeView), c);
+
         c.fill = GridBagConstraints.HORIZONTAL;
         c.weightx = 0;
         c.weighty = 0;
         c.gridheight = 1;
-        FontProperties.addToGrid(this, new JLabel("font type"), c);
+        c.gridwidth = 1;
+        FontProperties.addToGrid(view, labels[LABEL_TYPE], c);
         c.gridwidth = GridBagConstraints.REMAINDER; // end row
-        FontProperties.addToGrid(this, vFixsed, c);
+        FontProperties.addToGrid(view, vFixsed, c);
 
         c.gridwidth = 1;
-        FontProperties.addToGrid(this, new JLabel("минимально"), c);
+        FontProperties.addToGrid(view, labels[LABEL_SIZE_MIN], c);
         c.gridwidth = GridBagConstraints.REMAINDER;
-        FontProperties.addToGrid(this, vMinSize, c);
+        FontProperties.addToGrid(view, vMinSize, c);
 
         c.gridwidth = 1;
-        FontProperties.addToGrid(this, new JLabel("максимально"), c);
+        FontProperties.addToGrid(view, labels[LABEL_SIZE_MAX], c);
         c.gridwidth = GridBagConstraints.REMAINDER;
-        FontProperties.addToGrid(this, vMaxSize, c);
+        FontProperties.addToGrid(view, vMaxSize, c);
 
         c.gridwidth = 1;
-        FontProperties.addToGrid(this, new JLabel("symbol width"), c);
+        FontProperties.addToGrid(view, labels[LABEL_WIDTH], c);
         c.gridwidth = GridBagConstraints.REMAINDER; // end row
-        FontProperties.addToGrid(this, vWidth, c);
+        FontProperties.addToGrid(view, vWidth, c);
 
         c.gridwidth = 1;
-        FontProperties.addToGrid(this, new JLabel("symbol height"), c);
+        FontProperties.addToGrid(view, labels[LABEL_HEIGHT], c);
         c.gridwidth = GridBagConstraints.REMAINDER; // end row
-        FontProperties.addToGrid(this, vHeight, c);
+        FontProperties.addToGrid(view, vHeight, c);
 
         c.gridwidth = 1;
-        FontProperties.addToGrid(this, new JLabel("baseline"), c);
+        FontProperties.addToGrid(view, labels[LABEL_BASE], c);
         c.gridwidth = GridBagConstraints.REMAINDER; // end row
-        FontProperties.addToGrid(this, vBase, c);
+        FontProperties.addToGrid(view, vBase, c);
 
         c.gridwidth = 1;
-        FontProperties.addToGrid(this, new JLabel("ascent"), c);
+        FontProperties.addToGrid(view, labels[LABEL_ASCENT], c);
         c.gridwidth = GridBagConstraints.REMAINDER; // end row
-        FontProperties.addToGrid(this, vAscent, c);
+        FontProperties.addToGrid(view, vAscent, c);
 
         c.gridwidth = 1;
-        FontProperties.addToGrid(this, new JLabel("capital"), c);
+        FontProperties.addToGrid(view, labels[LABEL_CAPITAL], c);
         c.gridwidth = GridBagConstraints.REMAINDER; // end row
-        FontProperties.addToGrid(this, vCapital, c);
+        FontProperties.addToGrid(view, vCapital, c);
 
         c.gridwidth = 1;
-        FontProperties.addToGrid(this, new JLabel("descent"), c);
+        FontProperties.addToGrid(view, labels[LABEL_DESCENT], c);
         c.gridwidth = GridBagConstraints.REMAINDER; // end row
-        FontProperties.addToGrid(this, vDescent, c);
+        FontProperties.addToGrid(view, vDescent, c);
 
         c.gridwidth = 1;
-        FontProperties.addToGrid(this, new JLabel("left margin"), c);
+        FontProperties.addToGrid(view, labels[LABEL_LEFT], c);
         c.gridwidth = GridBagConstraints.REMAINDER; // end row
-        FontProperties.addToGrid(this, vLeft, c);
+        FontProperties.addToGrid(view, vLeft, c);
 
         c.gridwidth = 1;
-        FontProperties.addToGrid(this, new JLabel("right margin"), c);
+        FontProperties.addToGrid(view, labels[LABEL_RIGHT], c);
         c.gridwidth = GridBagConstraints.REMAINDER; // end row
-        FontProperties.addToGrid(this, vRight, c);
+        FontProperties.addToGrid(view, vRight, c);
 
-        updateReadOnly();
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        FontProperties.addToGrid(view, new JLabel(""), c);
+
+        setResource(res);
+    }
+
+    public JComponent view() {
+        return view;
+    }
+
+    protected void updateApperance() {
+        if (res == null) {
+            // TODO error --> log
+            return;
+        }
+        
+        vFixsed.setText(res.getString("properties.tab.fontsize.fixsed", Resource.TEXT_NAME_KEY));
+        
+        for (int i = 0; i < labels.length; i++) {
+            labels[i].setText(res
+                            .getString(resNames[i], Resource.TEXT_NAME_KEY));
+        }
     }
 
     public Resource getResource() {
@@ -266,6 +327,7 @@ public class PFontSize extends JPanel implements PropertyChangeListener {
 
     public void setResource(Resource res) {
         this.res = res;
+        updateApperance();
     }
 
     public MFont getMFont() {
@@ -290,27 +352,6 @@ public class PFontSize extends JPanel implements PropertyChangeListener {
         vMinSize.setText(((Integer) mFont.getMinWidth()).toString());
         vMaxSize.setText(((Integer) mFont.getMaxWidth()).toString());
         vSizeView.setPixselMap(mFont.symbolByIndex(35));
-    }
-
-    public boolean isReadOnly() {
-        return readOnly;
-    }
-
-    public void setReadOnly(boolean readOnly) {
-        this.readOnly = readOnly;
-        updateReadOnly();
-    }
-
-    void updateReadOnly() {
-        vFixsed.setEnabled(!readOnly);
-        vWidth.setEnabled(!readOnly);
-        vHeight.setEnabled(!readOnly);
-        vLeft.setEnabled(!readOnly);
-        vRight.setEnabled(!readOnly);
-        vBase.setEnabled(!readOnly);
-        vAscent.setEnabled(!readOnly);
-        vCapital.setEnabled(!readOnly);
-        vDescent.setEnabled(!readOnly);
     }
 
     @Override

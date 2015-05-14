@@ -22,6 +22,8 @@ import javax.swing.JTabbedPane;
 import javax.swing.JToolBar;
 import forms.properties.PFontGeneral;
 import forms.properties.PFontSize;
+import utils.config.ConfigNode;
+import utils.config.RootNode;
 import utils.resource.Resource;
 import microfont.MFont;
 
@@ -29,6 +31,7 @@ public class FontProperties {
     public static final int ACTION_CANCEL = 0;
     public static final int ACTION_OK     = 1;
     private Resource        res;
+    protected ConfigNode    config;
     private JDialog         form;
     private JTabbedPane     tab;
     private MFont           font;
@@ -38,8 +41,9 @@ public class FontProperties {
     private JButton         btnOk;
     private JButton         btnCancel;
 
-    public FontProperties(JFrame parent, Resource res) {
+    public FontProperties(JFrame parent, Resource res, ConfigNode config) {
         this.res = res;
+        this.config = config;
 
         form = new JDialog(parent, true);
         form.setLocationRelativeTo(parent);
@@ -53,13 +57,13 @@ public class FontProperties {
         });
         form.setLayout(new BorderLayout());
 
-        pGeneral = new PFontGeneral(res);
-        pSize = new PFontSize(res);
+        pGeneral = new PFontGeneral(res, config);
+        pSize = new PFontSize(res, config);
 
         tab = new JTabbedPane();
         tab.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-        tab.add(pGeneral);
-        tab.add(pSize);
+        tab.add(pGeneral.view());
+        tab.add(pSize.view());
         tab.add(doMap());
 
         form.add(tab, BorderLayout.CENTER);
@@ -98,7 +102,7 @@ public class FontProperties {
                     GridBagConstraints cnst) {
         LayoutManager lm = parent.getLayout();
 
-        if (lm == null || !(lm instanceof GridBagLayout)) {
+        if (!(lm instanceof GridBagLayout)) {
             lm = new GridBagLayout();
             parent.setLayout(lm);
         }

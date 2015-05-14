@@ -21,7 +21,6 @@ import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoManager;
 import microfont.Document;
 import microfont.MFont;
-import microfont.MSymbol;
 import microfont.ls.MFontLoadSave;
 import utils.config.ConfigNode;
 import utils.config.RootNode;
@@ -479,7 +478,7 @@ public class Application {
     public void showProperties() {
         MFont font = doc.getFont();
         MFont c;
-        if (fpf == null) fpf = new FontProperties(work, resource());
+        if (fpf == null) fpf = new FontProperties(work, resource(), config());
 
         if (font == null) return;
         c = font.clone();
