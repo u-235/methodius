@@ -20,18 +20,15 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JTabbedPane;
 import javax.swing.JToolBar;
+import microfont.MFont;
+import utils.config.ConfigNode;
+import utils.resource.Resource;
 import forms.properties.PFontGeneral;
 import forms.properties.PFontSize;
-import utils.config.ConfigNode;
-import utils.config.RootNode;
-import utils.resource.Resource;
-import microfont.MFont;
 
-public class FontProperties {
+public class FontProperties extends PanelControl {
     public static final int ACTION_CANCEL = 0;
     public static final int ACTION_OK     = 1;
-    private Resource        res;
-    protected ConfigNode    config;
     private JDialog         form;
     private JTabbedPane     tab;
     private MFont           font;
@@ -42,9 +39,6 @@ public class FontProperties {
     private JButton         btnCancel;
 
     public FontProperties(JFrame parent, Resource res, ConfigNode config) {
-        this.res = res;
-        this.config = config;
-
         form = new JDialog(parent, true);
         form.setLocationRelativeTo(parent);
         form.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -69,12 +63,14 @@ public class FontProperties {
         form.add(tab, BorderLayout.CENTER);
         form.add(doButtons(), BorderLayout.SOUTH);
 
-        updateApperance();
+        setResource(res);
+        setConfigNode(config);
 
         exitCode = ACTION_CANCEL;
     }
 
-    void updateApperance() {
+    @Override
+    public void updateFromResource() {
         form.setTitle(res.getText("properties.form"));
 
         tab.setTitleAt(0, res.getText("properties.tab.general"));
@@ -176,5 +172,10 @@ public class FontProperties {
         this.font = font;
         pGeneral.setMFont(this.font);
         pSize.setMFont(this.font);
+    }
+
+    @Override
+    public void updateFromConfig() {
+        // TODO Auto-generated method stub
     }
 }

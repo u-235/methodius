@@ -2,33 +2,27 @@
 package forms.properties;
 
 import java.awt.GridBagConstraints;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.JCheckBox;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
-import javax.swing.border.Border;
-import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import forms.FontProperties;
 import microfont.MFont;
 import microfont.Metrics;
 import microfont.gui.MSymbolEditor;
 import utils.config.ConfigNode;
 import utils.resource.Resource;
+import forms.FontProperties;
+import forms.PanelControl;
 
-public class PFontSize implements PropertyChangeListener {
-    protected Resource    res;
-    protected ConfigNode  config;
+public class PFontSize extends PanelControl implements PropertyChangeListener {
     protected MFont       mFont;
-    protected JPanel      view;
     private JCheckBox     vFixsed;
     private JSpinner      vWidth;
     private JSpinner      vHeight;
@@ -65,19 +59,19 @@ public class PFontSize implements PropertyChangeListener {
         for (int i = 0; i < labels.length; i++) {
             labels[i] = new JLabel("ghh");
         }
-        
-        resNames=new String[11];
-        resNames[LABEL_HEIGHT]="properties.tab.fontsize.height";
-        resNames[LABEL_WIDTH]="properties.tab.fontsize.width";
-        resNames[LABEL_TYPE]="properties.tab.fontsize.type";
-        resNames[LABEL_ASCENT]="properties.tab.fontsize.ascent";
-        resNames[LABEL_BASE]="properties.tab.fontsize.base";
-        resNames[LABEL_CAPITAL]="properties.tab.fontsize.capital";
-        resNames[LABEL_DESCENT]="properties.tab.fontsize.descent";
-        resNames[LABEL_LEFT]="properties.tab.fontsize.left";
-        resNames[LABEL_RIGHT]="properties.tab.fontsize.right";
-        resNames[LABEL_SIZE_MAX]="properties.tab.fontsize.max";
-        resNames[LABEL_SIZE_MIN]="properties.tab.fontsize.min";
+
+        resNames = new String[11];
+        resNames[LABEL_HEIGHT] = "properties.tab.fontsize.height";
+        resNames[LABEL_WIDTH] = "properties.tab.fontsize.width";
+        resNames[LABEL_TYPE] = "properties.tab.fontsize.type";
+        resNames[LABEL_ASCENT] = "properties.tab.fontsize.ascent";
+        resNames[LABEL_BASE] = "properties.tab.fontsize.base";
+        resNames[LABEL_CAPITAL] = "properties.tab.fontsize.capital";
+        resNames[LABEL_DESCENT] = "properties.tab.fontsize.descent";
+        resNames[LABEL_LEFT] = "properties.tab.fontsize.left";
+        resNames[LABEL_RIGHT] = "properties.tab.fontsize.right";
+        resNames[LABEL_SIZE_MAX] = "properties.tab.fontsize.max";
+        resNames[LABEL_SIZE_MIN] = "properties.tab.fontsize.min";
 
         vFixsed = new JCheckBox("fixsed");
         vFixsed.addActionListener(new ActionListener() {
@@ -301,33 +295,23 @@ public class PFontSize implements PropertyChangeListener {
         FontProperties.addToGrid(view, new JLabel(""), c);
 
         setResource(res);
+        setConfigNode(config);
     }
 
-    public JComponent view() {
-        return view;
-    }
-
-    protected void updateApperance() {
+    @Override
+    public void updateFromResource() {
         if (res == null) {
             // TODO error --> log
             return;
         }
-        
-        vFixsed.setText(res.getString("properties.tab.fontsize.fixsed", Resource.TEXT_NAME_KEY));
-        
+
+        vFixsed.setText(res.getString("properties.tab.fontsize.fixsed",
+                        Resource.TEXT_NAME_KEY));
+
         for (int i = 0; i < labels.length; i++) {
             labels[i].setText(res
                             .getString(resNames[i], Resource.TEXT_NAME_KEY));
         }
-    }
-
-    public Resource getResource() {
-        return res;
-    }
-
-    public void setResource(Resource res) {
-        this.res = res;
-        updateApperance();
     }
 
     public MFont getMFont() {
@@ -364,5 +348,10 @@ public class PFontSize implements PropertyChangeListener {
         vDescent.setValue(mFont.getMetric(Metrics.METRIC_DESCENT));
         vMinSize.setText(((Integer) mFont.getMinWidth()).toString());
         vMaxSize.setText(((Integer) mFont.getMaxWidth()).toString());
+    }
+
+    @Override
+    public void updateFromConfig() {
+        // TODO Auto-generated method stub
     }
 }

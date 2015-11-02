@@ -6,23 +6,20 @@ import java.awt.event.FocusListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.BoxLayout;
-import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
+import forms.PanelControl;
 import microfont.MFont;
 import utils.config.ConfigNode;
-import utils.config.RootNode;
 import utils.resource.Resource;
 
-public class PFontGeneral implements PropertyChangeListener {
-    protected Resource    res;
-    protected ConfigNode config;
+public class PFontGeneral extends PanelControl implements
+                PropertyChangeListener {
     protected MFont       mFont;
-    protected JPanel      view;
     protected JPanel      namePanel;
     protected JPanel      protoPanel;
     protected JScrollPane scroll;
@@ -92,14 +89,11 @@ public class PFontGeneral implements PropertyChangeListener {
         view.add(scroll, 2);
 
         setResource(res);
-        this.config=config;
+        setConfigNode(config);
     }
 
-    public JComponent view() {
-        return view;
-    }
-
-    protected void updateApperance() {
+    @Override
+    public void updateFromResource() {
         Border border;
         TitledBorder tBorder;
         String text;
@@ -149,15 +143,6 @@ public class PFontGeneral implements PropertyChangeListener {
         }
     }
 
-    public Resource getResource() {
-        return res;
-    }
-
-    public void setResource(Resource res) {
-        this.res = res;
-        updateApperance();
-    }
-
     public MFont getMFont() {
         return mFont;
     }
@@ -173,8 +158,12 @@ public class PFontGeneral implements PropertyChangeListener {
     }
 
     @Override
-    public void propertyChange(PropertyChangeEvent event) {
+    public void propertyChange(PropertyChangeEvent evt) {
         // TODO Auto-generated method stub
+    }
 
+    @Override
+    public void updateFromConfig() {
+        // TODO Auto-generated method stub
     }
 }
