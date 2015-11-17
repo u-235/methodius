@@ -17,7 +17,7 @@ public class Parser {
     public final static int ESCAPE        = 8;
 
     public static void parse(InputStream input, Handler handler, IniStyle style)
-                    throws IOException {
+                    throws IOException, InterruptedException {
         if (input == null || handler == null) return;
         if (style == null) style = IniStyle.flexible();
 
@@ -31,6 +31,11 @@ public class Parser {
         while ((ch = reader.read()) != -1) {
             prev = curr;
             curr = ch;
+            
+            if (Thread.interrupted()) {
+                Thread.currentThread().interrupt();
+                throw new InterruptedException();
+            }
 
             if (state == NEW_LINE) {
                 // Очистка буфера при переходе на начало строки.

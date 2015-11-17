@@ -240,6 +240,10 @@ public class Application {
             JOptionPane.showMessageDialog(null, "Can't open file.", "Error",
                             JOptionPane.OK_OPTION);
             return;
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return;
         }
 
         if (font == null) {

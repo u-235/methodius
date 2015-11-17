@@ -123,7 +123,7 @@ public class MFontLoadSave {
     }
 
     public static MFont load(File f, MFontLoadProgress progress)
-                    throws IOException {
+                    throws IOException, InterruptedException {
         FileInputStream inp = new FileInputStream(f);
 
         FontHandler fhandler = new FontHandler();
@@ -132,13 +132,16 @@ public class MFontLoadSave {
         } catch (IOException e) {
             inp.close();
             throw (e);
+        } catch (InterruptedException e) {
+            inp.close();
+            throw (e);
         }
 
         inp.close();
         return fhandler.font;
     }
 
-    public static MFont load(File f) throws IOException {
+    public static MFont load(File f) throws IOException, InterruptedException {
         return load(f, null);
     }
 
