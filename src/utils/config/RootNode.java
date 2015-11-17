@@ -48,35 +48,38 @@ public abstract class RootNode extends ConfigNode {
     }
 
     public final synchronized void load(File file) {
-        FileInputStream in;
+        ConfigLoader loader;
 
         if (file == null) {
             throw new NullPointerException();
         }
 
         try {
-            in = new FileInputStream(file);
+            loader = doLoader(new FileInputStream(file));
         } catch (FileNotFoundException e) {
             log.log(Level.INFO, "File {0} not found", file.getAbsolutePath());
             return;
         }
 
         try {
-            loadS(in);
+            loader.load();
         } catch (IOException e) {
             log.log(Level.INFO, "Error while load file {0}",
+                            file.getAbsolutePath());
+        } catch (InterruptedException e) {
+            log.log(Level.INFO, "Interrupt while load file {0}",
                             file.getAbsolutePath());
         }
 
         try {
-            in.close();
+            loader.close();
         } catch (IOException e) {
             log.log(Level.WARNING, "Error while close file {0}",
                             file.getAbsolutePath());
         }
     }
 
-    protected abstract void loadS(InputStream in) throws IOException;
+    protected abstract ConfigLoader doLoader(InputStream in);
 
     public final synchronized void save() {
         if (file != null) save(file);
@@ -87,33 +90,36 @@ public abstract class RootNode extends ConfigNode {
     }
 
     public final synchronized void save(File file) {
-        FileOutputStream out;
+        ConfigSaver saver;
 
         if (file == null) {
             throw new NullPointerException();
         }
 
         try {
-            out = new FileOutputStream(file);
+            saver=doSaver( new FileOutputStream(file));
         } catch (FileNotFoundException e) {
             log.log(Level.INFO, "File {0} not found", file.getAbsolutePath());
             return;
         }
 
         try {
-            saveS(out);
+            saver.save();
         } catch (IOException e1) {
             log.log(Level.INFO, "Error while save file {0}",
+                            file.getAbsolutePath());
+        } catch (InterruptedException e) {
+            log.log(Level.INFO, "Interrupt while save file {0}",
                             file.getAbsolutePath());
         }
 
         try {
-            out.close();
+            saver.close();
         } catch (IOException e) {
             log.log(Level.WARNING, "Error while close file {0}",
                             file.getAbsolutePath());
         }
     }
 
-    protected abstract void saveS(OutputStream out) throws IOException;
+    protected abstract ConfigSaver doSaver(OutputStream out);
 }

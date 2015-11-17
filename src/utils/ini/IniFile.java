@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.logging.Level;
+import utils.config.ConfigLoader;
+import utils.config.ConfigSaver;
 import utils.config.RootNode;
 import utils.config.ConfigNode;
 
@@ -35,49 +37,35 @@ public class IniFile extends RootNode {
     }
 
     @Override
-    protected void loadS(InputStream in) throws IOException {
-        Parser.parse(in, new IniHandler(), style);
+    protected ConfigLoader doLoader(InputStream in) {
+        return new Reader(in);
     }
 
-    @Override
-    protected void saveS(OutputStream out) throws IOException {
-        Saver svr = new Saver(out, style);
-        try {
-            save(this, svr);
-        } catch (IOException e) {
-            svr.close();
-            throw e;
+    class Reader implements ConfigLoader {
+        Parser parser;
+
+        public Reader(InputStream in, IniStyle st) {
+            parser = new Parser(in, st);
         }
-        svr.close();
-    }
 
-    protected void save(ConfigNode node, Saver svr) throws IOException {
-        if (!node.isEmpty()) {
-            String com;
-            String val;
+        public Reader(InputStream in) {
+            parser = new Parser(in, style);
+        }
 
-            try {
-                com = node.getComment();
-                val = node.absolutePath().substring(1);
+        @Override
+        public void close() throws IOException {
+            Parser p = parser;
+            parser = null;
+            p.close();
+        }
 
-                svr.comment(com);
-                svr.section(val);
-
-                for (String k : node.keys()) {
-                    com = node.getComment(k);
-                    val = node.get(k, null);
-                    svr.comment(com);
-                    svr.key(k, val);
-                }
-            } catch (IllegalStateException ignore) {
-                log.log(Level.CONFIG, "Node {0} removed", node.absolutePath());
+        @Override
+        public void load() throws IOException, InterruptedException {
+            if (parser == null) {
+                throw new IOException("Parser already close");
             }
 
-            svr.newLine();
-        }
-
-        for (String n : node.childrenNames()) {
-            save(node.node(n), svr);
+            parser.parse(new IniHandler());
         }
     }
 
@@ -125,6 +113,66 @@ public class IniFile extends RootNode {
                 key = null;
             }
             comment = null;
+        }
+    }
+
+    @Override
+    protected ConfigSaver doSaver(OutputStream out) {
+        return new Saver(out, style);
+    }
+
+    class Saver implements ConfigSaver {
+        Formater formater;
+
+        public Saver(OutputStream out, IniStyle st) {
+            formater = new Formater(out, st);
+        }
+
+        public Saver(OutputStream out) {
+            this(out, style);
+        }
+
+        @Override
+        public void close() throws IOException {
+            Formater f = formater;
+            formater = null;
+            f.close();
+        }
+
+        @Override
+        public void save() throws IOException, InterruptedException {
+            save(IniFile.this);
+        }
+
+        protected void save(ConfigNode node) throws IOException {
+            if (!node.isEmpty()) {
+                String com;
+                String val;
+
+                try {
+                    com = node.getComment();
+                    val = node.absolutePath().substring(1);
+
+                    formater.comment(com);
+                    formater.section(val);
+
+                    for (String k : node.keys()) {
+                        com = node.getComment(k);
+                        val = node.get(k, null);
+                        formater.comment(com);
+                        formater.key(k, val);
+                    }
+                } catch (IllegalStateException ignore) {
+                    log.log(Level.CONFIG, "Node {0} removed",
+                                    node.absolutePath());
+                }
+
+                formater.newLine();
+            }
+
+            for (String n : node.childrenNames()) {
+                save(node.node(n));
+            }
         }
     }
 }
