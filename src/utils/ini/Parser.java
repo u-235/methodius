@@ -1,11 +1,13 @@
 
 package utils.ini;
 
+import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-public class Parser {
+public class Parser implements Closeable {
     public final static int NEW_LINE      = 0;
     public final static int BEGIN_LINE    = 1;
     public final static int COMMENT       = 2;
@@ -15,13 +17,32 @@ public class Parser {
     public final static int KEY_END       = 6;
     public final static int VALUE         = 7;
     public final static int ESCAPE        = 8;
+    private BufferedReader  reader;
+    IniStyle                style;
 
-    public static void parse(InputStream input, Handler handler, IniStyle style)
+    public Parser(InputStream in, IniStyle style) {
+        if (style == null) this.style = IniStyle.flexible();
+        else this.style = style;
+
+        reader = new BufferedReader(new InputStreamReader(in,
+                        this.style.charset));
+    }
+
+    public Parser(InputStream in) {
+        this(in, null);
+    }
+
+    @Override
+    public void close() throws IOException {
+        if (reader == null) return;
+        reader.close();
+        reader = null;
+    }
+
+    public void parse(Handler handler)
                     throws IOException, InterruptedException {
-        if (input == null || handler == null) return;
-        if (style == null) style = IniStyle.flexible();
+        if (handler == null) return;
 
-        InputStreamReader reader = new InputStreamReader(input, style.charset());
         int line = 0, col = 0;
         int ch;
         int prev, curr = 0;
@@ -31,7 +52,7 @@ public class Parser {
         while ((ch = reader.read()) != -1) {
             prev = curr;
             curr = ch;
-            
+
             if (Thread.interrupted()) {
                 Thread.currentThread().interrupt();
                 throw new InterruptedException();
@@ -159,7 +180,5 @@ public class Parser {
             handler.error(state, curr, line, col);
             state = NEW_LINE;
         }
-
-        reader.close();
     }
 }

@@ -127,17 +127,18 @@ public class MFontLoadSave {
         FileInputStream inp = new FileInputStream(f);
 
         FontHandler fhandler = new FontHandler();
+        Parser parser=new Parser(inp);
         try {
-            Parser.parse(inp, fhandler, null);
+            parser.parse( fhandler);
         } catch (IOException e) {
-            inp.close();
+            parser.close();
             throw (e);
         } catch (InterruptedException e) {
-            inp.close();
+            parser.close();
             throw (e);
         }
 
-        inp.close();
+        parser.close();
         return fhandler.font;
     }
 
