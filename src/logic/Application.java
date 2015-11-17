@@ -25,7 +25,7 @@ import microfont.ls.MFontLoadSave;
 import utils.config.ConfigNode;
 import utils.config.RootNode;
 import utils.ini.IniFile;
-import utils.ini.Saver;
+import utils.ini.Formater;
 import utils.recent.RecentFiles;
 import utils.recent.SelectFileListener;
 import utils.resource.Resource;
@@ -354,7 +354,7 @@ public class Application {
         }
 
         try {
-            MFontLoadSave.save(font, new Saver(new FileOutputStream(fontFile)));
+            MFontLoadSave.save(font, new Formater(new FileOutputStream(fontFile)));
         } catch (FileNotFoundException e) {
             JOptionPane.showMessageDialog(null, "Файл не найден.", "Ошибка",
                             JOptionPane.OK_OPTION);

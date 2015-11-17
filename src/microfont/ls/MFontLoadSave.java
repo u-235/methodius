@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.StringTokenizer;
 import utils.ini.Handler;
 import utils.ini.Parser;
-import utils.ini.Saver;
+import utils.ini.Formater;
 import microfont.MFont;
 import microfont.MSymbol;
 import microfont.Metrics;
@@ -41,7 +41,7 @@ public class MFontLoadSave {
      * @throws NullPointerException Если файл <b>svr</b> равен <b>null</b>.
      * @throws IOException
      */
-    public static void save(MFont mFont, Saver svr, MFontSaveProgress progress)
+    public static void save(MFont mFont, Formater svr, MFontSaveProgress progress)
                     throws NullPointerException, IOException {
         MSymbol sym;
         int w, last;
@@ -117,7 +117,7 @@ public class MFontLoadSave {
         svr.close();
     }
 
-    public static void save(MFont mFont, Saver svr)
+    public static void save(MFont mFont, Formater svr)
                     throws NullPointerException, IOException {
         save(mFont, svr, null);
     }
