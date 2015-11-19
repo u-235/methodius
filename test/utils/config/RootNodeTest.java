@@ -28,13 +28,15 @@ public class RootNodeTest extends ConfigNodeTest {
         }
 
         @Override
-        protected void loadS(InputStream in) throws IOException {
+        protected ConfigSaver doSaver(OutputStream out) {
             // TODO Auto-generated method stub
+            return null;
         }
 
         @Override
-        protected void saveS(OutputStream out) throws IOException {
+        protected ConfigLoader doLoader(InputStream in) {
             // TODO Auto-generated method stub
+            return null;
         }
     }
 
