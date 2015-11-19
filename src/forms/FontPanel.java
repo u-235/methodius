@@ -95,11 +95,11 @@ public class FontPanel extends JPanel {
         if (index < 0) index = 0;
         listModel.setFont(font);
         if (font != null) {
-            //TODO set fonts in constructor
+            // TODO set fonts in constructor
             Font f = listRender.getSampleFont();
-            if (f==null)f = new Font("Dialog", Font.PLAIN, 24);
-            f=f.deriveFont((float) font.getHeight());
-            
+            if (f == null) f = new Font("Dialog", Font.PLAIN, 24);
+            f = f.deriveFont((float) font.getHeight());
+
             view.setSampleFont(f);
             listRender.setSampleFont(f);
         }

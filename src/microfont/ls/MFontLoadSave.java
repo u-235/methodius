@@ -41,16 +41,17 @@ public class MFontLoadSave {
      * @throws NullPointerException Если файл <b>svr</b> равен <b>null</b>.
      * @throws IOException
      */
-    public static void save(MFont mFont, Formater svr, MFontSaveProgress progress)
-                    throws NullPointerException, IOException {
+    public static void save(MFont mFont, Formater svr,
+                    MFontSaveProgress progress) throws NullPointerException,
+                    IOException {
         MSymbol sym;
         int w, last;
         byte[] arr;
 
-        if (svr == null){
+        if (svr == null) {
             throw (new IllegalArgumentException("file is null"));
         }
-        
+
         try {
             svr.comment(" This is MFont file. Version 0.8"
                             + "\n If yuor need edit this file use \"Methodius\".");
@@ -127,9 +128,9 @@ public class MFontLoadSave {
         FileInputStream inp = new FileInputStream(f);
 
         FontHandler fhandler = new FontHandler();
-        Parser parser=new Parser(inp);
+        Parser parser = new Parser(inp);
         try {
-            parser.parse( fhandler);
+            parser.parse(fhandler);
         } catch (IOException e) {
             parser.close();
             throw (e);

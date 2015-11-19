@@ -97,7 +97,7 @@ public abstract class RootNode extends ConfigNode {
         }
 
         try {
-            saver=doSaver( new FileOutputStream(file));
+            saver = doSaver(new FileOutputStream(file));
         } catch (FileNotFoundException e) {
             log.log(Level.INFO, "File {0} not found", file.getAbsolutePath());
             return;

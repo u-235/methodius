@@ -109,6 +109,6 @@ public class MListModel extends AbstractListModel<MSymbol> implements
 
     @Override
     public void pixselChanged(PixselMapEvent e) {
-        delayUpdate( font.indexAt((MSymbol) e.getSource()));
+        delayUpdate(font.indexAt((MSymbol) e.getSource()));
     }
 }

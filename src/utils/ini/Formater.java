@@ -37,7 +37,7 @@ public class Formater implements Closeable {
      * перевода строки на \r и \n
      */
     private static String checkString(String s) {
-        if (s==null || s.isEmpty()) return "";
+        if (s == null || s.isEmpty()) return "";
 
         s = s.replace("\\", "\\\\");
         s = s.replace("\n", "\\n");

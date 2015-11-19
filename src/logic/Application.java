@@ -354,7 +354,8 @@ public class Application {
         }
 
         try {
-            MFontLoadSave.save(font, new Formater(new FileOutputStream(fontFile)));
+            MFontLoadSave.save(font, new Formater(
+                            new FileOutputStream(fontFile)));
         } catch (FileNotFoundException e) {
             JOptionPane.showMessageDialog(null, "Файл не найден.", "Ошибка",
                             JOptionPane.OK_OPTION);

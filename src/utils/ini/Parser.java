@@ -39,8 +39,7 @@ public class Parser implements Closeable {
         reader = null;
     }
 
-    public void parse(Handler handler)
-                    throws IOException, InterruptedException {
+    public void parse(Handler handler) throws IOException, InterruptedException {
         if (handler == null) return;
 
         int line = 0, col = 0;
