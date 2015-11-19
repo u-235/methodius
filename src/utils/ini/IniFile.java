@@ -144,7 +144,15 @@ public class IniFile extends RootNode {
             save(IniFile.this);
         }
 
-        protected void save(ConfigNode node) throws IOException {
+        void testInterrupt() throws InterruptedException {
+            if (Thread.interrupted()) {
+                Thread.currentThread().interrupt();
+                throw new InterruptedException();
+            }
+        }
+
+        protected void save(ConfigNode node) throws IOException,
+                        InterruptedException {
             if (!node.isEmpty()) {
                 String com;
                 String val;
@@ -153,12 +161,15 @@ public class IniFile extends RootNode {
                     com = node.getComment();
                     val = node.absolutePath().substring(1);
 
+                    testInterrupt();
                     formater.comment(com);
                     formater.section(val);
 
                     for (String k : node.keys()) {
                         com = node.getComment(k);
                         val = node.get(k, null);
+
+                        testInterrupt();
                         formater.comment(com);
                         formater.key(k, val);
                     }
