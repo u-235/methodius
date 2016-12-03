@@ -14,6 +14,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import microfont.AbstractPixselMap;
 import microfont.MSymbol;
+import microfont.Metrics;
 
 /**
  */
@@ -32,7 +33,7 @@ public class MSymbolView extends AbstractView {
     public MSymbolView() {
         super();
         symListener = new SymbolListener();
-        setPixselSize(1);
+        getSymbolRender().setPixselSize(1);
         setOpaque(true);
         setBackground(Color.WHITE);
         samplePos = new Point();
@@ -171,11 +172,12 @@ public class MSymbolView extends AbstractView {
                 unicodeOffset = fm.getAscent();
             }
 
-            renderSize.width = render().getWidth();
-            renderSize.height = render().getHeight();
-            if (owner != null && owner.isMetricActually(METRIC_BASELINE)) {
-                renderOffset = render().pixselToPointY(
-                                owner.getMetric(METRIC_BASELINE));
+            renderSize.width = getSymbolRender().getWidth();
+            renderSize.height = getSymbolRender().getHeight();
+            if (owner != null
+                            && owner.isMetricActually(Metrics.METRIC_BASELINE)) {
+                renderOffset = getSymbolRender().pixselToPointY(
+                                owner.getMetric(Metrics.METRIC_BASELINE));
             } else {
                 renderOffset = 0;
             }
