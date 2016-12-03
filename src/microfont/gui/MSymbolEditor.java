@@ -30,19 +30,24 @@ public class MSymbolEditor extends AbstractView {
         handler = new MouseHandler();
         setLayout(new MSymbolEditorLayout());
 
-        setPixselSize(4);
-        setSpacing(1);
-        setColor(ColorIndex.COLOR_PAPER_MARGINS, Color.LIGHT_GRAY);
-        setColor(ColorIndex.COLOR_INK, Color.BLACK);
-        setColor(ColorIndex.COLOR_INK_MARGINS, new Color(60, 0, 0));
-        setColor(ColorIndex.COLOR_PAPER_ASCENT, new Color(224, 224, 224));
-        setColor(ColorIndex.COLOR_PAPER, Color.WHITE);
-        setColor(ColorIndex.COLOR_SPACE, new Color(208, 208, 208));
-        setColor(ColorIndex.COLOR_GRID, new Color(128, 128, 128));
-        setGridSize(3);
-        setGridThickness(1);
-        setDrawGrid(true);
-        setDrawMargins(true);
+        getSymbolRender().setPixselSize(4);
+        getSymbolRender().setSpacing(1);
+        getSymbolRender().setColor(ColorIndex.COLOR_PAPER_MARGINS,
+                        Color.LIGHT_GRAY);
+        getSymbolRender().setColor(ColorIndex.COLOR_INK, Color.BLACK);
+        getSymbolRender().setColor(ColorIndex.COLOR_INK_MARGINS,
+                        new Color(60, 0, 0));
+        getSymbolRender().setColor(ColorIndex.COLOR_PAPER_ASCENT,
+                        new Color(224, 224, 224));
+        getSymbolRender().setColor(ColorIndex.COLOR_PAPER, Color.WHITE);
+        getSymbolRender().setColor(ColorIndex.COLOR_SPACE,
+                        new Color(208, 208, 208));
+        getSymbolRender().setColor(ColorIndex.COLOR_GRID,
+                        new Color(128, 128, 128));
+        getSymbolRender().setGridSize(3);
+        getSymbolRender().setGridThickness(1);
+        getSymbolRender().setDrawGrid(true);
+        getSymbolRender().setDrawMargins(true);
 
         addMouseListener(handler);
         addMouseMotionListener(handler);
@@ -84,7 +89,8 @@ public class MSymbolEditor extends AbstractView {
 
         @Override
         public Dimension preferredLayoutSize(Container parent) {
-            return new Dimension(render().getWidth(), render().getHeight());
+            return new Dimension(getSymbolRender().getWidth(),
+                            getSymbolRender().getHeight());
         }
 
         @Override
@@ -95,8 +101,8 @@ public class MSymbolEditor extends AbstractView {
 
         @Override
         public void layoutContainer(Container parent) {
-            int w = (parent.getWidth() - render().getWidth()) / 2;
-            int h = (parent.getHeight() - render().getHeight()) / 2;
+            int w = (parent.getWidth() - getSymbolRender().getWidth()) / 2;
+            int h = (parent.getHeight() - getSymbolRender().getHeight()) / 2;
 
             renderPos.x = w < 0 ? 0 : w;
             renderPos.y = h < 0 ? 0 : h;
@@ -115,7 +121,7 @@ public class MSymbolEditor extends AbstractView {
 
         @Override
         public void mouseDragged(MouseEvent e) {
-            info = render().getPointInfo(info, e.getX() - renderPos.x,
+            info = getSymbolRender().getPointInfo(info, e.getX() - renderPos.x,
                             e.getY() - renderPos.y);
             if (control != null) {
                 control.mouseDragged(MSymbolEditor.this, e, info);
@@ -130,7 +136,7 @@ public class MSymbolEditor extends AbstractView {
 
         @Override
         public void mouseMoved(MouseEvent e) {
-            info = render().getPointInfo(info, e.getX() - renderPos.x,
+            info = getSymbolRender().getPointInfo(info, e.getX() - renderPos.x,
                             e.getY() - renderPos.y);
             if (control != null) {
                 control.mouseMoved(MSymbolEditor.this, e, info);
@@ -139,7 +145,7 @@ public class MSymbolEditor extends AbstractView {
 
         @Override
         public void mouseClicked(MouseEvent e) {
-            info = render().getPointInfo(info, e.getX() - renderPos.x,
+            info = getSymbolRender().getPointInfo(info, e.getX() - renderPos.x,
                             e.getY() - renderPos.y);
             if (control != null) {
                 control.mouseClicked(MSymbolEditor.this, e, info);
@@ -160,7 +166,7 @@ public class MSymbolEditor extends AbstractView {
 
         @Override
         public void mousePressed(MouseEvent e) {
-            info = render().getPointInfo(info, e.getX() - renderPos.x,
+            info = getSymbolRender().getPointInfo(info, e.getX() - renderPos.x,
                             e.getY() - renderPos.y);
             if (control != null) {
                 control.mousePressed(MSymbolEditor.this, e, info);
@@ -179,7 +185,7 @@ public class MSymbolEditor extends AbstractView {
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            info = render().getPointInfo(info, e.getX() - renderPos.x,
+            info = getSymbolRender().getPointInfo(info, e.getX() - renderPos.x,
                             e.getY() - renderPos.y);
             if (control != null) {
                 control.mouseReleased(MSymbolEditor.this, e, info);
