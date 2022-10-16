@@ -1,0 +1,17 @@
+# Ignore Gradle project-specific directories and files.
+.gradle
+build
+dist
+
+# Ignore Idea project-specific directories and files.
+.idea
+local.properties
+
+# Ignore Eclipse project-specific directories and files.
+.classpath
+.project
+.settings
+
+bin
+doc
+
