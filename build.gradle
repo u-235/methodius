@@ -1,0 +1,21 @@
+
+plugins {
+    id 'java'
+    id 'application'
+}
+
+compileJava {
+    sourceCompatibility = '1.6'
+    targetCompatibility = '1.6'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13'
+}
+
+version = '0.7.0'
+mainClassName = 'logic.Application'
